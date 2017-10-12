@@ -66,12 +66,63 @@ typedef struct arvr_data_struct {
 	godot_transform hmd_transform;
 } arvr_data_struct;
 
+char * openvr_get_device_name(arvr_data_struct *p_arvr_data, vr::TrackedDeviceIndex_t p_tracked_device_index, int pMaxLen) {
+	static char returnstring[1025] = "Not initialised";
+
+	// don't go bigger then this...
+	if (pMaxLen > 1024) {
+		pMaxLen = 1024;
+	};
+
+	if ((p_arvr_data->hmd != NULL) && (p_tracked_device_index != vr::k_unTrackedDeviceIndexInvalid)) {
+		uint32_t namelength = p_arvr_data->hmd->GetStringTrackedDeviceProperty(p_tracked_device_index, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+		if (namelength > 0) {
+			if (namelength > pMaxLen) {
+				namelength = pMaxLen;
+			};
+
+			p_arvr_data->hmd->GetStringTrackedDeviceProperty(p_tracked_device_index, vr::Prop_RenderModelName_String, returnstring, namelength, NULL);
+		};
+	};
+
+	return returnstring;
+};
+
 void openvr_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
-	// later
+	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
+		// we no longer track our HMD, this is all handled in ARVROrigin :)
+	} else if (p_arvr_data->trackers[p_device_index] == 0) {
+		char device_name[256];
+		strcpy(device_name, openvr_get_device_name(p_arvr_data, p_device_index, 255));
+		printf("Found openvr device %i (%s)\n", p_device_index, device_name);
+
+		if (strstr(device_name, "basestation") != NULL) {
+			// ignore base stations for now
+		} else if (strstr(device_name, "camera") != NULL) {
+			// ignore cameras for now
+		} else {
+			godot_int hand = 0;
+			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
+
+			// get our controller role
+			vr::ETrackedPropertyError error;
+			int32_t controllerRole = p_arvr_data->hmd->GetInt32TrackedDeviceProperty(p_device_index, vr::Prop_ControllerRoleHint_Int32, &error);
+			if (controllerRole == vr::TrackedControllerRole_RightHand) {
+				hand = 2;
+			} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
+				hand = 1;
+			}
+
+			p_arvr_data->trackers[p_device_index] = api->godot_arvr_add_controller(device_name, hand, true, true);
+		};
+	};
 };
 
 void openvr_detach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
-	// later
+	if (p_arvr_data->trackers[p_device_index] != 0) {
+		api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
+		p_arvr_data->trackers[p_device_index] = 0;
+	};
 };
 
 void openvr_transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_matrix, godot_real p_world_scale) {
@@ -279,16 +330,6 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_
 		vr::HmdMatrix34_t matrix = arvr_data->hmd->GetEyeToHeadTransform(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right);
 
 		openvr_transform_from_matrix(&transform_for_eye, &matrix, world_scale);
-/*
-		transform_for_eye.basis.set(
-				matrix.m[0][0], matrix.m[0][1], matrix.m[0][2],
-				matrix.m[1][0], matrix.m[1][1], matrix.m[1][2],
-				matrix.m[2][0], matrix.m[2][1], matrix.m[2][2]);
-
-		transform_for_eye.origin.x = matrix.m[0][3] * world_scale;
-		transform_for_eye.origin.y = matrix.m[1][3] * world_scale;
-		transform_for_eye.origin.z = matrix.m[2][3] * world_scale;
-*/
 	} else {
 		// really not needed, just being paranoid..
 		godot_vector3 offset;
@@ -320,7 +361,6 @@ void GDN_EXPORT godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_p
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
 				p_projection[k++] = matrix.m[j][i];
-//				camera.matrix[i][j] = matrix.m[j][i];
 			};
 		};
 	} else {
@@ -395,62 +435,32 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 				// bit wasteful copying it but I don't want to type so much!
 				vr::HmdMatrix34_t matPose = arvr_data->tracked_device_pose[i].mDeviceToAbsoluteTracking;
 
-/*
-				Basis orientation;
-				orientation.set(
-						matPose.m[0][0], matPose.m[0][1], matPose.m[0][2],
-						matPose.m[1][0], matPose.m[1][1], matPose.m[1][2],
-						matPose.m[2][0], matPose.m[2][1], matPose.m[2][2]);
-
-				Vector3 position;
-				position.x = matPose.m[0][3];
-				position.y = matPose.m[1][3];
-				position.z = matPose.m[2][3];
-*/
-
 				if (i == 0) {
 					// store our HMD transform
 					openvr_transform_from_matrix(&arvr_data->hmd_transform, &matPose, world_scale);
-				} else if (arvr_data->trackers[i] != NULL) {
+				} else if (arvr_data->trackers[i] != 0) {
 					godot_transform transform;
 					openvr_transform_from_matrix(&transform, &matPose, 1.0);
-//					api->godot_arvr_set_tracker_transform(trackers[i], &transform);
-//					trackers[i]->set_orientation(orientation);
-//					trackers[i]->set_rw_position(position);
+					api->godot_arvr_set_controller_transform(arvr_data->trackers[i], &transform, true, true);
 
 					// update our button state structure
 					vr::VRControllerState_t new_state;
 					arvr_data->hmd->GetControllerState(i, &new_state, sizeof(vr::VRControllerState_t));
 					if (arvr_data->tracked_device_state[i].unPacketNum != new_state.unPacketNum) {
 						// we currently have 8 defined buttons on VIVE controllers.
-/*
 						for (int button = 0; button < 8; button++) {
-							api->godot_arvr_set_controller_button(trackers[i], button, new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button));
-//							input->joy_button(joyid, button, new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button));
+							api->godot_arvr_set_controller_button(arvr_data->trackers[i], button, new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button));
 						};
 
 						// support 3 axis for now, this may need to be enhanced
-						InputDefault::JoyAxis jx;
-						jx.min = -1;
-						jx.value = new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].x;
-//						input->joy_axis(joyid, JOY_AXIS_0, jx);
-						api->godot_arvr_set_controller_axis(trackers[i], JOY_AXIS_0, jx);
+						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 0, new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].x, true);
+						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 1, new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].y, true);
+						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 2, new_state.rAxis[vr::k_EButton_SteamVR_Trigger].x, false);
 
-						jx.value = new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].y;
-//						input->joy_axis(joyid, JOY_AXIS_1, jx);
-						api->godot_arvr_set_controller_axis(trackers[i], JOY_AXIS_1, jx);
-
-						jx.min = 0;
-						jx.value = new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].x;
-//						input->joy_axis(joyid, JOY_AXIS_2, jx);
-						api->godot_arvr_set_controller_axis(trackers[i], JOY_AXIS_2, jx);
-*/
 						arvr_data->tracked_device_state[i] = new_state;
 					};
 				};
 			};
 		};
 	};
-
-
 };
