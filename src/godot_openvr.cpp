@@ -444,18 +444,38 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 					api->godot_arvr_set_controller_transform(arvr_data->trackers[i], &transform, true, true);
 
 					// update our button state structure
+					vr::VRControllerState_t old_state = arvr_data->tracked_device_state[i];
 					vr::VRControllerState_t new_state;
 					arvr_data->hmd->GetControllerState(i, &new_state, sizeof(vr::VRControllerState_t));
 					if (arvr_data->tracked_device_state[i].unPacketNum != new_state.unPacketNum) {
 						// we currently have 8 defined buttons on VIVE controllers.
 						for (int button = 0; button < 8; button++) {
-							api->godot_arvr_set_controller_button(arvr_data->trackers[i], button, new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button));
+							bool was_pressed = old_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button);
+							bool is_pressed = new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button);
+							if (was_pressed != is_pressed) {
+								api->godot_arvr_set_controller_button(arvr_data->trackers[i], button, is_pressed);
+							};
 						};
 
-						// support 3 axis for now, this may need to be enhanced
-						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 0, new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].x, true);
-						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 1, new_state.rAxis[vr::k_EButton_SteamVR_Touchpad].y, true);
-						api->godot_arvr_set_controller_axis(arvr_data->trackers[i], 2, new_state.rAxis[vr::k_EButton_SteamVR_Trigger].x, false);
+						// OpenVR supports 5 axis with x/y, godot only '4', so we'll ignore the last axis..
+						for (int axis = 0; axis < 4; axis++) {
+							vr::EVRControllerAxisType axis_type = (vr::EVRControllerAxisType) arvr_data->hmd->GetInt32TrackedDeviceProperty(i, (vr::ETrackedDeviceProperty) (vr::Prop_Axis0Type_Int32 + axis));
+							if (axis_type == vr::k_eControllerAxis_None) {
+								// not applicable for this controller, ignore
+							} else if (axis_type == vr::k_eControllerAxis_Trigger) {
+								// only x which ranges between 0. and 1.0
+								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
+									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x, false);
+								};
+							} else {
+								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
+									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x, true);
+								};
+								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
+									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2 + 1, new_state.rAxis[axis].y, true);
+								};
+							}
+						};
 
 						arvr_data->tracked_device_state[i] = new_state;
 					};
