@@ -1,18 +1,15 @@
 extends Spatial
 
-var arvr_interface = null
-
 func _ready():
-	# we should move this code into a support file of sorts so it can be loaded in autoload
-	arvr_interface = ARVRInterfaceGDNative.new()
-	arvr_interface.set_gdnative_library(preload("res://godot_openvr.tres"))
-
-	# and then just find the interface
-#	arvr_interface = ARVRServer.find_interface("OpenVR")
+	# Find the interface and initialise
+	var arvr_interface = ARVRServer.find_interface("OpenVR")
 	if arvr_interface and arvr_interface.initialize():
 		get_viewport().arvr = true
+
+		# workaround in OpenVR because OpenVR does not like our HDR buffers, so turn it off for now...
 		get_viewport().hdr = false
-			
+		
+		# resize our window so we see a smaller preview of our left eye
 		var size = arvr_interface.get_recommended_render_targetsize() / 3.0
 		OS.set_window_size(size);
 

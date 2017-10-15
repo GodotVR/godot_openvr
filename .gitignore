@@ -9,4 +9,5 @@
 *.exp
 *.lib
 *.obj
+*.TMP
 logs

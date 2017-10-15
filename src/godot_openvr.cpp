@@ -1,57 +1,70 @@
 ////////////////////////////////////////////////////////////////////////////
 // OpenVR GDNative module for Godot
 //
-// Written by Bastiaan "Mux213" Olij, with loads of help from Thomas "Karroffel" Herzog
+// Written by Bastiaan "Mux213" Olij, with loads of help from Thomas "Karroffel"
+// Herzog
 
 // #include <gdnative_api_struct.h>
 #include <gdnative_api_struct.gen.h>
+#include <openvr.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <openvr.h>
 
 ////////////////////////////////////////////////////////////////////////
 // gdnative init
+
+const godot_gdnative_api_struct *api = NULL;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options);
-void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_options);
-void GDN_EXPORT godot_nativescript_init(void *p_handle);
+void GDN_EXPORT
+godot_gdnative_terminate(godot_gdnative_terminate_options *p_options);
+void GDN_EXPORT godot_gdnative_singleton();
 void GDN_EXPORT *godot_arvr_constructor(godot_object *p_instance);
 void GDN_EXPORT godot_arvr_destructor(void *p_data);
 godot_string GDN_EXPORT godot_arvr_get_name(void *p_data);
 godot_int GDN_EXPORT godot_arvr_get_capabilities(void *p_data);
 godot_bool GDN_EXPORT godot_arvr_get_anchor_detection_is_enabled(void *p_data);
-void GDN_EXPORT godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable);
+void GDN_EXPORT godot_arvr_set_anchor_detection_is_enabled(void *p_data,
+		bool p_enable);
 godot_bool GDN_EXPORT godot_arvr_is_stereo(void *p_data);
 godot_bool GDN_EXPORT godot_arvr_is_initialized(void *p_data);
 godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data);
 void GDN_EXPORT godot_arvr_uninitialize(void *p_data);
-godot_vector2 GDN_EXPORT godot_arvr_get_recommended_render_targetsize(void *p_data);
-godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform);
-void GDN_EXPORT godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far);
-void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_render_target, godot_rect2 *p_screen_rect);
+godot_vector2 GDN_EXPORT
+godot_arvr_get_recommended_render_targetsize(void *p_data);
+godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
+		void *p_data, godot_int p_eye, godot_transform *p_cam_transform);
+void GDN_EXPORT godot_arvr_fill_projection_for_eye(
+		void *p_data, godot_real *p_projection, godot_int p_eye,
+		godot_real p_aspect, godot_real p_z_near, godot_real p_z_far);
+void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
+		godot_rid *p_render_target,
+		godot_rect2 *p_screen_rect);
 void GDN_EXPORT godot_arvr_process(void *p_data);
 
 #ifdef __cplusplus
 }
 #endif
 
-const godot_gdnative_api_struct *api = NULL;
+// forward declaration
+extern const godot_arvr_interface_gdnative interface_struct;
 
 void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
 	api = p_options->api_struct;
 }
 
-void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
+void GDN_EXPORT
+godot_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
 	api = NULL;
 }
 
-void GDN_EXPORT godot_nativescript_init(void *p_handle) {
-
+void GDN_EXPORT godot_gdnative_singleton() {
+	api->godot_arvr_register_interface(&interface_struct);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -66,7 +79,9 @@ typedef struct arvr_data_struct {
 	godot_transform hmd_transform;
 } arvr_data_struct;
 
-char * openvr_get_device_name(arvr_data_struct *p_arvr_data, vr::TrackedDeviceIndex_t p_tracked_device_index, int pMaxLen) {
+char *openvr_get_device_name(arvr_data_struct *p_arvr_data,
+		vr::TrackedDeviceIndex_t p_tracked_device_index,
+		int pMaxLen) {
 	static char returnstring[1025] = "Not initialised";
 
 	// don't go bigger then this...
@@ -74,26 +89,32 @@ char * openvr_get_device_name(arvr_data_struct *p_arvr_data, vr::TrackedDeviceIn
 		pMaxLen = 1024;
 	};
 
-	if ((p_arvr_data->hmd != NULL) && (p_tracked_device_index != vr::k_unTrackedDeviceIndexInvalid)) {
-		uint32_t namelength = p_arvr_data->hmd->GetStringTrackedDeviceProperty(p_tracked_device_index, vr::Prop_RenderModelName_String, NULL, 0, NULL);
+	if ((p_arvr_data->hmd != NULL) &&
+			(p_tracked_device_index != vr::k_unTrackedDeviceIndexInvalid)) {
+		uint32_t namelength = p_arvr_data->hmd->GetStringTrackedDeviceProperty(
+				p_tracked_device_index, vr::Prop_RenderModelName_String, NULL, 0, NULL);
 		if (namelength > 0) {
 			if (namelength > pMaxLen) {
 				namelength = pMaxLen;
 			};
 
-			p_arvr_data->hmd->GetStringTrackedDeviceProperty(p_tracked_device_index, vr::Prop_RenderModelName_String, returnstring, namelength, NULL);
+			p_arvr_data->hmd->GetStringTrackedDeviceProperty(
+					p_tracked_device_index, vr::Prop_RenderModelName_String, returnstring,
+					namelength, NULL);
 		};
 	};
 
 	return returnstring;
 };
 
-void openvr_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
+void openvr_attach_device(arvr_data_struct *p_arvr_data,
+		uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
 		// we no longer track our HMD, this is all handled in ARVROrigin :)
 	} else if (p_arvr_data->trackers[p_device_index] == 0) {
 		char device_name[256];
-		strcpy(device_name, openvr_get_device_name(p_arvr_data, p_device_index, 255));
+		strcpy(device_name,
+				openvr_get_device_name(p_arvr_data, p_device_index, 255));
 		printf("Found openvr device %i (%s)\n", p_device_index, device_name);
 
 		if (strstr(device_name, "basestation") != NULL) {
@@ -106,29 +127,35 @@ void openvr_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index
 
 			// get our controller role
 			vr::ETrackedPropertyError error;
-			int32_t controllerRole = p_arvr_data->hmd->GetInt32TrackedDeviceProperty(p_device_index, vr::Prop_ControllerRoleHint_Int32, &error);
+			int32_t controllerRole = p_arvr_data->hmd->GetInt32TrackedDeviceProperty(
+					p_device_index, vr::Prop_ControllerRoleHint_Int32, &error);
 			if (controllerRole == vr::TrackedControllerRole_RightHand) {
 				hand = 2;
 			} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
 				hand = 1;
 			}
 
-			p_arvr_data->trackers[p_device_index] = api->godot_arvr_add_controller(device_name, hand, true, true);
+			p_arvr_data->trackers[p_device_index] =
+					api->godot_arvr_add_controller(device_name, hand, true, true);
 		};
 	};
 };
 
-void openvr_detach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
+void openvr_detach_device(arvr_data_struct *p_arvr_data,
+		uint32_t p_device_index) {
 	if (p_arvr_data->trackers[p_device_index] != 0) {
 		api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
 		p_arvr_data->trackers[p_device_index] = 0;
 	};
 };
 
-void openvr_transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_matrix, godot_real p_world_scale) {
+void openvr_transform_from_matrix(godot_transform *p_dest,
+		vr::HmdMatrix34_t *p_matrix,
+		godot_real p_world_scale) {
 	godot_basis basis;
 	godot_vector3 origin;
-	float *basis_ptr = (float *) &basis; // Godot can switch between real_t being double or float.. which one is used...
+	float *basis_ptr = (float *)&basis; // Godot can switch between real_t being
+	// double or float.. which one is used...
 
 	int k = 0;
 	for (int i = 0; i < 3; i++) {
@@ -137,14 +164,17 @@ void openvr_transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_
 		};
 	};
 
-	api->godot_vector3_new(&origin, p_matrix->m[0][3] * p_world_scale, p_matrix->m[1][3] * p_world_scale, p_matrix->m[2][3] * p_world_scale);
+	api->godot_vector3_new(&origin, p_matrix->m[0][3] * p_world_scale,
+			p_matrix->m[1][3] * p_world_scale,
+			p_matrix->m[2][3] * p_world_scale);
 	api->godot_transform_new(p_dest, &basis, &origin);
 }
 
 void GDN_EXPORT *godot_arvr_constructor(godot_object *p_instance) {
 	godot_string ret;
 
-	arvr_data_struct *arvr_data = (arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
+	arvr_data_struct *arvr_data =
+			(arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
 	arvr_data->hmd = NULL;
 	arvr_data->render_models = NULL;
 	api->godot_transform_new_identity(&arvr_data->hmd_transform);
@@ -164,7 +194,7 @@ void GDN_EXPORT godot_arvr_destructor(void *p_data) {
 	}
 }
 
-godot_string GDN_EXPORT godot_arvr_get_name(void *p_data) {
+godot_string GDN_EXPORT godot_arvr_get_name(const void *p_data) {
 	godot_string ret;
 
 	char name[] = "OpenVR";
@@ -173,7 +203,7 @@ godot_string GDN_EXPORT godot_arvr_get_name(void *p_data) {
 	return ret;
 }
 
-godot_int GDN_EXPORT godot_arvr_get_capabilities(void *p_data) {
+godot_int GDN_EXPORT godot_arvr_get_capabilities(const void *p_data) {
 	godot_int ret;
 
 	ret = 2 + 8; // 2 = ARVR_STEREO, 8 = ARVR_EXTERNAL
@@ -181,7 +211,8 @@ godot_int GDN_EXPORT godot_arvr_get_capabilities(void *p_data) {
 	return ret;
 };
 
-godot_bool GDN_EXPORT godot_arvr_get_anchor_detection_is_enabled(void *p_data) {
+godot_bool GDN_EXPORT
+godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 	godot_bool ret;
 
 	ret = false; // does not apply here
@@ -189,11 +220,12 @@ godot_bool GDN_EXPORT godot_arvr_get_anchor_detection_is_enabled(void *p_data) {
 	return ret;
 };
 
-void GDN_EXPORT godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable) {
+void GDN_EXPORT godot_arvr_set_anchor_detection_is_enabled(void *p_data,
+		bool p_enable){
 	// we ignore this, not supported in this interface!
 };
 
-godot_bool GDN_EXPORT godot_arvr_is_stereo(void *p_data) {
+godot_bool GDN_EXPORT godot_arvr_is_stereo(const void *p_data) {
 	godot_bool ret;
 
 	ret = true;
@@ -201,7 +233,7 @@ godot_bool GDN_EXPORT godot_arvr_is_stereo(void *p_data) {
 	return ret;
 };
 
-godot_bool GDN_EXPORT godot_arvr_is_initialized(void *p_data) {
+godot_bool GDN_EXPORT godot_arvr_is_initialized(const void *p_data) {
 	godot_bool ret;
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
@@ -209,13 +241,14 @@ godot_bool GDN_EXPORT godot_arvr_is_initialized(void *p_data) {
 
 	return ret;
 };
- 
+
 godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 	godot_bool ret;
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	if (arvr_data->hmd == NULL) {
-		// initialise this interface, so initialize any 3rd party libraries, open up HMD window if required, etc.
+		// initialise this interface, so initialize any 3rd party libraries, open up
+		// HMD window if required, etc.
 
 		bool success = true;
 		vr::EVRInitError error = vr::VRInitError_None;
@@ -236,19 +269,24 @@ godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 
 			if (error != vr::VRInitError_None) {
 				success = false;
-				printf("Unable to init VR runtime: %s\n", vr::VR_GetVRInitErrorAsEnglishDescription(error));
+				printf("Unable to init VR runtime: %s\n",
+						vr::VR_GetVRInitErrorAsEnglishDescription(error));
 			} else {
 				printf("Main OpenVR interface has been initialized\n");
 			};
 		};
 
 		if (success) {
-			// render models give us access to mesh representations of the various controllers
-			arvr_data->render_models = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &error);
+			// render models give us access to mesh representations of the various
+			// controllers
+			arvr_data->render_models =
+					(vr::IVRRenderModels *)vr::VR_GetGenericInterface(
+							vr::IVRRenderModels_Version, &error);
 			if (!arvr_data->render_models) {
 				success = false;
 
-				printf("Unable to get render model interface: %s\n",vr::VR_GetVRInitErrorAsEnglishDescription(error));
+				printf("Unable to get render model interface: %s\n",
+						vr::VR_GetVRInitErrorAsEnglishDescription(error));
 			} else {
 				printf("Main render models interface has been initialized.\n");
 			};
@@ -262,7 +300,8 @@ godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 
 		if (success) {
 			// find any already attached devices
-			for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
+			for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd;
+					i < vr::k_unMaxTrackedDeviceCount; i++) {
 				if (arvr_data->hmd->IsTrackedDeviceConnected(i)) {
 					openvr_attach_device(arvr_data, i);
 				};
@@ -282,10 +321,11 @@ godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 };
 
 void GDN_EXPORT godot_arvr_uninitialize(void *p_data) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	if (arvr_data->hmd != NULL) {
-		// note, this will already be removed as the primary interface by ARVRInterfaceGDNative
+		// note, this will already be removed as the primary interface by
+		// ARVRInterfaceGDNative
 
 		// detach all our divices
 		for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
@@ -298,8 +338,9 @@ void GDN_EXPORT godot_arvr_uninitialize(void *p_data) {
 	};
 };
 
-godot_vector2 GDN_EXPORT godot_arvr_get_recommended_render_targetsize(void *p_data) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+godot_vector2 GDN_EXPORT
+godot_arvr_get_recommended_render_targetsize(const void *p_data) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_vector2 size;
 
 	if (arvr_data->hmd != NULL) {
@@ -315,8 +356,9 @@ godot_vector2 GDN_EXPORT godot_arvr_get_recommended_render_targetsize(void *p_da
 	return size;
 };
 
-godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
+		void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_transform transform_for_eye;
 	godot_transform reference_frame = api->godot_arvr_get_reference_frame();
 	godot_transform ret;
@@ -327,7 +369,8 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_
 		// we want a monoscopic transform.. shouldn't really apply here
 		api->godot_transform_new_identity(&transform_for_eye);
 	} else if (arvr_data->hmd != NULL) {
-		vr::HmdMatrix34_t matrix = arvr_data->hmd->GetEyeToHeadTransform(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right);
+		vr::HmdMatrix34_t matrix = arvr_data->hmd->GetEyeToHeadTransform(
+				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right);
 
 		openvr_transform_from_matrix(&transform_for_eye, &matrix, world_scale);
 	} else {
@@ -342,7 +385,8 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_
 		api->godot_transform_translated(&transform_for_eye, &offset);
 	};
 
-	// Now construct our full transform, the order may be in reverse, have to test :)
+	// Now construct our full transform, the order may be in reverse, have to test
+	// :)
 	ret = *p_cam_transform;
 	ret = api->godot_transform_operator_multiply(&ret, &reference_frame);
 	ret = api->godot_transform_operator_multiply(&ret, &arvr_data->hmd_transform);
@@ -351,11 +395,14 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(void *p_data, godot_
 	return ret;
 };
 
-void GDN_EXPORT godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+void GDN_EXPORT godot_arvr_fill_projection_for_eye(
+		void *p_data, godot_real *p_projection, godot_int p_eye,
+		godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	if (arvr_data->hmd != NULL) {
-		vr::HmdMatrix44_t matrix = arvr_data->hmd->GetProjectionMatrix(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, p_z_near, p_z_far);
+		vr::HmdMatrix44_t matrix = arvr_data->hmd->GetProjectionMatrix(
+				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, p_z_near, p_z_far);
 
 		int k = 0;
 		for (int i = 0; i < 4; i++) {
@@ -368,14 +415,21 @@ void GDN_EXPORT godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_p
 	};
 };
 
-void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_render_target, godot_rect2 *p_screen_rect) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
+		godot_rid *p_render_target,
+		godot_rect2 *p_screen_rect) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
-	// This function is responsible for outputting the final render buffer for each eye. 
-	// p_screen_rect will only have a value when we're outputting to the main viewport.
+	// This function is responsible for outputting the final render buffer for
+	// each eye.
+	// p_screen_rect will only have a value when we're outputting to the main
+	// viewport.
 
-	// For an interface that must output to the main viewport (such as with mobile VR) we should give an error when p_screen_rect is not set
-	// For an interface that outputs to an external device we should render a copy of one of the eyes to the main viewport if p_screen_rect is set, and only output to the external device if not.
+	// For an interface that must output to the main viewport (such as with mobile
+	// VR) we should give an error when p_screen_rect is not set
+	// For an interface that outputs to an external device we should render a copy
+	// of one of the eyes to the main viewport if p_screen_rect is set, and only
+	// output to the external device if not.
 
 	if (p_eye == 1 && !api->godot_rect2_has_no_area(p_screen_rect)) {
 		// blit as mono
@@ -391,8 +445,10 @@ void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_r
 
 		uint32_t texid = api->godot_arvr_get_texid(p_render_target);
 
-		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
+		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid,
+			vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(
+				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
 		if (vrerr != vr::VRCompositorError_None) {
 			printf("OpenVR reports: %i\n", vrerr);
 		}
@@ -400,9 +456,10 @@ void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_r
 };
 
 void GDN_EXPORT godot_arvr_process(void *p_data) {
-	arvr_data_struct * arvr_data = (arvr_data_struct *) p_data;
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
-	// this method gets called before every frame is rendered, here is where you should update tracking data, update controllers, etc.
+	// this method gets called before every frame is rendered, here is where you
+	// should update tracking data, update controllers, etc.
 	if (arvr_data->hmd != NULL) {
 		// Process SteamVR events
 		vr::VREvent_t event;
@@ -420,10 +477,12 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 			};
 		};
 
-		///@TODO we should time how long it takes between calling WaitGetPoses and committing the output to the HMD and using that as the 4th parameter...
+		///@TODO we should time how long it takes between calling WaitGetPoses and
+		/// committing the output to the HMD and using that as the 4th parameter...
 
 		// update our poses structure, this tracks our controllers
-		vr::VRCompositor()->WaitGetPoses(arvr_data->tracked_device_pose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+		vr::VRCompositor()->WaitGetPoses(arvr_data->tracked_device_pose,
+				vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
 		// we scale all our positions by our world scale
 		godot_real world_scale = api->godot_arvr_get_worldscale();
@@ -433,46 +492,66 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 			// update tracker
 			if (arvr_data->tracked_device_pose[i].bPoseIsValid) {
 				// bit wasteful copying it but I don't want to type so much!
-				vr::HmdMatrix34_t matPose = arvr_data->tracked_device_pose[i].mDeviceToAbsoluteTracking;
+				vr::HmdMatrix34_t matPose =
+						arvr_data->tracked_device_pose[i].mDeviceToAbsoluteTracking;
 
 				if (i == 0) {
 					// store our HMD transform
-					openvr_transform_from_matrix(&arvr_data->hmd_transform, &matPose, world_scale);
+					openvr_transform_from_matrix(&arvr_data->hmd_transform, &matPose,
+							world_scale);
 				} else if (arvr_data->trackers[i] != 0) {
 					godot_transform transform;
 					openvr_transform_from_matrix(&transform, &matPose, 1.0);
-					api->godot_arvr_set_controller_transform(arvr_data->trackers[i], &transform, true, true);
+					api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
+							&transform, true, true);
 
 					// update our button state structure
-					vr::VRControllerState_t old_state = arvr_data->tracked_device_state[i];
+					vr::VRControllerState_t old_state =
+							arvr_data->tracked_device_state[i];
 					vr::VRControllerState_t new_state;
-					arvr_data->hmd->GetControllerState(i, &new_state, sizeof(vr::VRControllerState_t));
-					if (arvr_data->tracked_device_state[i].unPacketNum != new_state.unPacketNum) {
+					arvr_data->hmd->GetControllerState(i, &new_state,
+							sizeof(vr::VRControllerState_t));
+					if (arvr_data->tracked_device_state[i].unPacketNum !=
+							new_state.unPacketNum) {
 						// we currently have 8 defined buttons on VIVE controllers.
 						for (int button = 0; button < 8; button++) {
-							bool was_pressed = old_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button);
-							bool is_pressed = new_state.ulButtonPressed & vr::ButtonMaskFromId((vr::EVRButtonId)button);
+							bool was_pressed = old_state.ulButtonPressed &
+											   vr::ButtonMaskFromId((vr::EVRButtonId)button);
+							bool is_pressed = new_state.ulButtonPressed &
+											  vr::ButtonMaskFromId((vr::EVRButtonId)button);
 							if (was_pressed != is_pressed) {
-								api->godot_arvr_set_controller_button(arvr_data->trackers[i], button, is_pressed);
+								api->godot_arvr_set_controller_button(arvr_data->trackers[i],
+										button, is_pressed);
 							};
 						};
 
-						// OpenVR supports 5 axis with x/y, godot only '4', so we'll ignore the last axis..
+						// OpenVR supports 5 axis with x/y, godot only '4', so we'll ignore
+						// the last axis..
 						for (int axis = 0; axis < 4; axis++) {
-							vr::EVRControllerAxisType axis_type = (vr::EVRControllerAxisType) arvr_data->hmd->GetInt32TrackedDeviceProperty(i, (vr::ETrackedDeviceProperty) (vr::Prop_Axis0Type_Int32 + axis));
+							vr::EVRControllerAxisType axis_type =
+									(vr::EVRControllerAxisType)
+											arvr_data->hmd->GetInt32TrackedDeviceProperty(
+													i, (vr::ETrackedDeviceProperty)(
+															   vr::Prop_Axis0Type_Int32 + axis));
 							if (axis_type == vr::k_eControllerAxis_None) {
 								// not applicable for this controller, ignore
 							} else if (axis_type == vr::k_eControllerAxis_Trigger) {
 								// only x which ranges between 0. and 1.0
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x, false);
+									api->godot_arvr_set_controller_axis(
+											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
+											false);
 								};
 							} else {
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x, true);
+									api->godot_arvr_set_controller_axis(
+											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
+											true);
 								};
 								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
-									api->godot_arvr_set_controller_axis(arvr_data->trackers[i], axis * 2 + 1, new_state.rAxis[axis].y, true);
+									api->godot_arvr_set_controller_axis(
+											arvr_data->trackers[i], axis * 2 + 1,
+											new_state.rAxis[axis].y, true);
 								};
 							}
 						};
@@ -483,4 +562,22 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 			};
 		};
 	};
+};
+
+const godot_arvr_interface_gdnative interface_struct = {
+	godot_arvr_constructor,
+	godot_arvr_destructor,
+	godot_arvr_get_name,
+	godot_arvr_get_capabilities,
+	godot_arvr_get_anchor_detection_is_enabled,
+	godot_arvr_set_anchor_detection_is_enabled,
+	godot_arvr_is_stereo,
+	godot_arvr_is_initialized,
+	godot_arvr_initialize,
+	godot_arvr_uninitialize,
+	godot_arvr_get_recommended_render_targetsize,
+	godot_arvr_get_transform_for_eye,
+	godot_arvr_fill_projection_for_eye,
+	godot_arvr_commit_for_eye,
+	godot_arvr_process
 };
