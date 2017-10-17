@@ -16,8 +16,9 @@ config/icon="res://icon.png"
 
 [gdnative]
 
-singletons=[ "res://godot_openvr.tres" ]
+singletons=[ "res://bin/godot_openvr.tres" ]
 
 [rendering]
 
+quality/filters/msaa=1
 environment/default_environment="res://default_env.tres"
