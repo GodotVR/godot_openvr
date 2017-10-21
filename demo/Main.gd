@@ -12,6 +12,11 @@ func _ready():
 		# resize our window so we see a smaller preview of our left eye
 		var size = arvr_interface.get_recommended_render_targetsize() / 3.0
 		OS.set_window_size(size);
+	
+	# just for testing, list what models are available
+	var ovr_model = preload("res://bin/OpenVRRenderModel.gdns").new()
+	var model_names = ovr_model.model_names()
+	print("models: " + str(model_names))
 
 func _process(delta):
 	# Test for escape to close application, space to reset our reference frame

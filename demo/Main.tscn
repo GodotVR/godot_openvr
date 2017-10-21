@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://Milkyway.png" type="Texture" id=2]
-[ext_resource path="res://vive_controller/vive_controller.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ovr_controller/ovr_controller.tscn" type="PackedScene" id=3]
 [ext_resource path="res://Table.tscn" type="PackedScene" id=4]
 
 [sub_resource type="PanoramaSky" id=1]
@@ -201,11 +201,12 @@ v_offset = 0.0
 doppler/tracking = 0
 _sections_unfolded = [ "Transform" ]
 
-[node name="ViveController_1" parent="ARVROrigin" instance=ExtResource( 3 )]
+[node name="OVRController" parent="ARVROrigin" instance=ExtResource( 3 )]
 
-controller_id = 1
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
+visible = false
 
-[node name="ViveController_2" parent="ARVROrigin" instance=ExtResource( 3 )]
+[node name="OVRController2" parent="ARVROrigin" instance=ExtResource( 3 )]
 
 controller_id = 2
 
@@ -227,5 +228,20 @@ material/0 = null
 _sections_unfolded = [ "Transform" ]
 
 [node name="Table" parent="." instance=ExtResource( 4 )]
+
+[node name="Test" type="MeshInstance" parent="."]
+
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63647, -1.15364 )
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = null
+skeleton = NodePath("..")
 
 

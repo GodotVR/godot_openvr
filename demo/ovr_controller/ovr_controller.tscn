@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ovr_controller/ovr_controller.gd" type="Script" id=1]
+
+[node name="OVRController" type="ARVRController"]
+
+controller_id = 1
+script = ExtResource( 1 )
+
+[node name="Controller_mesh" type="MeshInstance" parent="."]
+
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = null
+skeleton = NodePath("..")
+
+[connection signal="button_pressed" from="." to="." method="_on_OVRController_button_pressed"]
+
+[connection signal="button_release" from="." to="." method="_on_OVRController_button_release"]
+
+
