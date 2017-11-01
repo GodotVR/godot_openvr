@@ -12,6 +12,7 @@ typedef struct arvr_data_struct {
 	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
 	vr::VRControllerState_t tracked_device_state[vr::k_unMaxTrackedDeviceCount];
 	godot_int trackers[vr::k_unMaxTrackedDeviceCount];
+	uint64_t last_rumble_update[vr::k_unMaxTrackedDeviceCount];
 	godot_transform hmd_transform;
 } arvr_data_struct;
 
@@ -135,6 +136,7 @@ godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 			// reset some stuff
 			for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 				arvr_data->trackers[i] = 0;
+				arvr_data->last_rumble_update[i] = 0;
 			};
 
 			// find any already attached devices
@@ -291,6 +293,9 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 	// this method gets called before every frame is rendered, here is where you
 	// should update tracking data, update controllers, etc.
 	if (arvr_data->ovr != NULL) {
+		// we need timing info for one or two things..
+		uint64_t msec = OS_get_ticks_msec();
+
 		// Process SteamVR events
 		vr::VREvent_t event;
 		while (arvr_data->ovr->hmd->PollNextEvent(&event, sizeof(event))) {
@@ -330,6 +335,7 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 					openvr_transform_from_matrix(&arvr_data->hmd_transform, &matPose,
 							world_scale);
 				} else if (arvr_data->trackers[i] != 0) {
+					// update our location and orientation
 					godot_transform transform;
 					openvr_transform_from_matrix(&transform, &matPose, 1.0);
 					api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
@@ -387,6 +393,14 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 						};
 
 						arvr_data->tracked_device_state[i] = new_state;
+					};
+
+					// update rumble
+					float rumble = api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
+					if ((rumble > 0.0) && ((msec - arvr_data->last_rumble_update[i]) > 5)) {
+						// We should only call this once ever 5ms...
+						arvr_data->ovr->hmd->TriggerHapticPulse(i, 0, (rumble * 5000.0));
+						arvr_data->last_rumble_update[i] = msec;
 					};
 				};
 			};

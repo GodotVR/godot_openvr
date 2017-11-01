@@ -56,7 +56,9 @@ ssao_intensity2 = 1.0
 ssao_bias = 0.01
 ssao_light_affect = 0.0
 ssao_color = Color( 0, 0, 0, 1 )
-ssao_blur = true
+ssao_quality = 0
+ssao_blur = 1
+ssao_edge_sharpness = 4.0
 dof_blur_far_enabled = false
 dof_blur_far_distance = 10.0
 dof_blur_far_transition = 5.0
@@ -136,7 +138,6 @@ uv2_offset = Vector3( 0, 0, 0 )
 uv2_triplanar = false
 uv2_triplanar_sharpness = 1.0
 proximity_fade_enable = false
-proximity_fade_distance = 1.0
 distance_fade_enable = false
 _sections_unfolded = [ "Albedo" ]
 
@@ -205,10 +206,12 @@ _sections_unfolded = [ "Transform" ]
 
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
 visible = false
+rumble = 0.0
 
 [node name="OVRController2" parent="ARVROrigin" instance=ExtResource( 3 )]
 
 controller_id = 2
+rumble = 0.0
 
 [node name="Ground" type="MeshInstance" parent="."]
 
