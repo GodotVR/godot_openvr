@@ -1,9 +1,8 @@
 #!python
 import os, subprocess
 
-# Local dependency paths, adapt them to your setup
-#godot_headers_path = ARGUMENTS.get("headers", "godot_headers/")
-godot_headers_path = ARGUMENTS.get("headers", "../../godot3-git/modules/gdnative/include")
+# Local dependency paths
+godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
 
 target = ARGUMENTS.get("target", "debug")
 
