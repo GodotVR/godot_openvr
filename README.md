@@ -39,6 +39,26 @@ The godot_openvr.dll or libgodot_openvr.so file should be placed in the location
 
 Note that as at the time of writing this I have only tested this on Windows. Others have let me know the linux build is working as well but tweaks may be needed.
 
+Linux notes
+-----------
+On Linux, Steam will not automatically add the SteamVR libraries to your $LD_LIBRARY_PATH variable. As such, when starting Godot (for development) or your game outside of Steam, it will fail to load the required libraries.
+
+There are a couple of ways to fix this:
+
+1) Launch Godot or your game from within Steam
+
+2) Run Godot or your game through the steam runtime manually (change the path to suit your Steam installation):
+
+```
+/home/<user>/.steam/steam/ubuntu12_32/steam-runtime/run.sh <your command>
+```
+
+3) Adjust your $LD_LIBRARY_PATH variable accordingly:
+
+```
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/path/to/libgodot_openvr.so/dir/":"/home/<user>/.steam/steam/steamapps/common/SteamVR/bin/"
+```
+
 License
 -------
 Note that the source in this repository is licensed by the unlicense license model. This covers only the source code in this repository. Both Godot and OpenVR have their own license requirements. See their respective git repositories for more details.
