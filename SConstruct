@@ -3,6 +3,7 @@ import os, subprocess
 
 # Local dependency paths
 godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
+openvr_path = ARGUMENTS.get("openvr", os.getenv("OPENVR_PATH", "openvr/"))
 
 target = ARGUMENTS.get("target", "debug")
 
@@ -50,8 +51,8 @@ if 'bits' in env:
 else:
     platform_dir += '64'
 
-env.Append(CPPPATH=['openvr/headers/'])
-env.Append(LIBPATH=['openvr/lib/' + platform_dir])
+env.Append(CPPPATH=[openvr_path + 'headers/'])
+env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
 
 if (os.name == "nt" and os.getenv("VCINSTALLDIR")):
     env.Append(LINKFLAGS=['openvr_api.lib'])
