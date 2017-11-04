@@ -5,10 +5,10 @@ This is a GDNative based plugin that adds OpenVR support to Godot.
 Submodules
 ----------
 This project references two submodules. If you do not already have these repositories downloaded somewhere you can execute:
-'''
+```
 git submodule init
 git submodule update
-'''
+```
 To download the required versions.
 
 Godot_headers is a git repository that keeps a copy of the headers needed for compiling GDNative modules. It ususally contains a copy of the latest official release of Godot and may be outdated.
@@ -22,9 +22,9 @@ Compiling
 Scons is used for compiling this module. I made the assumption that scons is installed as it is also used as the build mechanism for Godot and if you are building from source you will likely need to build Godot as well.
 
 You can compile this module by executing:
-'''
+```
 scons platform=windows
-'''
+```
 
 Platform can be windows, linux or osx. OSX is untested.
 
