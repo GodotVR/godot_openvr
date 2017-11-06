@@ -37,6 +37,7 @@ if platform == "linux":
     platform_dir = 'linux'
     env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++14'])
     env.Append(CXXFLAGS='-std=c++0x')
+    env.Append(LINKFLAGS = ['-Wl,-R,\'$$ORIGIN\''])
 
 if platform == "windows":
     platform_dir = 'win'
