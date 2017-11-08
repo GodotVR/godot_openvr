@@ -1,6 +1,7 @@
 extends ARVRController
 
 var ovr_render_model
+var components = Array()
 
 func _ready():
 	# instance our render model object
@@ -9,29 +10,56 @@ func _ready():
 	# hide to begin with
 	visible = false
 
+func clear_meshes():
+	var meshes = get_node("Controller_meshes")
+	while meshes.get_child_count() > 0:
+		var child = meshes.get_child(0)
+		meshes.remove_child(child)
+	components = Array()
+
+func add_mesh(p_name, p_model):
+	if (p_model != ''):
+		print("Loading " + p_name + " (" + p_model +")")
+
+		var mesh = preload("res://bin/OpenVRRenderModel.gdns").new()
+		if mesh.load_model(p_model):
+			var ws = ARVRServer.world_scale
+			var instance = MeshInstance.new()
+			instance.set_name(p_name)
+			instance.mesh = mesh
+			instance.scale = Vector3(ws, ws, ws)
+			$Controller_meshes.add_child(instance)
+		
+			return true
+		else:
+			return false
+	else:
+		print("Skipping " + p_name)
+		return true;
+
 func _process(delta):
 	if !get_is_active():
-		visible = false
+		if visible:
+			visible = false
+			clear_meshes()
 	else:
 		if !visible:
 			# became active? lets handle it...
 			var name = get_controller_name()
 			print("Controller " + name + " became active")
 			
-			# attempt to load a mesh for this
+			# attempt to load a mesh(es) for this
 			name = name.substr(0, name.length()-2)
-			var loaded = ovr_render_model.load_model(name)
-			if !loaded:
-				loaded = ovr_render_model.load_model("generic_controller")
-			
-			if loaded:
-				$Controller_mesh.mesh = ovr_render_model
+			components = ovr_render_model.model_list_components(name)
+			if components.size() > 0:
+				print("Found: " + str(components))
+				# yeah! we have components, lets load those components
+				for component in components:
+					add_mesh(component["component_name"], component["render_model_name"])
 			else:
-				$Controller_mesh.mesh = Mesh()
-
-			# apply our world scale
-			var ws = ARVRServer.world_scale
-			$Controller_mesh.scale = Vector3(ws, ws, ws)
+				var loaded = add_mesh(name, name)
+				if !loaded:
+					loaded = add_mesh("generic_controller", "generic_controller")
 
 			# make it visible
 			visible = true
@@ -70,7 +98,6 @@ func _process(delta):
 		
 		# and test our rumble
 		rumble = get_joystick_axis(2)
-
 
 func _on_OVRController_button_pressed( button ):
 	print("Button " + str(button) + " was pressed on controller " + get_controller_name())

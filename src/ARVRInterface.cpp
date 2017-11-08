@@ -79,8 +79,7 @@ godot_bool godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 	return ret;
 };
 
-void godot_arvr_set_anchor_detection_is_enabled(void *p_data,
-		bool p_enable){
+void godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable){
 	// we ignore this, not supported in this interface!
 };
 

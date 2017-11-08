@@ -7,6 +7,8 @@
 
 #include "GodotCalls.h"
 
+typedef godot_object godot_image;
+
 enum Format {
 	FORMAT_RGTC_RG = 21,
 	FORMAT_RGB8 = 4,
@@ -53,8 +55,9 @@ enum Format {
 extern "C" {
 #endif
 
-godot_object *Image_new();
-void Image_create_from_data(godot_object *p_this, const int64_t width, const int64_t height, const bool use_mipmaps, const int64_t format, const godot_pool_byte_array *data);
+godot_image *Image_new();
+void Image_delete(godot_image *ptr);
+void Image_create_from_data(godot_image *p_this, const int64_t width, const int64_t height, const bool use_mipmaps, const int64_t format, const godot_pool_byte_array *data);
 
 #ifdef __cplusplus
 }

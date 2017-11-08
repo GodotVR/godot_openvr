@@ -13,8 +13,13 @@ extern "C" {
 
 GDCALLINGCONV void *openvr_render_model_constructor(godot_object *p_instance, void *p_method_data);
 GDCALLINGCONV void openvr_render_model_destructor(godot_object *p_instance, void *p_method_data, void *p_user_data);
+
+// render models
 GDCALLINGCONV godot_variant openvr_render_model_list(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
+
+// info about a render model
+GDCALLINGCONV godot_variant openvr_render_model_list_components(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args);
 
 #ifdef __cplusplus
 }

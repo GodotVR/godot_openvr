@@ -6,13 +6,17 @@
 #define IMAGE_TEXTURE_H
 
 #include "GodotCalls.h"
+#include "Image.h"
+
+typedef godot_object godot_image_texture;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-godot_object *ImageTexture_new();
-void ImageTexture_create_from_image(godot_object *p_this, const godot_object *image, const int64_t flags);
+godot_image_texture *ImageTexture_new();
+void ImageTexture_delete(godot_image_texture *ptr);
+void ImageTexture_create_from_image(godot_image_texture *p_this, const godot_image *image, const int64_t flags);
 
 #ifdef __cplusplus
 }

@@ -6,11 +6,19 @@
 
 #include "GodotCalls.h"
 #include <openvr.h>
+#include "ImageTexture.h"
+
+typedef struct openvr_map_texture_struct {
+	vr::TextureID_t openvr_texture_id;
+	godot_image_texture *texture;
+} openvr_map_texture_struct;
 
 typedef struct openvr_data_struct {
 	int use_count;
 	vr::IVRSystem *hmd;
 	vr::IVRRenderModels *render_models;
+	int texture_count;
+	openvr_map_texture_struct texture_map[128];
 } openvr_data_struct;
 
 #ifdef __cplusplus

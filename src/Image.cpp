@@ -8,11 +8,15 @@
 
 #include "Image.h"
 
-godot_object *Image_new() {
-	return api->godot_get_class_constructor((char *)"Image")();
+godot_image *Image_new() {
+	return (godot_image *)api->godot_get_class_constructor((char *)"Image")();
 };
 
-void Image_create_from_data(godot_object *p_this, const int64_t width, const int64_t height, const bool use_mipmaps, const int64_t format, const godot_pool_byte_array *data) {
+void Image_delete(godot_image *ptr) {
+	api->godot_object_destroy(ptr);
+};
+
+void Image_create_from_data(godot_image *p_this, const int64_t width, const int64_t height, const bool use_mipmaps, const int64_t format, const godot_pool_byte_array *data) {
 	static godot_method_bind *mb = NULL;
 	if (mb == NULL) {
 		mb = api->godot_method_bind_get_method("Image", "create_from_data");

@@ -35,6 +35,14 @@ void openvr_release_data() {
 		printf("OpenVR: decreased use count to %i\n", openvr_data_singleton->use_count);
 	} else {
 		// cleanup openvr
+		printf("OpenVR: release texture cache\n");
+		while (openvr_data_singleton->texture_count > 0) {
+			openvr_data_singleton->texture_count--;
+			printf("- releasing %i, %i\n", openvr_data_singleton->texture_count, openvr_data_singleton->texture_map[openvr_data_singleton->texture_count].openvr_texture_id);
+			// once we reference count this properly, we release it here and if required, delete...
+			// ImageTexture_delete(openvr_data_singleton->texture_map[openvr_data_singleton->texture_count].texture);
+		};
+
 		printf("OpenVR: releasing OpenVR context\n");
 
 		vr::VR_Shutdown();
@@ -58,6 +66,7 @@ openvr_data_struct *openvr_get_data() {
 			vr::EVRInitError error = vr::VRInitError_None;
 
 			openvr_data_singleton->use_count = 1;
+			openvr_data_singleton->texture_count = 0;
 
 			if (!vr::VR_IsRuntimeInstalled()) {
 				printf("SteamVR has not been installed.\n");

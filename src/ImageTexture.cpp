@@ -8,11 +8,15 @@
 
 #include "ImageTexture.h"
 
-godot_object *ImageTexture_new() {
-	return api->godot_get_class_constructor((char *)"ImageTexture")();
+godot_image_texture *ImageTexture_new() {
+	return (godot_image_texture *)api->godot_get_class_constructor((char *)"ImageTexture")();
 };
 
-void ImageTexture_create_from_image(godot_object *p_this, const godot_object *image, const int64_t flags) {
+void ImageTexture_delete(godot_image_texture *ptr) {
+	api->godot_object_destroy(ptr);
+};
+
+void ImageTexture_create_from_image(godot_image_texture *p_this, const godot_image *image, const int64_t flags) {
 	static godot_method_bind *mb = NULL;
 	if (mb == NULL) {
 		mb = api->godot_method_bind_get_method("ImageTexture", "create_from_image");

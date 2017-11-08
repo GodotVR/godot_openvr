@@ -19,9 +19,6 @@ typedef struct render_model_data_struct {
 GDCALLINGCONV void *openvr_render_model_constructor(godot_object *p_instance, void *p_method_data) {
 	render_model_data_struct *render_model_data;
 
-	// log just for testing, should remove this
-	printf("Creating render model resource\n");
-
 	render_model_data = (render_model_data_struct *)api->godot_alloc(sizeof(render_model_data_struct));
 	if (render_model_data != NULL) {
 		render_model_data->ovr = openvr_get_data();
@@ -31,9 +28,6 @@ GDCALLINGCONV void *openvr_render_model_constructor(godot_object *p_instance, vo
 }
 
 GDCALLINGCONV void openvr_render_model_destructor(godot_object *p_instance, void *p_method_data, void *p_user_data) {
-	// log just for testing, should remove this
-	printf("Releasing render model resource\n");
-
 	if (p_user_data != NULL) {
 		render_model_data_struct *render_model_data = (render_model_data_struct *) p_user_data;
 		if (render_model_data->ovr != NULL) {
@@ -63,15 +57,73 @@ GDCALLINGCONV godot_variant openvr_render_model_list(godot_object *p_instance, v
 				api->godot_variant_new_string(&v, &s);
 				api->godot_array_push_back(&model_names, &v);
 
-				// !BAS! Do I need to destroy v and s ?
+				api->godot_string_destroy(&s);
+				api->godot_variant_destroy(&v);
 			};
 		};
 	};
 
 	api->godot_variant_new_array(&ret, &model_names);
-
-	// !BAS! Do I need to destroy model_names?
+	api->godot_array_destroy(&model_names);
 	return ret;
+}
+
+godot_image_texture *openvr_get_texture(openvr_data_struct *p_ovr, vr::TextureID_t p_texture_id) {
+	vr::RenderModel_TextureMap_t *ovr_texture = NULL;
+	godot_image_texture *texture;
+	godot_image *image;
+
+	for (int i = 0; i < p_ovr->texture_count; i++) {
+		if (p_ovr->texture_map[i].openvr_texture_id == p_texture_id) {
+			printf("Reusing texture %i %i\n", i, p_texture_id);
+			return p_ovr->texture_map[i].texture;
+		};
+	};
+
+	// load our texture, need to look into caching this
+	vr::EVRRenderModelError err = vr::VRRenderModelError_Loading;
+	while (err == vr::VRRenderModelError_Loading) {
+		err = vr::VRRenderModels()->LoadTexture_Async(p_texture_id, &ovr_texture);
+		ThreadSleep( 1 );
+	};
+
+	if (err != vr::VRRenderModelError_None) {
+		printf("Couldn''t load texture for render model\n");
+		return NULL;
+	} else {
+		godot_pool_byte_array image_data;
+		api->godot_pool_byte_array_new(&image_data);
+		api->godot_pool_byte_array_resize(&image_data, ovr_texture->unWidth * ovr_texture->unHeight * 4);
+		godot_pool_byte_array_write_access *image_write = api->godot_pool_byte_array_write(&image_data);
+		uint8_t *image_ptr = api->godot_pool_byte_array_write_access_ptr(image_write);
+
+		// probably change this to a memcpy...
+		for (int i = 0; i < ovr_texture->unWidth * ovr_texture->unHeight * 4; i++) {
+			image_ptr[i] = ovr_texture->rubTextureMapData[i];
+		};
+
+		// close write
+		api->godot_pool_byte_array_write_access_destroy(image_write);
+
+		// Prepare our image
+		image = Image_new();
+		Image_create_from_data(image, ovr_texture->unWidth, ovr_texture->unHeight, false, FORMAT_RGBA8, &image_data);
+		api->godot_pool_byte_array_destroy(&image_data); // this is now copied so we can destroy it...
+
+		// Prepare our texture
+		texture = ImageTexture_new();
+		ImageTexture_create_from_image(texture, image, 7);
+
+		// Should increase use count somehow...
+
+		// Store image
+		printf("Loaded texture %i %i\n", p_ovr->texture_count, p_texture_id);
+		p_ovr->texture_map[p_ovr->texture_count].openvr_texture_id = p_texture_id;
+		p_ovr->texture_map[p_ovr->texture_count].texture = texture;
+		p_ovr->texture_count++;
+
+		return texture;
+	};
 }
 
 GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args) {
@@ -88,11 +140,9 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 	if (p_user_data != NULL) {
 		render_model_data_struct *render_model_data = (render_model_data_struct *) p_user_data;
 
-		printf("Argument count: %i\n", p_num_args);
 		if ((render_model_data->ovr != NULL) && (p_num_args > 0)) {
 			godot_string find_name = api->godot_variant_as_string(p_args[0]);
 			vr::RenderModel_t *ovr_render_model = NULL;
-			vr::RenderModel_TextureMap_t *ovr_texture = NULL;
 
 			char find[1024];
 			int len;
@@ -107,8 +157,6 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 			// And get our string
 			api->godot_string_get_data(&find_name, find, &len);
 			find[len]='\0';
-
-			printf("Searching for: %s\n", find);
 
 			// Load our render model
 			vr::EVRRenderModelError err = vr::VRRenderModelError_Loading;
@@ -128,38 +176,46 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				godot_array prim_array;
 				godot_array blend_array;
 				godot_object *material;
-				godot_object *texture;
-				godot_object *image;
 
-				// copy our vertices
+				// Reserve space in our arrays and get direct access pointers (arrays will be locked)
 				api->godot_pool_vector3_array_new(&vertices);
 				api->godot_pool_vector3_array_resize(&vertices, ovr_render_model->unVertexCount);
+				godot_pool_vector3_array_write_access *vertices_write = api->godot_pool_vector3_array_write(&vertices);
+				godot_vector3 *vertices_ptr = api->godot_pool_vector3_array_write_access_ptr(vertices_write);
+
 				api->godot_pool_vector3_array_new(&normals);
 				api->godot_pool_vector3_array_resize(&normals, ovr_render_model->unVertexCount);
+				godot_pool_vector3_array_write_access *normals_write = api->godot_pool_vector3_array_write(&normals);
+				godot_vector3 *normals_ptr = api->godot_pool_vector3_array_write_access_ptr(normals_write);
+
 				api->godot_pool_vector2_array_new(&texcoords);
 				api->godot_pool_vector2_array_resize(&texcoords, ovr_render_model->unVertexCount);
+				godot_pool_vector2_array_write_access *texcoords_write = api->godot_pool_vector2_array_write(&texcoords);
+				godot_vector2 *texcoords_ptr = api->godot_pool_vector2_array_write_access_ptr(texcoords_write);
+
+				// copy our vertices
 				for (int i = 0; i < ovr_render_model->unVertexCount; i++) {
-					godot_vector3 v, n;
-					godot_vector2 t;
-
-					api->godot_vector3_new(&v, ovr_render_model->rVertexData[i].vPosition.v[0], ovr_render_model->rVertexData[i].vPosition.v[1], ovr_render_model->rVertexData[i].vPosition.v[2]);
-					api->godot_pool_vector3_array_set(&vertices, i, &v);
-
-					api->godot_vector3_new(&n, ovr_render_model->rVertexData[i].vNormal.v[0], ovr_render_model->rVertexData[i].vNormal.v[1], ovr_render_model->rVertexData[i].vNormal.v[2]);
-					api->godot_pool_vector3_array_set(&normals, i, &n);
-
-					api->godot_vector2_new(&t, ovr_render_model->rVertexData[i].rfTextureCoord[0], ovr_render_model->rVertexData[i].rfTextureCoord[1]);
-					api->godot_pool_vector2_array_set(&texcoords, i, &t);
+					api->godot_vector3_new(&vertices_ptr[i], ovr_render_model->rVertexData[i].vPosition.v[0], ovr_render_model->rVertexData[i].vPosition.v[1], ovr_render_model->rVertexData[i].vPosition.v[2]);
+					api->godot_vector3_new(&normals_ptr[i], ovr_render_model->rVertexData[i].vNormal.v[0], ovr_render_model->rVertexData[i].vNormal.v[1], ovr_render_model->rVertexData[i].vNormal.v[2]);
+					api->godot_vector2_new(&texcoords_ptr[i], ovr_render_model->rVertexData[i].rfTextureCoord[0], ovr_render_model->rVertexData[i].rfTextureCoord[1]);
 				};
+
+				// close our write pointers
+				api->godot_pool_vector3_array_write_access_destroy(vertices_write);
+				api->godot_pool_vector3_array_write_access_destroy(normals_write);
+				api->godot_pool_vector2_array_write_access_destroy(texcoords_write);
 
 				// copy our indices, for some reason these are other way around :)
 				api->godot_pool_int_array_new(&indices);
 				api->godot_pool_int_array_resize(&indices, ovr_render_model->unTriangleCount * 3);
+				godot_pool_int_array_write_access *indices_write = api->godot_pool_int_array_write(&indices);
+				godot_int *indices_ptr = api->godot_pool_int_array_write_access_ptr(indices_write);
 				for (int i = 0; i < ovr_render_model->unTriangleCount * 3; i += 3) {
-					api->godot_pool_int_array_set(&indices, i+0, ovr_render_model->rIndexData[i+2]);
-					api->godot_pool_int_array_set(&indices, i+1, ovr_render_model->rIndexData[i+1]);
-					api->godot_pool_int_array_set(&indices, i+2, ovr_render_model->rIndexData[i+0]);
+					indices_ptr[i + 0] = ovr_render_model->rIndexData[i + 2];
+					indices_ptr[i + 1] = ovr_render_model->rIndexData[i + 1];
+					indices_ptr[i + 2] = ovr_render_model->rIndexData[i + 0];
 				};
+				api->godot_pool_int_array_write_access_destroy(indices_write);
 
 				// create our array for our model
 				api->godot_array_new(&prim_array);
@@ -183,34 +239,8 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				// and load
 				ArrayMesh_add_surface_from_arrays(p_instance, PRIMITIVE_TRIANGLES, prim_array, blend_array, ARRAY_COMPRESS_DEFAULT);
 
-				// load our texture
-				err = vr::VRRenderModelError_Loading;
-				while (err == vr::VRRenderModelError_Loading) {
-					err = vr::VRRenderModels()->LoadTexture_Async(ovr_render_model->diffuseTextureId, &ovr_texture);
-					ThreadSleep( 1 );
-				};
-
-				if (err != vr::VRRenderModelError_None) {
-					printf("Couldn''t load texture for render model\n");
-				} else {
-					godot_pool_byte_array image_data;
-					api->godot_pool_byte_array_new(&image_data);
-					api->godot_pool_byte_array_resize(&image_data, ovr_texture->unWidth * ovr_texture->unHeight * 4);
-
-					// !BAS! There has to be a better way, this is going to be SLOOOOOW.....
-					for (int i = 0; i < ovr_texture->unWidth * ovr_texture->unHeight * 4; i++) {
-						api->godot_pool_byte_array_set(&image_data, i, ovr_texture->rubTextureMapData[i]);
-					};
-
-					// Prepare our image
-					image = Image_new();
-					Image_create_from_data(image, ovr_texture->unWidth, ovr_texture->unHeight, false, FORMAT_RGBA8, &image_data);
-					api->godot_pool_byte_array_destroy(&image_data);
-
-					// Prepare our texture
-					texture = ImageTexture_new();
-					ImageTexture_create_from_image(texture, image, 7);
-
+				godot_image_texture *texture = openvr_get_texture(render_model_data->ovr, ovr_render_model->diffuseTextureId);
+				if (texture != NULL) {
 					// and prepare our material
 					material = SpatialMaterial_new();
 					SpatialMaterial_set_texture(material, TEXTURE_ALBEDO, texture);
@@ -228,9 +258,7 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				// do we cleanup image, texture and material?
 
 				render_model_data->ovr->render_models->FreeRenderModel(ovr_render_model);
-				if (ovr_texture != NULL) {
-					// destroy this?
-				};
+
 				loaded = true;
 			};
 
@@ -242,3 +270,102 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 	return ret;
 };
 
+GDCALLINGCONV godot_variant openvr_render_model_list_components(godot_object *p_instance, void *p_method_data, void *p_user_data, int p_num_args, godot_variant **p_args) {
+	static char component_name_key[] = "component_name";
+	static char button_mask_key[] = "button_mask";
+	static char render_model_name_key[] = "render_model_name";
+	godot_variant ret;
+	godot_array component_names;
+
+	api->godot_array_new(&component_names);
+
+	// get our model from openvr
+	if (p_user_data != NULL) {
+		render_model_data_struct *render_model_data = (render_model_data_struct *) p_user_data;
+
+		if ((render_model_data->ovr != NULL) && (p_num_args > 0)) {
+			godot_string find_name = api->godot_variant_as_string(p_args[0]);
+			char find[1024];
+			int component_count, len;
+
+			// First get the length
+			api->godot_string_get_data(&find_name, NULL, &len);
+			if (len > 1023) {
+				// our buffer only holds 1024, to lazy to allocate memory..
+				len = 1023;
+			}
+
+			// And get our string
+			api->godot_string_get_data(&find_name, find, &len);
+			find[len]='\0';
+
+			component_count = render_model_data->ovr->render_models->GetComponentCount(find);
+
+			for (int component = 0; component < component_count; component++) {
+				godot_dictionary dictionary;
+				godot_variant row, key, value;
+				godot_string s;
+				char component_name[1024], render_model_name[1024];
+				vr::VRControllerState_t controller_state;
+				vr::RenderModel_ControllerMode_State_t controller_mode_state;
+				vr::RenderModel_ComponentState_t component_state;
+
+				api->godot_dictionary_new(&dictionary);
+
+				// add our component name
+				api->godot_string_new_data(&s, component_name_key, strlen(component_name_key));
+				api->godot_variant_new_string(&key, &s);
+				api->godot_string_destroy(&s);
+
+				render_model_data->ovr->render_models->GetComponentName(find, component, component_name, 1024);
+				api->godot_string_new_data(&s, component_name, strlen(component_name));
+				api->godot_variant_new_string(&value, &s);
+				api->godot_string_destroy(&s);
+
+				api->godot_dictionary_set(&dictionary, &key, &value);
+				api->godot_variant_destroy(&key);
+				api->godot_variant_destroy(&value);
+
+				// add button mask
+				api->godot_string_new_data(&s, button_mask_key, strlen(button_mask_key));
+				api->godot_variant_new_string(&key, &s);
+				api->godot_string_destroy(&s);
+
+				api->godot_variant_new_int(&value, render_model_data->ovr->render_models->GetComponentButtonMask(find, component_name));
+
+				api->godot_dictionary_set(&dictionary, &key, &value);
+				api->godot_variant_destroy(&key);
+				api->godot_variant_destroy(&value);
+
+				// add render model name
+				api->godot_string_new_data(&s, render_model_name_key, strlen(render_model_name_key));
+				api->godot_variant_new_string(&key, &s);
+				api->godot_string_destroy(&s);
+
+				render_model_data->ovr->render_models->GetComponentRenderModelName(find, component_name, render_model_name, 1024);
+				api->godot_string_new_data(&s, render_model_name, strlen(render_model_name));
+				api->godot_variant_new_string(&value, &s);
+				api->godot_string_destroy(&s);
+
+				api->godot_dictionary_set(&dictionary, &key, &value);
+				api->godot_variant_destroy(&key);
+				api->godot_variant_destroy(&value);
+
+				// finally get some positioning info
+				render_model_data->ovr->render_models->GetComponentState(find, component_name, &controller_state, &controller_mode_state, &component_state);
+
+				// have to look at how to add these in and what to do with it..
+
+				// and add to our array
+				api->godot_variant_new_dictionary(&row, &dictionary);
+				api->godot_array_push_back(&component_names, &row);
+				api->godot_dictionary_destroy(&dictionary);
+				api->godot_variant_destroy(&row);
+			};
+		};
+	};
+
+	api->godot_variant_new_array(&ret, &component_names);
+	api->godot_array_destroy(&component_names);
+	return ret;
+};

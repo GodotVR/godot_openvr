@@ -37,35 +37,48 @@ void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options
 }
 
 void GDN_EXPORT godot_openvr_gdnative_singleton() {
-	arvr_api->godot_arvr_register_interface(&interface_struct);
+	if (arvr_api != NULL) {
+		arvr_api->godot_arvr_register_interface(&interface_struct);
+	}
 }
 
 void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle) {
-	{
-		godot_instance_create_func create = { NULL, NULL, NULL };
-		create.create_func = &openvr_render_model_constructor;
+	if (nativescript_api != NULL) {
+		{
+			godot_instance_create_func create = { NULL, NULL, NULL };
+			create.create_func = &openvr_render_model_constructor;
 
-		godot_instance_destroy_func destroy = { NULL, NULL, NULL };
-		destroy.destroy_func = &openvr_render_model_destructor;
+			godot_instance_destroy_func destroy = { NULL, NULL, NULL };
+			destroy.destroy_func = &openvr_render_model_destructor;
 
-		nativescript_api->godot_nativescript_register_class(p_handle, "OpenVRRenderModel", "ArrayMesh", create, destroy);
-	}
+			nativescript_api->godot_nativescript_register_class(p_handle, "OpenVRRenderModel", "ArrayMesh", create, destroy);
+		}
 
-	{
-		godot_instance_method get_data = { NULL, NULL, NULL };
-		get_data.method = &openvr_render_model_list;
+		{
+			godot_instance_method get_data = { NULL, NULL, NULL };
+			get_data.method = &openvr_render_model_list;
 
-		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+			godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
 
-		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "model_names", attributes, get_data);
-	}
+			nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "model_names", attributes, get_data);
+		}
 
-	{
-		godot_instance_method get_data = { NULL, NULL, NULL };
-		get_data.method = &openvr_render_model_load;
+		{
+			godot_instance_method get_data = { NULL, NULL, NULL };
+			get_data.method = &openvr_render_model_load;
 
-		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+			godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
 
-		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "load_model", attributes, get_data);
+			nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "load_model", attributes, get_data);
+		}
+
+		{
+			godot_instance_method get_data = { NULL, NULL, NULL };
+			get_data.method = &openvr_render_model_list_components;
+
+			godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+			nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "model_list_components", attributes, get_data);
+		}
 	}
 }
