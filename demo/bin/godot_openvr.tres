@@ -4,7 +4,7 @@
 
 singleton_gdnative = true
 platform/X11_32bit = ""
-platform/X11_64bit = ""
+platform/X11_64bit = "res://bin/libgodot_openvr.so"
 platform/Windows_32bit = ""
 platform/Windows_64bit = "res://bin/godot_openvr.dll"
 platform/OSX = "res://bin/libgodot_openvr.dylib"
