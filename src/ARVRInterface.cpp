@@ -41,7 +41,7 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 				hand = 1;
 			}
 
-			p_arvr_data->trackers[p_device_index] = api->godot_arvr_add_controller(device_name, hand, true, true);
+			p_arvr_data->trackers[p_device_index] = arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
 		};
 	};
 };
@@ -49,7 +49,7 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 void godot_detach_device(arvr_data_struct *p_arvr_data,
 		uint32_t p_device_index) {
 	if (p_arvr_data->trackers[p_device_index] != 0) {
-		api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
+		arvr_api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
 		p_arvr_data->trackers[p_device_index] = 0;
 	};
 };
@@ -192,10 +192,10 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
 		void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_transform transform_for_eye;
-	godot_transform reference_frame = api->godot_arvr_get_reference_frame();
+	godot_transform reference_frame = arvr_api->godot_arvr_get_reference_frame();
 	godot_transform ret;
 	godot_vector3 offset;
-	godot_real world_scale = api->godot_arvr_get_worldscale();
+	godot_real world_scale = arvr_api->godot_arvr_get_worldscale();
 
 	if (p_eye == 0) {
 		// we want a monoscopic transform.. shouldn't really apply here
@@ -265,7 +265,7 @@ void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 
 	if (p_eye == 1 && !api->godot_rect2_has_no_area(p_screen_rect)) {
 		// blit as mono
-		api->godot_arvr_blit(0, p_render_target, p_screen_rect);
+		arvr_api->godot_arvr_blit(0, p_render_target, p_screen_rect);
 	};
 
 	if (arvr_data->ovr != NULL) {
@@ -275,7 +275,7 @@ void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 		bounds.vMin = 0.0;
 		bounds.vMax = 1.0;
 
-		uint32_t texid = api->godot_arvr_get_texid(p_render_target);
+		uint32_t texid = arvr_api->godot_arvr_get_texid(p_render_target);
 
 		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid,
 			vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
@@ -320,7 +320,7 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 				vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
 		// we scale all our positions by our world scale
-		godot_real world_scale = api->godot_arvr_get_worldscale();
+		godot_real world_scale = arvr_api->godot_arvr_get_worldscale();
 
 		// update trackers and joysticks
 		for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
@@ -338,7 +338,7 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 					// update our location and orientation
 					godot_transform transform;
 					openvr_transform_from_matrix(&transform, &matPose, 1.0);
-					api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
+					arvr_api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
 							&transform, true, true);
 
 					// update our button state structure
@@ -356,7 +356,7 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 							bool is_pressed = new_state.ulButtonPressed &
 											  vr::ButtonMaskFromId((vr::EVRButtonId)button);
 							if (was_pressed != is_pressed) {
-								api->godot_arvr_set_controller_button(arvr_data->trackers[i],
+								arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[i],
 										button, is_pressed);
 							};
 						};
@@ -374,18 +374,18 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 							} else if (axis_type == vr::k_eControllerAxis_Trigger) {
 								// only x which ranges between 0. and 1.0
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									api->godot_arvr_set_controller_axis(
+									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											false);
 								};
 							} else {
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									api->godot_arvr_set_controller_axis(
+									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true);
 								};
 								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
-									api->godot_arvr_set_controller_axis(
+									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2 + 1,
 											new_state.rAxis[axis].y, true);
 								};
@@ -396,7 +396,7 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 					};
 
 					// update rumble
-					float rumble = api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
+					float rumble = arvr_api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
 					if ((rumble > 0.0) && ((msec - arvr_data->last_rumble_update[i]) > 5)) {
 						// We should only call this once ever 5ms...
 						arvr_data->ovr->hmd->TriggerHapticPulse(i, 0, (rumble * 5000.0));

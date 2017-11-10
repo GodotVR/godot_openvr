@@ -14,7 +14,24 @@
 // gdnative init
 
 void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
+	// get our main API struct
 	api = p_options->api_struct;
+
+	// now find our arvr extension
+	for (int i = 0; i < api->num_extensions; i++) {
+		// cheating a little, all extensions have type as the first field so this should be safe....
+		// Karroffel is going to add an arbitrary one in..
+		godot_gdnative_nativearvr_api_struct *nextapi = (godot_gdnative_nativearvr_api_struct *) api->extensions[i];
+		switch (nextapi->type) {
+			case GDNATIVE_NATIVEARVR_1_0_0: {
+				arvr_api = (godot_gdnative_nativearvr_api_struct *)nextapi;
+			}; break;
+			case GDNATIVE_NATIVESCRIPT_1_0_0: {
+				nativescript_api = (godot_gdnative_nativescript_api_struct *)nextapi;
+			}; break;
+			default: break;
+		};
+	};
 }
 
 void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
@@ -22,7 +39,7 @@ void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_opt
 }
 
 void GDN_EXPORT godot_gdnative_singleton() {
-	api->godot_arvr_register_interface(&interface_struct);
+	arvr_api->godot_arvr_register_interface(&interface_struct);
 }
 
 void GDN_EXPORT godot_nativescript_init(void *p_handle) {
@@ -33,7 +50,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle) {
 		godot_instance_destroy_func destroy = { NULL, NULL, NULL };
 		destroy.destroy_func = &openvr_render_model_destructor;
 
-		api->godot_nativescript_register_class(p_handle, "OpenVRRenderModel", "ArrayMesh", create, destroy);
+		nativescript_api->godot_nativescript_register_class(p_handle, "OpenVRRenderModel", "ArrayMesh", create, destroy);
 	}
 
 	{
@@ -42,7 +59,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle) {
 
 		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
 
-		api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "model_names", attributes, get_data);
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "model_names", attributes, get_data);
 	}
 
 	{
@@ -51,6 +68,6 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle) {
 
 		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
 
-		api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "load_model", attributes, get_data);
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "load_model", attributes, get_data);
 	}
 }
