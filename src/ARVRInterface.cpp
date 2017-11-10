@@ -349,8 +349,9 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 							sizeof(vr::VRControllerState_t));
 					if (arvr_data->tracked_device_state[i].unPacketNum !=
 							new_state.unPacketNum) {
-						// we currently have 8 defined buttons on VIVE controllers.
-						for (int button = 0; button < 8; button++) {
+						// we currently have 8 defined buttons on VIVE controllers, in theory it can have 32
+						// Godot supports up to 16 so we'll check all 16.
+						for (int button = 0; button < 16; button++) {
 							bool was_pressed = old_state.ulButtonPressed &
 											   vr::ButtonMaskFromId((vr::EVRButtonId)button);
 							bool is_pressed = new_state.ulButtonPressed &
@@ -361,9 +362,8 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 							};
 						};
 
-						// OpenVR supports 5 axis with x/y, godot only '4', so we'll ignore
-						// the last axis..
-						for (int axis = 0; axis < 4; axis++) {
+						// OpenVR supports 5 axis with x/y, for triggers only x is set
+						for (int axis = 0; axis < 5; axis++) {
 							vr::EVRControllerAxisType axis_type =
 									(vr::EVRControllerAxisType)
 											arvr_data->ovr->hmd->GetInt32TrackedDeviceProperty(
@@ -376,20 +376,22 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
 									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
-											false);
+											true); // had some weirdness with this false, I think it may be -1.0 to 1.0 afterall
 								};
 							} else {
+								// this can be trackpad or joystick. Might need to do more with trackpad..
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
 									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true);
 								};
+
 								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
 									arvr_api->godot_arvr_set_controller_axis(
-											arvr_data->trackers[i], axis * 2 + 1,
+											arvr_data->trackers[i], (axis * 2) + 1,
 											new_state.rAxis[axis].y, true);
 								};
-							}
+							};
 						};
 
 						arvr_data->tracked_device_state[i] = new_state;

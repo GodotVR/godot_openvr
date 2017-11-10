@@ -206,12 +206,10 @@ _sections_unfolded = [ "Transform" ]
 
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
 visible = false
-rumble = 0.0
 
 [node name="OVRController2" parent="ARVROrigin" instance=ExtResource( 3 )]
 
 controller_id = 2
-rumble = 0.0
 
 [node name="Ground" type="MeshInstance" parent="."]
 
