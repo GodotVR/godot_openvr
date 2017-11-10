@@ -14,9 +14,9 @@
 #include <cstdlib>
 
 // forward declarations
-extern const godot_gdnative_api_struct *api;
-extern const godot_gdnative_nativearvr_api_struct *arvr_api;
-extern const godot_gdnative_nativescript_api_struct *nativescript_api;
+extern const godot_gdnative_core_api_struct *api;
+extern const godot_gdnative_ext_arvr_api_struct *arvr_api;
+extern const godot_gdnative_ext_nativescript_api_struct *nativescript_api;
 
 #ifdef __cplusplus
 extern "C" {

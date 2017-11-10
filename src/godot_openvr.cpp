@@ -19,15 +19,13 @@ void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
 
 	// now find our arvr extension
 	for (int i = 0; i < api->num_extensions; i++) {
-		// cheating a little, all extensions have type as the first field so this should be safe....
-		// Karroffel is going to add an arbitrary one in..
-		godot_gdnative_nativearvr_api_struct *nextapi = (godot_gdnative_nativearvr_api_struct *) api->extensions[i];
-		switch (nextapi->type) {
-			case GDNATIVE_NATIVEARVR_1_0_0: {
-				arvr_api = (godot_gdnative_nativearvr_api_struct *)nextapi;
+		// todo: add version checks
+		switch (api->extensions[i]->type) {
+			case GDNATIVE_EXT_ARVR: {
+				arvr_api = (godot_gdnative_ext_arvr_api_struct *)api->extensions[i];
 			}; break;
-			case GDNATIVE_NATIVESCRIPT_1_0_0: {
-				nativescript_api = (godot_gdnative_nativescript_api_struct *)nextapi;
+			case GDNATIVE_EXT_NATIVESCRIPT: {
+				nativescript_api = (godot_gdnative_ext_nativescript_api_struct *)api->extensions[i];
 			}; break;
 			default: break;
 		};

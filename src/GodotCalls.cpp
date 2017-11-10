@@ -8,9 +8,9 @@
 
 #include "GodotCalls.h"
 
-const godot_gdnative_api_struct *api = NULL;
-const godot_gdnative_nativearvr_api_struct *arvr_api = NULL;
-const godot_gdnative_nativescript_api_struct *nativescript_api = NULL;
+const godot_gdnative_core_api_struct *api = NULL;
+const godot_gdnative_ext_arvr_api_struct *arvr_api = NULL;
+const godot_gdnative_ext_nativescript_api_struct *nativescript_api = NULL;
 
 int64_t ___godot_icall_int(godot_method_bind *mb, godot_object *inst) {
 	int64_t ret;
