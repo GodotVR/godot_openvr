@@ -30,8 +30,7 @@ godot_bool GDN_EXPORT godot_arvr_is_stereo(void *p_data);
 godot_bool GDN_EXPORT godot_arvr_is_initialized(void *p_data);
 godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data);
 void GDN_EXPORT godot_arvr_uninitialize(void *p_data);
-godot_vector2 GDN_EXPORT
-godot_arvr_get_recommended_render_targetsize(void *p_data);
+godot_vector2 GDN_EXPORT godot_arvr_get_render_targetsize(void *p_data);
 godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
 		void *p_data, godot_int p_eye, godot_transform *p_cam_transform);
 void GDN_EXPORT godot_arvr_fill_projection_for_eye(
