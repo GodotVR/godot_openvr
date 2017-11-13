@@ -10,7 +10,7 @@ func _ready():
 		get_viewport().hdr = false
 		
 		# resize our window so we see a smaller preview of our left eye
-		var size = arvr_interface.get_recommended_render_targetsize() / 3.0
+		var size = arvr_interface.get_render_targetsize() / 3.0
 		OS.set_window_size(size);
 	
 	# just for testing, list what models are available

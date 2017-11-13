@@ -171,7 +171,7 @@ void GDN_EXPORT godot_arvr_uninitialize(void *p_data) {
 	};
 };
 
-godot_vector2 GDN_EXPORT godot_arvr_get_recommended_render_targetsize(const void *p_data) {
+godot_vector2 GDN_EXPORT godot_arvr_get_render_targetsize(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_vector2 size;
 
@@ -421,7 +421,7 @@ const godot_arvr_interface_gdnative interface_struct = {
 	godot_arvr_is_initialized,
 	godot_arvr_initialize,
 	godot_arvr_uninitialize,
-	godot_arvr_get_recommended_render_targetsize,
+	godot_arvr_get_render_targetsize,
 	godot_arvr_get_transform_for_eye,
 	godot_arvr_fill_projection_for_eye,
 	godot_arvr_commit_for_eye,
