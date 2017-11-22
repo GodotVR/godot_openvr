@@ -13,7 +13,7 @@
 ////////////////////////////////////////////////////////////////////////
 // gdnative init
 
-void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
+void GDN_EXPORT godot_openvr_gdnative_init(godot_gdnative_init_options *p_options) {
 	// get our main API struct
 	api = p_options->api_struct;
 
@@ -32,15 +32,15 @@ void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options) {
 	};
 }
 
-void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
+void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options *p_options) {
 	api = NULL;
 }
 
-void GDN_EXPORT godot_gdnative_singleton() {
+void GDN_EXPORT godot_openvr_gdnative_singleton() {
 	arvr_api->godot_arvr_register_interface(&interface_struct);
 }
 
-void GDN_EXPORT godot_nativescript_init(void *p_handle) {
+void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle) {
 	{
 		godot_instance_create_func create = { NULL, NULL, NULL };
 		create.create_func = &openvr_render_model_constructor;

@@ -16,7 +16,7 @@ config/icon="res://icon.png"
 
 [gdnative]
 
-singletons=[ "res://bin/godot_openvr.tres" ]
+singletons=[ "res://bin/godot_openvr.gdnlib" ]
 
 [rendering]
 
