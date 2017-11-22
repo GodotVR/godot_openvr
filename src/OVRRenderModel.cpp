@@ -93,9 +93,20 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 			godot_string find_name = api->godot_variant_as_string(p_args[0]);
 			vr::RenderModel_t *ovr_render_model = NULL;
 			vr::RenderModel_TextureMap_t *ovr_texture = NULL;
-			char find[256];
 
-			strcpy(find, api->godot_string_c_str(&find_name));
+			char find[1024];
+			int len;
+
+			// First get the length
+			api->godot_string_get_data(&find_name, NULL, &len);
+			if (len > 1023) {
+				// our buffer only holds 1024, to lazy to allocate memory..
+				len = 1023;
+			}
+
+			// And get our string
+			api->godot_string_get_data(&find_name, find, &len);
+			find[len]='\0';
 
 			printf("Searching for: %s\n", find);
 

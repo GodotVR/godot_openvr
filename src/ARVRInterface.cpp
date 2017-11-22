@@ -54,29 +54,7 @@ void godot_detach_device(arvr_data_struct *p_arvr_data,
 	};
 };
 
-void GDN_EXPORT *godot_arvr_constructor(godot_object *p_instance) {
-	godot_string ret;
-
-	arvr_data_struct *arvr_data = (arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
-	arvr_data->ovr = NULL;
-	api->godot_transform_new_identity(&arvr_data->hmd_transform);
-
-	return arvr_data;
-}
-
-void GDN_EXPORT godot_arvr_destructor(void *p_data) {
-	if (p_data != NULL) {
-		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
-		if (arvr_data->ovr != NULL) {
-			// this should have already been called... But just in case...
-			godot_arvr_uninitialize(p_data);
-		}
-
-		api->godot_free(p_data);
-	}
-}
-
-godot_string GDN_EXPORT godot_arvr_get_name(const void *p_data) {
+godot_string godot_arvr_get_name(const void *p_data) {
 	godot_string ret;
 
 	char name[] = "OpenVR";
@@ -85,7 +63,7 @@ godot_string GDN_EXPORT godot_arvr_get_name(const void *p_data) {
 	return ret;
 }
 
-godot_int GDN_EXPORT godot_arvr_get_capabilities(const void *p_data) {
+godot_int godot_arvr_get_capabilities(const void *p_data) {
 	godot_int ret;
 
 	ret = 2 + 8; // 2 = ARVR_STEREO, 8 = ARVR_EXTERNAL
@@ -93,7 +71,7 @@ godot_int GDN_EXPORT godot_arvr_get_capabilities(const void *p_data) {
 	return ret;
 };
 
-godot_bool GDN_EXPORT godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
+godot_bool godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 	godot_bool ret;
 
 	ret = false; // does not apply here
@@ -101,12 +79,12 @@ godot_bool GDN_EXPORT godot_arvr_get_anchor_detection_is_enabled(const void *p_d
 	return ret;
 };
 
-void GDN_EXPORT godot_arvr_set_anchor_detection_is_enabled(void *p_data,
+void godot_arvr_set_anchor_detection_is_enabled(void *p_data,
 		bool p_enable){
 	// we ignore this, not supported in this interface!
 };
 
-godot_bool GDN_EXPORT godot_arvr_is_stereo(const void *p_data) {
+godot_bool godot_arvr_is_stereo(const void *p_data) {
 	godot_bool ret;
 
 	ret = true;
@@ -114,7 +92,7 @@ godot_bool GDN_EXPORT godot_arvr_is_stereo(const void *p_data) {
 	return ret;
 };
 
-godot_bool GDN_EXPORT godot_arvr_is_initialized(const void *p_data) {
+godot_bool godot_arvr_is_initialized(const void *p_data) {
 	godot_bool ret;
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
@@ -123,7 +101,7 @@ godot_bool GDN_EXPORT godot_arvr_is_initialized(const void *p_data) {
 	return ret;
 };
 
-godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
+godot_bool godot_arvr_initialize(void *p_data) {
 	godot_bool ret;
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
@@ -154,7 +132,7 @@ godot_bool GDN_EXPORT godot_arvr_initialize(void *p_data) {
 	return ret;
 };
 
-void GDN_EXPORT godot_arvr_uninitialize(void *p_data) {
+void godot_arvr_uninitialize(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	if (arvr_data->ovr != NULL) {
@@ -171,7 +149,7 @@ void GDN_EXPORT godot_arvr_uninitialize(void *p_data) {
 	};
 };
 
-godot_vector2 GDN_EXPORT godot_arvr_get_render_targetsize(const void *p_data) {
+godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_vector2 size;
 
@@ -188,7 +166,7 @@ godot_vector2 GDN_EXPORT godot_arvr_get_render_targetsize(const void *p_data) {
 	return size;
 };
 
-godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
+godot_transform godot_arvr_get_transform_for_eye(
 		void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_transform transform_for_eye;
@@ -227,7 +205,7 @@ godot_transform GDN_EXPORT godot_arvr_get_transform_for_eye(
 	return ret;
 };
 
-void GDN_EXPORT godot_arvr_fill_projection_for_eye(
+void godot_arvr_fill_projection_for_eye(
 		void *p_data, godot_real *p_projection, godot_int p_eye,
 		godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
@@ -247,7 +225,7 @@ void GDN_EXPORT godot_arvr_fill_projection_for_eye(
 	};
 };
 
-void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
+void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 		godot_rid *p_render_target,
 		godot_rect2 *p_screen_rect) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
@@ -287,7 +265,7 @@ void GDN_EXPORT godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 	};
 };
 
-void GDN_EXPORT godot_arvr_process(void *p_data) {
+void godot_arvr_process(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	// this method gets called before every frame is rendered, here is where you
@@ -407,6 +385,28 @@ void GDN_EXPORT godot_arvr_process(void *p_data) {
 				};
 			};
 		};
+	};
+};
+
+void *godot_arvr_constructor(godot_object *p_instance) {
+	godot_string ret;
+
+	arvr_data_struct *arvr_data = (arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
+	arvr_data->ovr = NULL;
+	api->godot_transform_new_identity(&arvr_data->hmd_transform);
+
+	return arvr_data;
+};
+
+void godot_arvr_destructor(void *p_data) {
+	if (p_data != NULL) {
+		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+		if (arvr_data->ovr != NULL) {
+			// this should have already been called... But just in case...
+			godot_arvr_uninitialize(p_data);
+		}
+
+		api->godot_free(p_data);
 	};
 };
 
