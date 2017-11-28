@@ -25,9 +25,13 @@ func _process(delta):
 				loaded = ovr_render_model.load_model("generic_controller")
 			
 			if loaded:
-				get_node("Controller_mesh").mesh = ovr_render_model
+				$Controller_mesh.mesh = ovr_render_model
 			else:
-				get_node("Controller_mesh").mesh = Mesh()
+				$Controller_mesh.mesh = Mesh()
+
+			# apply our world scale
+			var ws = ARVRServer.world_scale
+			$Controller_mesh.scale = Vector3(ws, ws, ws)
 
 			# make it visible
 			visible = true
