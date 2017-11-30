@@ -33,11 +33,14 @@ There is also an alpha 2 branch that is lined up with the alpha 2 Godot release.
 
 Deploying
 ---------
-Note that besides compiling the GDNative module you must also include valves openvr_api.dll (windows), libopenvr_api.so (linux) or OpenVR.framework (Mac OS X).
-At the moment these must be placed alongside the godot executable (on Mac OS X the framework must be placed in frameworks inside of the app bundle).
-The godot_openvr.dll or libgodot_openvr.so file should be placed in the location the godot_openvr.tres file is pointing to (at the moment bin).
+Note that besides compiling the GDNative module you must also include valves openvr_api.dll (windows), libopenvr_api.so (linux) or OpenVR.framework (Mac OS X). See platform notes for placement of these files.
+The godot_openvr.dll or libgodot_openvr.so file should be placed in the location the godot_openvr.gdnlib file is pointing to (at the moment bin).
 
-Note that as at the time of writing this I have only tested this on Windows. Others have let me know the linux build is working as well but tweaks may be needed.
+Note that as at the time of writing this I have only tested this on Windows. Others have let me know the Linux build is working as well but tweaks may be needed.
+
+Mac notes
+---------
+Mac is currently untested, I unfortunately do not have the required hardware. If anyone wants to hold up their hands, please contact me :)
 
 Linux notes
 -----------
@@ -58,6 +61,20 @@ There are a couple of ways to fix this:
 ```
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"/path/to/libgodot_openvr.so/dir/":"/home/<user>/.steam/steam/steamapps/common/SteamVR/bin/"
 ```
+
+You can place the libopenvr_api.so file alongside the libgodot_openvr.so file in the bin folder. You can find this file in: openvr/bin/linux64
+
+Windows notes
+-------------
+
+Windows generally works without any special needs. I've tested compiling with MSVC 2017, others have tested 2015. With 2017 be aware Microsoft now lets you pick and choose which components you install and by default it may not install the SDK you need. Make sure to install both the Windows SDK and build tools.
+
+Also when deploying users may need to first install the correct redistributable you can find here: https://support.microsoft.com/en-au/help/2977003/the-latest-supported-visual-c-downloads
+I am not 100% sure this is a requirement as it automatically installs this when installing MSVC but past experiences and such... :)
+
+For Windows you need to supply a copy of openvr_api.dll along with your executable which can be found in openvr/bin/win64
+Up until and including Godot 3 beta 0 this file needs to be placed alongside the EXE.
+If you build Godot from the latest master you can place the file in the bin folder alongside the godot_openvr.dll
 
 License
 -------

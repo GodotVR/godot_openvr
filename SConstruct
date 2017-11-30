@@ -5,7 +5,8 @@ import os, subprocess
 godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
 openvr_path = ARGUMENTS.get("openvr", os.getenv("OPENVR_PATH", "openvr/"))
 
-target = ARGUMENTS.get("target", "debug")
+# default to release build, add target=debug to build debug build
+target = ARGUMENTS.get("target", "release")
 
 # platform= makes it in line with Godots scons file, keeping p for backwards compatibility
 platform = ARGUMENTS.get("p", "linux")
