@@ -2,8 +2,7 @@
 *.os
 *.so
 *.dylib
-.import
-*.import
+.import/
 *.dblite
 *.dll
 *.exp
