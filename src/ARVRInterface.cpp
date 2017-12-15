@@ -284,6 +284,28 @@ void godot_arvr_process(void *p_data) {
 				case vr::VREvent_TrackedDeviceDeactivated: {
 					godot_detach_device(arvr_data, event.trackedDeviceIndex);
 				}; break;
+				// Get buttons from ButtonPress and ButtonUnpress events
+				case vr::VREvent_ButtonPress: {
+					int button = int(event.data.controller.button);
+					if (button == vr::k_EButton_SteamVR_Touchpad) {
+						// If the button being pressed is the Touchpad, reassign it to button 14
+						button = 14;
+					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+						// If the button being pressed is the trigger, reassign it to button 15
+						button = 15;
+					}
+					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, true);
+				}; break;
+				case vr::VREvent_ButtonUnpress: {
+					int button = int(event.data.controller.button);
+					//Do that again when the button is released
+					if (button == vr::k_EButton_SteamVR_Touchpad) {
+						button = 14;
+					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+						button = 15;
+					}
+					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
+				}break;
 				default: {
 					// ignored for now...
 				}; break;
@@ -327,19 +349,6 @@ void godot_arvr_process(void *p_data) {
 							sizeof(vr::VRControllerState_t));
 					if (arvr_data->tracked_device_state[i].unPacketNum !=
 							new_state.unPacketNum) {
-						// we currently have 8 defined buttons on VIVE controllers, in theory it can have 32
-						// Godot supports up to 16 so we'll check all 16.
-						for (int button = 0; button < 16; button++) {
-							bool was_pressed = old_state.ulButtonPressed &
-											   vr::ButtonMaskFromId((vr::EVRButtonId)button);
-							bool is_pressed = new_state.ulButtonPressed &
-											  vr::ButtonMaskFromId((vr::EVRButtonId)button);
-							if (was_pressed != is_pressed) {
-								arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[i],
-										button, is_pressed);
-							};
-						};
-
 						// OpenVR supports 5 axis with x/y, for triggers only x is set
 						for (int axis = 0; axis < 5; axis++) {
 							vr::EVRControllerAxisType axis_type =
