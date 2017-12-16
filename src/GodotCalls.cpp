@@ -77,3 +77,13 @@ void ___godot_icall_void_int_int_bool_int_PoolByteArray(godot_method_bind *mb, g
 
 	api->godot_method_bind_ptrcall(mb, inst, args, nullptr);
 }
+
+godot_vector2 ___godot_icall_Vector2_int(godot_method_bind *mb, godot_object *inst, const int arg0) {
+	godot_vector2 ret;
+	const void *args[] = {
+		(void *) &arg0,
+	};
+
+	api->godot_method_bind_ptrcall(mb, inst, args, &ret);
+	return ret;
+}
