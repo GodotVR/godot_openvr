@@ -14,11 +14,22 @@ config/name="OpenVR demo"
 run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
+[debug]
+
+settings/stdout/print_fps=true
+
+[display]
+
+window/size/width=800
+window/size/height=500
+window/vsync/use_vsync=false
+
 [gdnative]
 
 singletons=[ "res://bin/godot_openvr.gdnlib" ]
 
 [rendering]
 
+quality/voxel_cone_tracing/high_quality=false
 quality/filters/msaa=1
 environment/default_environment="res://default_env.tres"

@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 int64_t OS_get_ticks_msec();
+godot_vector2 OS_get_screen_size(const int64_t screen = -1);
 
 #ifdef __cplusplus
 }

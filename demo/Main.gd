@@ -9,9 +9,10 @@ func _ready():
 		# workaround in OpenVR because OpenVR does not like our HDR buffers, so turn it off for now...
 		get_viewport().hdr = false
 		
+		# No longer needed, will remove soon. 
 		# resize our window so we see a smaller preview of our left eye
-		var size = arvr_interface.get_render_targetsize() / 3.0
-		OS.set_window_size(size);
+		# var size = arvr_interface.get_render_targetsize() / 3.0
+		# OS.set_window_size(size);
 	
 	# just for testing, list what models are available
 	var ovr_model = preload("res://bin/OpenVRRenderModel.gdns").new()

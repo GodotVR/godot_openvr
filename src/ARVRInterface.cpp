@@ -241,9 +241,26 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 	// of one of the eyes to the main viewport if p_screen_rect is set, and only
 	// output to the external device if not.
 
-	if (p_eye == 1 && !api->godot_rect2_has_no_area(p_screen_rect)) {
-		// blit as mono
-		arvr_api->godot_arvr_blit(0, p_render_target, p_screen_rect);
+	godot_rect2 screen_rect = *p_screen_rect;
+
+	if (p_eye == 1 && !api->godot_rect2_has_no_area(&screen_rect)) {
+		// blit as mono, attempt to keep our aspect ratio and center our render buffer
+		godot_vector2 render_size = godot_arvr_get_render_targetsize(p_data);
+
+		float new_height = screen_rect.size.x * (render_size.y / render_size.x);
+		if (new_height > screen_rect.size.y) {
+			screen_rect.position.y = (0.5 * screen_rect.size.y) - (0.5 * new_height);
+			screen_rect.size.y = new_height;
+		} else {
+			float new_width = screen_rect.size.y * (render_size.x / render_size.y);
+
+			screen_rect.position.x = (0.5 * screen_rect.size.x) - (0.5 * new_width);
+			screen_rect.size.x = new_width;
+		};
+
+		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
+
+		arvr_api->godot_arvr_blit(0, p_render_target, &screen_rect);
 	};
 
 	if (arvr_data->ovr != NULL) {
