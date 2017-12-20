@@ -1,0 +1,80 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+
+script/source = "extends Spatial
+
+# Add this node to a ARVRController node to implement direct movement
+
+# to combat motion sickness we'll 'step' our left/right turning
+var turn_step = 0.0
+export var turn_delay = 0.2
+export var turn_angle = 20.0
+export var max_speed = 5.0
+
+func _physics_process(delta):
+	# We should be the child or the controller on which the teleport is implemented
+	var controller = get_parent()
+	# And its parent should be our origin point
+	var origin = controller.get_parent()
+	# And our camera should be a child node (we need to make this nicer...)
+	var camera = origin.get_node(\"ARVRCamera\")
+	
+	if controller.get_is_active():
+		var left_right = controller.get_joystick_axis(0)
+		var forwards_backwards = controller.get_joystick_axis(1)
+		
+		if (abs(left_right) > 0.1):
+			if left_right > 0.0:
+				if turn_step < 0.0:
+					# reset step
+					turn_step = 0
+			
+				turn_step += left_right * delta
+			else:
+				if turn_step > 0.0:
+					# reset step
+					turn_step = 0
+			
+				turn_step += left_right * delta
+		
+			if abs(turn_step) > turn_delay:
+				# we rotate around our Camera, but we adjust our origin, so we need a little bit of trickery
+				var t1 = Transform()
+				var t2 = Transform()
+				var rot = Transform()
+			
+				t1.origin = -camera.transform.origin
+				t2.origin = camera.transform.origin
+			
+				# Rotating
+				while abs(turn_step) > turn_delay:
+					if (turn_step > 0.0):
+						rot = rot.rotated(Vector3(0.0,-1.0,0.0),turn_angle * PI / 180.0)
+						turn_step -= turn_delay
+					else:
+						rot = rot.rotated(Vector3(0.0,1.0,0.0),turn_angle * PI / 180.0)
+						turn_step += turn_delay
+			
+				origin.transform *= t2 * rot * t1
+		else:
+			turn_step = 0.0
+
+		if (abs(forwards_backwards) > 0.1):
+			var t = camera.global_transform
+			var dir = t.basis.z
+			dir.y = 0.0
+		
+			# We can't use move and collide here because we're moving our world center and thus our kinematic body indirectly.
+			# Need to improve on that...
+			origin.translation -= dir.normalized() * delta * forwards_backwards * max_speed;
+"
+
+[node name="Function_Direct_movement" type="Spatial"]
+
+script = SubResource( 1 )
+turn_delay = 0.2
+turn_angle = 20.0
+max_speed = 5.0
+
+

@@ -1,0 +1,248 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://ovr/teleport_arrow.png" type="Texture" id=1]
+[ext_resource path="res://ovr/teleport_target.png" type="Texture" id=2]
+
+[sub_resource type="GDScript" id=1]
+
+script/source = "extends Spatial
+
+# Add this scene as a sub scene of your ARVRController node to implement a teleport function on that controller.
+
+var is_teleporting = false
+var can_teleport = true
+var teleport_rotation = 0.0;
+var last_target_transform = Transform()
+onready var ws = ARVRServer.world_scale
+
+func _ready():
+	# It's inactive when we start
+	$Teleport.visible = false
+	$Target.visible = false
+	
+	# Scale to our world scale
+	$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
+	$Target.mesh.size = Vector2(ws, ws)
+
+func _physics_process(delta):
+	# We should be the child or the controller on which the teleport is implemented
+	var controller = get_parent()
+	# And its parent should be our origin point
+	var origin = controller.get_parent()
+	
+	# button 15 is mapped to our trigger
+	if controller and controller.get_is_active() and controller.is_button_pressed(15):
+		if !is_teleporting:
+			is_teleporting = true
+			$Teleport.visible = true
+			$Target.visible = true
+			teleport_rotation = 0.0
+		
+		# check our axis to see if we need to rotate
+		teleport_rotation += (delta * controller.get_joystick_axis(0) * -4.0)
+		
+		# and update our transform
+		var teleport_transform = $Teleport.global_transform
+		var location = teleport_transform.origin
+			
+		# update rotation
+		var target_basis = Basis()
+		target_basis.z = Vector3(teleport_transform.basis.z.x, 0.0, teleport_transform.basis.z.z).normalized()
+		target_basis.y = Vector3(0.0, 1.0, 0.0)
+		target_basis.x = target_basis.y.cross(target_basis.z)
+		target_basis = target_basis.rotated(Vector3(0.0, 1.0, 0.0), teleport_rotation)
+		last_target_transform.basis = target_basis
+			
+		# update location
+		var target_origin = teleport_transform.origin
+		var down = Vector3(0.0, -ws, 0.0)
+		var v = teleport_transform.basis.z
+			
+		# Apply quadratic to figure out where we hit the ground
+		var vy5 = v.y * 5.0 # due to our scale of 0.2, this just makes it easier 
+		var sqrt_b2_4ac = sqrt((vy5 * vy5) - (4.0 * down.y * (target_origin.y - 0.1)))
+		var t = (-vy5 + sqrt_b2_4ac) / (2.0 * down.y)
+			
+		target_origin += (v * t * 5)
+		target_origin += (down * t * t)
+			
+		last_target_transform.origin = target_origin
+			
+		$Target.global_transform = last_target_transform
+			
+		# and just update our shader
+		$Teleport.get_surface_material(0).set_shader_param(\"ws\", ws)
+		$Teleport.get_surface_material(0).set_shader_param(\"length\", t * -5.0)
+		
+		# should check if we can teleport where we are pointing and change colour accordingly..
+		can_teleport = true # for now assume so
+	elif is_teleporting:
+		if can_teleport:
+			# reset our player position to center
+			ARVRServer.center_on_hmd(true, true)
+			last_target_transform.origin.y = 0.0 # just in case
+			origin.global_transform = last_target_transform
+		
+		# and disable
+		is_teleporting = false;
+		$Teleport.visible = false
+		$Target.visible = false
+
+"
+
+[sub_resource type="PlaneMesh" id=2]
+
+size = Vector2( 0.05, 1 )
+subdivide_width = 0
+subdivide_depth = 40
+
+[sub_resource type="Shader" id=3]
+
+code = "shader_type spatial;
+render_mode unshaded, cull_disabled, skip_vertex_transform;
+
+uniform float scale_t = 0.2;
+uniform float length = 20.0;
+uniform float ws = 1.0;
+uniform vec4 mix_color : hint_color;
+uniform sampler2D arrow_texture : hint_albedo;
+
+void vertex() {
+	vec3 down = vec3(0.0, -ws, 0.0);
+	
+	// offset our Z so we're projecting from our origin point
+	VERTEX.z -= 0.5;
+	VERTEX.z *= length;
+	
+	// now use that to create our arch
+	float t = VERTEX.z * scale_t;
+	float t2 = t * t;
+
+	// translate to our world vector
+	VERTEX = (WORLD_MATRIX * vec4(VERTEX, 1.0)).xyz; 
+	
+	// and now create our arch
+	VERTEX += down * t2;
+	
+	// and apply our camera matrix
+	VERTEX = (INV_CAMERA_MATRIX * vec4(VERTEX, 1.0)).xyz;
+}
+
+void fragment() {
+	// and do our color
+	float offset =  (TIME * 2.0);
+	vec4 col = texture(arrow_texture, vec2(UV.x, (UV.y * length * -4.0) + offset )).rgba;
+	ALBEDO = col.rgb * mix_color.rgb;
+	
+	// need to fix up our image and add an alpha channel
+	ALPHA = col.a;
+}
+"
+
+[sub_resource type="ShaderMaterial" id=4]
+
+render_priority = 0
+shader = SubResource( 3 )
+shader_param/scale_t = 0.2
+shader_param/length = 30.0
+shader_param/ws = null
+shader_param/mix_color = Color( 0.176471, 0.313726, 0.862745, 1 )
+shader_param/arrow_texture = ExtResource( 1 )
+_sections_unfolded = [ "shader_param" ]
+
+[sub_resource type="PlaneMesh" id=5]
+
+size = Vector2( 1, 1 )
+subdivide_width = 0
+subdivide_depth = 0
+
+[sub_resource type="SpatialMaterial" id=6]
+
+render_priority = 0
+flags_transparent = true
+flags_unshaded = true
+flags_vertex_lighting = false
+flags_no_depth_test = false
+flags_use_point_size = false
+flags_world_triplanar = false
+flags_fixed_size = false
+flags_albedo_tex_force_srgb = false
+vertex_color_use_as_albedo = false
+vertex_color_is_srgb = false
+params_diffuse_mode = 1
+params_specular_mode = 0
+params_blend_mode = 0
+params_cull_mode = 2
+params_depth_draw_mode = 0
+params_line_width = 1.0
+params_point_size = 1.0
+params_billboard_mode = 0
+params_grow = false
+params_use_alpha_scissor = false
+albedo_color = Color( 0.176471, 0.313726, 0.862745, 1 )
+albedo_texture = ExtResource( 2 )
+metallic = 0.0
+metallic_specular = 0.5
+metallic_texture_channel = 0
+roughness = 0.0
+roughness_texture_channel = 0
+emission_enabled = false
+normal_enabled = false
+rim_enabled = false
+clearcoat_enabled = false
+anisotropy_enabled = false
+ao_enabled = false
+depth_enabled = false
+subsurf_scatter_enabled = false
+transmission_enabled = false
+refraction_enabled = false
+detail_enabled = false
+uv1_scale = Vector3( 1, 1, 1 )
+uv1_offset = Vector3( 0, 0, 0 )
+uv1_triplanar = false
+uv1_triplanar_sharpness = 1.0
+uv2_scale = Vector3( 1, 1, 1 )
+uv2_offset = Vector3( 0, 0, 0 )
+uv2_triplanar = false
+uv2_triplanar_sharpness = 1.0
+proximity_fade_enable = false
+distance_fade_enable = false
+_sections_unfolded = [ "Albedo", "Flags", "Parameters" ]
+
+[node name="Function_Teleport" type="Spatial" index="0"]
+
+script = SubResource( 1 )
+
+[node name="Teleport" type="MeshInstance" parent="." index="0"]
+
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = SubResource( 2 )
+skeleton = NodePath("..")
+material/0 = SubResource( 4 )
+_sections_unfolded = [ "material" ]
+
+[node name="Target" type="MeshInstance" parent="." index="1"]
+
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = SubResource( 5 )
+skeleton = NodePath("..")
+material/0 = SubResource( 6 )
+_sections_unfolded = [ "material" ]
+
+
