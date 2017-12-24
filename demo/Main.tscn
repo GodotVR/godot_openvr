@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://Milkyway.png" type="Texture" id=2]
-[ext_resource path="res://ovr_controller/ovr_controller.tscn" type="PackedScene" id=3]
-[ext_resource path="res://Table.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Table.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ovr/ovr_first_person.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ovr/Function_Teleport.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ovr/Function_Direct_movement.tscn" type="PackedScene" id=6]
 
 [sub_resource type="PanoramaSky" id=1]
 
@@ -149,15 +151,15 @@ size = Vector2( 10, 10 )
 subdivide_width = 10
 subdivide_depth = 10
 
-[node name="Main" type="Spatial"]
+[node name="Main" type="Spatial" index="0"]
 
 script = ExtResource( 1 )
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." index="0"]
 
 environment = SubResource( 2 )
 
-[node name="DirectionalLight" type="DirectionalLight" parent="."]
+[node name="DirectionalLight" type="DirectionalLight" parent="." index="1"]
 
 transform = Transform( 0.623013, -0.733525, 0.271654, 0.321394, 0.55667, 0.766044, -0.713134, -0.389948, 0.582563, 0, 100, 0 )
 layers = 1
@@ -166,6 +168,7 @@ light_energy = 1.0
 light_indirect_energy = 1.0
 light_negative = false
 light_specular = 0.5
+light_bake_mode = 1
 light_cull_mask = -1
 shadow_enabled = false
 shadow_color = Color( 0, 0, 0, 1 )
@@ -184,36 +187,7 @@ directional_shadow_depth_range = 0
 directional_shadow_max_distance = 200.0
 _sections_unfolded = [ "Transform" ]
 
-[node name="ARVROrigin" type="ARVROrigin" parent="."]
-
-world_scale = 1.0
-
-[node name="ARVRCamera" type="ARVRCamera" parent="ARVROrigin"]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
-projection = 0
-fov = 65.0
-near = 0.1
-far = 100.0
-keep_aspect = 1
-current = false
-cull_mask = 1048575
-environment = null
-h_offset = 0.0
-v_offset = 0.0
-doppler/tracking = 0
-_sections_unfolded = [ "Transform" ]
-
-[node name="OVRController" parent="ARVROrigin" instance=ExtResource( 3 )]
-
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
-visible = false
-
-[node name="OVRController2" parent="ARVROrigin" instance=ExtResource( 3 )]
-
-controller_id = 2
-
-[node name="Ground" type="MeshInstance" parent="."]
+[node name="Ground" type="MeshInstance" parent="." index="2"]
 
 transform = Transform( 100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0 )
 layers = 1
@@ -230,9 +204,9 @@ skeleton = NodePath("..")
 material/0 = null
 _sections_unfolded = [ "Transform" ]
 
-[node name="Table" parent="." instance=ExtResource( 4 )]
+[node name="Table" parent="." index="3" instance=ExtResource( 3 )]
 
-[node name="Test" type="MeshInstance" parent="."]
+[node name="Test" type="MeshInstance" parent="." index="4"]
 
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63647, -1.15364 )
 layers = 1
@@ -247,4 +221,11 @@ lod_max_hysteresis = 0.0
 mesh = null
 skeleton = NodePath("..")
 
+[node name="OVRFirstPerson" parent="." index="5" instance=ExtResource( 4 )]
 
+[node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 5 )]
+
+[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 6 )]
+
+
+[editable path="OVRFirstPerson"]
