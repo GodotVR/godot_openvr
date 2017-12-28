@@ -14,6 +14,9 @@ typedef struct arvr_data_struct {
 	godot_int trackers[vr::k_unMaxTrackedDeviceCount];
 	uint64_t last_rumble_update[vr::k_unMaxTrackedDeviceCount];
 	godot_transform hmd_transform;
+	bool device_hands_are_available;
+	uint32_t left_hand_device;
+	uint32_t right_hand_device;
 } arvr_data_struct;
 
 void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
@@ -37,11 +40,27 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 			int32_t controllerRole = p_arvr_data->ovr->hmd->GetInt32TrackedDeviceProperty(p_device_index, vr::Prop_ControllerRoleHint_Int32, &error);
 			if (controllerRole == vr::TrackedControllerRole_RightHand) {
 				hand = 2;
+				p_arvr_data->device_hands_are_available = true;
 			} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
 				hand = 1;
+				p_arvr_data->device_hands_are_available = true;
+			} else if (!p_arvr_data->device_hands_are_available) {
+				// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
+				if (p_arvr_data->left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+					hand = 1;
+				} else if (p_arvr_data->right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+					hand = 2;
+				}
 			}
 
 			p_arvr_data->trackers[p_device_index] = arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
+
+			// remember our primary left and right hand devices
+			if ((hand == 1) && (p_arvr_data->left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				p_arvr_data->left_hand_device = p_device_index;
+			} else if ((hand == 2) && (p_arvr_data->right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				p_arvr_data->right_hand_device = p_device_index;
+			};
 		};
 	};
 };
@@ -51,6 +70,13 @@ void godot_detach_device(arvr_data_struct *p_arvr_data,
 	if (p_arvr_data->trackers[p_device_index] != 0) {
 		arvr_api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
 		p_arvr_data->trackers[p_device_index] = 0;
+
+		// unset left/right hand devices
+		if (p_arvr_data->left_hand_device == p_device_index) {
+			p_arvr_data->left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+		} else if (p_arvr_data->right_hand_device == p_device_index) {
+			p_arvr_data->right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+		}
 	};
 };
 
@@ -123,6 +149,10 @@ godot_bool godot_arvr_initialize(void *p_data) {
 					godot_attach_device(arvr_data, i);
 				};
 			};
+
+			arvr_data->device_hands_are_available = false;
+			arvr_data->left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+			arvr_data->right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
 			// note, this will be made the primary interface by ARVRInterfaceGDNative
 		};
 	};
