@@ -67,10 +67,10 @@ func _physics_process(delta):
 		
 			# We can't use move and collide here because we're moving our world center and thus our kinematic body indirectly.
 			# Need to improve on that...
-			origin.translation -= dir.normalized() * delta * forwards_backwards * max_speed;
+			origin.translation -= dir.normalized() * delta * forwards_backwards * max_speed * ARVRServer.world_scale;
 "
 
-[node name="Function_Direct_movement" type="Spatial"]
+[node name="Function_Direct_movement" type="Spatial" index="0"]
 
 script = SubResource( 1 )
 turn_delay = 0.2

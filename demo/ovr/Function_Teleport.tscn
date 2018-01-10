@@ -9,6 +9,7 @@ script/source = "extends Spatial
 
 # Add this scene as a sub scene of your ARVRController node to implement a teleport function on that controller.
 
+export var strength = 5.0
 var is_teleporting = false
 var can_teleport = true
 var teleport_rotation = 0.0;
@@ -21,6 +22,14 @@ func _ready():
 	$Target.visible = false
 	
 	# Scale to our world scale
+	$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
+	$Target.mesh.size = Vector2(ws, ws)
+	
+	# tell us about world scale changes
+	ARVRServer.connect(\"world_scale_changed\", self, \"_on_world_scale_changed\")
+
+func _on_world_scale_changed(value):
+	ws = value
 	$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
 	$Target.mesh.size = Vector2(ws, ws)
 
@@ -55,15 +64,15 @@ func _physics_process(delta):
 			
 		# update location
 		var target_origin = teleport_transform.origin
-		var down = Vector3(0.0, -ws, 0.0)
+		var down = Vector3(0.0, -1.0 / ws, 0.0)
 		var v = teleport_transform.basis.z
 			
 		# Apply quadratic to figure out where we hit the ground
-		var vy5 = v.y * 5.0 # due to our scale of 0.2, this just makes it easier 
-		var sqrt_b2_4ac = sqrt((vy5 * vy5) - (4.0 * down.y * (target_origin.y - 0.1)))
-		var t = (-vy5 + sqrt_b2_4ac) / (2.0 * down.y)
+		var vys = v.y * strength 
+		var sqrt_b2_4ac = sqrt((vys * vys) - (4.0 * down.y * (target_origin.y - 0.1)))
+		var t = (-vys + sqrt_b2_4ac) / (2.0 * down.y)
 			
-		target_origin += (v * t * 5)
+		target_origin += (v * t * strength)
 		target_origin += (down * t * t)
 			
 		last_target_transform.origin = target_origin
@@ -71,6 +80,7 @@ func _physics_process(delta):
 		$Target.global_transform = last_target_transform
 			
 		# and just update our shader
+		$Teleport.get_surface_material(0).set_shader_param(\"scale_t\", 1.0 / strength)
 		$Teleport.get_surface_material(0).set_shader_param(\"ws\", ws)
 		$Teleport.get_surface_material(0).set_shader_param(\"length\", t * -5.0)
 		
@@ -108,7 +118,7 @@ uniform vec4 mix_color : hint_color;
 uniform sampler2D arrow_texture : hint_albedo;
 
 void vertex() {
-	vec3 down = vec3(0.0, -ws, 0.0);
+	vec3 down = vec3(0.0, -1.0 / ws, 0.0);
 	
 	// offset our Z so we're projecting from our origin point
 	VERTEX.z -= 0.5;
@@ -212,6 +222,7 @@ _sections_unfolded = [ "Albedo", "Flags", "Parameters" ]
 [node name="Function_Teleport" type="Spatial" index="0"]
 
 script = SubResource( 1 )
+strength = 5.0
 
 [node name="Teleport" type="MeshInstance" parent="." index="0"]
 

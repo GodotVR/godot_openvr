@@ -3,3 +3,4 @@
 *.cfg eol=lf
 *.godot eol=lf
 *.tres eol=lf
+*.import eol=lf

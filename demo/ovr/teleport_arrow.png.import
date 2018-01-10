@@ -6,7 +6,11 @@ path.s3tc="res://.import/teleport_arrow.png-5ce696067cc427e63c3d207bff1e6749.s3t
 
 [deps]
 
+source_file="res://ovr/teleport_arrow.png"
 source_md5="9ea03e433db9dad93d17c6eba7c1738c"
+
+dest_files=[ "res://.import/teleport_arrow.png-5ce696067cc427e63c3d207bff1e6749.s3tc.stex" ]
+dest_md5="b3119d634b97827bfd4524eb4e2fd4b3"
 
 [params]
 

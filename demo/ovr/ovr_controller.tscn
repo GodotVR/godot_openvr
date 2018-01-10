@@ -15,6 +15,12 @@ func _ready():
 	
 	# hide to begin with
 	visible = false
+	
+	# tell us about world scale changes
+	ARVRServer.connect(\"world_scale_changed\", self, \"_on_world_scale_changed\")
+
+func _on_world_scale_changed(ws):
+	$Controller_mesh.scale = Vector3(ws, ws, ws)
 
 func _process(delta):
 	if !get_is_active():
