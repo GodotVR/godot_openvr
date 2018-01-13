@@ -2,10 +2,12 @@
 
 [sub_resource type="GDScript" id=1]
 
-script/source = "extends Spatial
+script/source = "\"res://ovr/Function_pointer.tscn\"extends Spatial
 
 var target = null
 var last_collided_at = Vector3(0, 0, 0)
+var laser_y = -0.05
+onready var ws = ARVRServer.world_scale
 
 func set_enabled(p_enabled):
 	$Laser.visible = p_enabled
@@ -36,10 +38,14 @@ func _ready():
 	get_parent().connect(\"button_release\", self, \"_on_button_release\")
 	
 	# apply our world scale to our laser position
-	var ws = ARVRServer.world_scale
-	$Laser.translation.y *= ws
+	$Laser.translation.y = laser_y * ws
 
 func _process(delta):
+	var new_ws = ARVRServer.world_scale
+	if (ws != new_ws):
+		ws = new_ws
+	$Laser.translation.y = laser_y * ws
+	
 	if $Laser/RayCast.enabled and $Laser/RayCast.is_colliding():
 		var new_at = $Laser/RayCast.get_collision_point()
 		var new_target = $Laser/RayCast.get_collider()
@@ -122,7 +128,7 @@ subdivide_width = 0
 subdivide_height = 0
 subdivide_depth = 20
 
-[node name="Function_pointer" type="Spatial" index="0"]
+[node name="Function_pointer" type="Spatial"]
 
 transform = Transform( 1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0 )
 script = SubResource( 1 )

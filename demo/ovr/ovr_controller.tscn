@@ -8,6 +8,7 @@ signal controller_activated(controller)
 
 var ovr_render_model
 var components = Array()
+onready var ws = ARVRServer.world_scale
 
 func _ready():
 	# instance our render model object
@@ -16,24 +17,27 @@ func _ready():
 	# hide to begin with
 	visible = false
 	
-	# tell us about world scale changes
-	ARVRServer.connect(\"world_scale_changed\", self, \"_on_world_scale_changed\")
-
-func _on_world_scale_changed(ws):
+	# set our initial controller mesh scale
 	$Controller_mesh.scale = Vector3(ws, ws, ws)
 
 func _process(delta):
+	# apply changes to our world scale
+	var new_ws = ARVRServer.world_scale
+	if (ws != new_ws):
+		ws = new_ws
+		$Controller_mesh.scale = Vector3(ws, ws, ws)
+	
 	if !get_is_active():
 		visible = false
 	else:
 		if !visible:
 			# became active? lets handle it...
-			var name = get_controller_name()
-			print(\"Controller \" + name + \" became active\")
+			var controller_name = get_controller_name()
+			print(\"Controller \" + controller_name + \" became active\")
 			
 			# attempt to load a mesh for this
-			name = name.substr(0, name.length()-2)
-			var loaded = ovr_render_model.load_model(name)
+			controller_name = controller_name.substr(0, controller_name.length()-2)
+			var loaded = ovr_render_model.load_model(controller_name)
 			if !loaded:
 				loaded = ovr_render_model.load_model(\"generic_controller\")
 			
@@ -41,10 +45,6 @@ func _process(delta):
 				$Controller_mesh.mesh = ovr_render_model
 			else:
 				$Controller_mesh.mesh = Mesh()
-			
-			# apply our world scale
-			var ws = ARVRServer.world_scale
-			$Controller_mesh.scale = Vector3(ws, ws, ws)
 			
 			# make it visible
 			visible = true

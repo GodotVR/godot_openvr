@@ -84,7 +84,8 @@ godot_string godot_arvr_get_name(const void *p_data) {
 	godot_string ret;
 
 	char name[] = "OpenVR";
-	api->godot_string_new_data(&ret, name, strlen(name));
+	api->godot_string_new(&ret);
+	api->godot_string_parse_utf8(&ret, name);
 
 	return ret;
 }

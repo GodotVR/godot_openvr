@@ -58,7 +58,8 @@ GDCALLINGCONV godot_variant openvr_render_model_list(godot_object *p_instance, v
 				godot_variant v;
 				char model_name[256];
 				render_model_data->ovr->render_models->GetRenderModelName(m, model_name, 256);
-				api->godot_string_new_data(&s, model_name, strlen(model_name));
+				api->godot_string_new(&s);
+				api->godot_string_parse_utf8_with_len(&s, model_name, strlen(model_name));
 
 				api->godot_variant_new_string(&v, &s);
 				api->godot_array_push_back(&model_names, &v);
@@ -94,31 +95,18 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 			vr::RenderModel_t *ovr_render_model = NULL;
 			vr::RenderModel_TextureMap_t *ovr_texture = NULL;
 
-			char find[1024];
-			int len;
-
-			// First get the length
-			api->godot_string_get_data(&find_name, NULL, &len);
-			if (len > 1023) {
-				// our buffer only holds 1024, to lazy to allocate memory..
-				len = 1023;
-			}
-
-			// And get our string
-			api->godot_string_get_data(&find_name, find, &len);
-			find[len]='\0';
-
-			printf("Searching for: %s\n", find);
+			godot_char_string find_cs = api->godot_string_ascii(&find_name);
+			printf("Searching for: %s\n", api->godot_char_string_get_data(&find_cs));
 
 			// Load our render model
 			vr::EVRRenderModelError err = vr::VRRenderModelError_Loading;
 			while (err == vr::VRRenderModelError_Loading) {
-				err = render_model_data->ovr->render_models->LoadRenderModel_Async(find, &ovr_render_model);
+				err = render_model_data->ovr->render_models->LoadRenderModel_Async(api->godot_char_string_get_data(&find_cs), &ovr_render_model);
 				ThreadSleep(1);
 			};
 
 			if (err != vr::VRRenderModelError_None) {
-				printf("OpenVR: Couldn''t find model for %s (%i)\n", find, err);
+				printf("OpenVR: Couldn''t find model for %s (%i)\n", api->godot_char_string_get_data(&find_cs), err);
 			} else {
 				godot_variant variant;
 				godot_pool_vector3_array vertices;
@@ -234,6 +222,7 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				loaded = true;
 			};
 
+			api->godot_char_string_destroy(&find_cs);
 			api->godot_string_destroy(&find_name);
 		};
 	};
