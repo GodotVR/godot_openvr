@@ -144,6 +144,11 @@ godot_bool godot_arvr_initialize(void *p_data) {
 				arvr_data->last_rumble_update[i] = 0;
 			};
 
+			// init our controller tracking variables
+			arvr_data->device_hands_are_available = false;
+			arvr_data->left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+			arvr_data->right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+
 			// find any already attached devices
 			for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
 				if (arvr_data->ovr->hmd->IsTrackedDeviceConnected(i)) {
@@ -151,9 +156,6 @@ godot_bool godot_arvr_initialize(void *p_data) {
 				};
 			};
 
-			arvr_data->device_hands_are_available = false;
-			arvr_data->left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-			arvr_data->right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
 			// note, this will be made the primary interface by ARVRInterfaceGDNative
 		};
 	};
