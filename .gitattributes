@@ -4,3 +4,5 @@
 *.godot eol=lf
 *.tres eol=lf
 *.import eol=lf
+*.gdnlib eol=lf
+*.gdns eol=lf
