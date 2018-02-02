@@ -2,6 +2,7 @@
 import os, subprocess
 
 # Local dependency paths
+godot_glad_path = ARGUMENTS.get("glad", "glad")
 godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
 openvr_path = ARGUMENTS.get("openvr", os.getenv("OPENVR_PATH", "openvr/"))
 
@@ -82,10 +83,11 @@ else:
 # for now manually copy the files
 
 # and our stuff
-env.Append(CPPPATH=['.', godot_headers_path])
+env.Append(CPPPATH=['.', godot_headers_path, godot_glad_path])
 
 sources = []
 add_sources(sources, "src")
+sources.append(godot_glad_path + "/glad.c")
 
 library = env.SharedLibrary(target=godot_openvr_path + 'godot_openvr', source=sources)
 if platform == "osx":

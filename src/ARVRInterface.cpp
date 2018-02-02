@@ -7,18 +7,6 @@
 
 #include "ARVRInterface.h"
 
-typedef struct arvr_data_struct {
-	openvr_data_struct *ovr;
-	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
-	vr::VRControllerState_t tracked_device_state[vr::k_unMaxTrackedDeviceCount];
-	godot_int trackers[vr::k_unMaxTrackedDeviceCount];
-	uint64_t last_rumble_update[vr::k_unMaxTrackedDeviceCount];
-	godot_transform hmd_transform;
-	bool device_hands_are_available;
-	uint32_t left_hand_device;
-	uint32_t right_hand_device;
-} arvr_data_struct;
-
 void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
 		// we no longer track our HMD, this is all handled in ARVROrigin :)
@@ -258,6 +246,67 @@ void godot_arvr_fill_projection_for_eye(
 	};
 };
 
+void godot_arvr_cleanup_framebuffer(arvr_data_struct *p_data) {
+	if (p_data->framebuffer != 0) {
+		// cleanup
+		glDeleteTextures (1, &p_data->eyetexture);
+		glDeleteFramebuffers(1, &p_data->framebuffer);
+
+		p_data->framebuffer = 0;
+		p_data->eyetexture = 0;
+		p_data->width = 0;
+		p_data->height = 0;
+	};
+};
+
+void godot_arvr_check_framebuffer(arvr_data_struct *p_data, uint32_t p_width, uint32_t p_height) {
+	if (p_data->framebuffer != 0) {
+		if ((p_data->width != p_width) || (p_data->height != p_height)) {
+			// this cleans up a bit more then we bargained for but we're not expecting this to be called often
+			// in reality this should be called only once.
+			godot_arvr_cleanup_framebuffer(p_data);
+		};
+	};
+
+	if (p_data->framebuffer == 0) {
+		p_data->width = p_width;
+		p_data->height = p_height;
+
+		printf("Updating framebuffer %i, %i\n", p_width, p_height);
+
+		// lets create our frame buffer
+		glGenFramebuffers(1, &p_data->framebuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, p_data->framebuffer);		
+
+		// and setup our texture
+		glGenTextures(1, &p_data->eyetexture);
+		glBindTexture(GL_TEXTURE_2D, p_data->eyetexture);
+
+		// setup our texture
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, p_width, p_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_data->eyetexture, 0);
+
+		// Set the list of draw buffers.
+		GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+		glDrawBuffers(1, DrawBuffers);
+
+		// finally check for issues
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+			printf("Bah\n");
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	};
+};
+
+int godot_arvr_glad_status = 0;
+
 void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 		godot_rid *p_render_target,
 		godot_rect2 *p_screen_rect) {
@@ -275,11 +324,10 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 	// output to the external device if not.
 
 	godot_rect2 screen_rect = *p_screen_rect;
+	godot_vector2 render_size = godot_arvr_get_render_targetsize(p_data);
 
 	if (p_eye == 1 && !api->godot_rect2_has_no_area(&screen_rect)) {
 		// blit as mono, attempt to keep our aspect ratio and center our render buffer
-		godot_vector2 render_size = godot_arvr_get_render_targetsize(p_data);
-
 		float new_height = screen_rect.size.x * (render_size.y / render_size.x);
 		if (new_height > screen_rect.size.y) {
 			screen_rect.position.y = (0.5 * screen_rect.size.y) - (0.5 * new_height);
@@ -304,11 +352,46 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 		bounds.vMax = 1.0;
 
 		uint32_t texid = arvr_api->godot_arvr_get_texid(p_render_target);
+		bool ishdr = true; // need to detect this
 
-		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid,
-			vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(
-				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
+		if (ishdr) {
+			// OpenVR can't handle GL_RGBA16F buffers grmbl, dirty hack..
+
+			// We can't piggy back on glad in Godot and we need to make sure it is initialized in this thread
+			if (godot_arvr_glad_status == 0) {
+				if (gladLoadGL()) {
+					godot_arvr_glad_status = 1;
+				} else {
+					godot_arvr_glad_status = 2;
+					printf("Error initializing GLAD\n");
+				}
+			}
+
+			if (godot_arvr_glad_status == 1) {
+
+				// check our frame buffer
+				godot_arvr_check_framebuffer(arvr_data, render_size.x, render_size.y);
+
+				// now blit the content of our render target to our frame buffer
+				// printf("Blitting HDR %i, %i\n",arvr_data->width, arvr_data->height);
+				
+				glBindFramebuffer(GL_FRAMEBUFFER, arvr_data->framebuffer);
+				glViewport(0, 0, arvr_data->width, arvr_data->height);
+				glDisable(GL_DEPTH_TEST);
+
+				if (arvr_data->shader != NULL) {
+					arvr_data->shader->render(texid);
+				}
+
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+				// and use our texture
+				texid = arvr_data->eyetexture;
+			}
+		}
+
+		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
 		if (vrerr != vr::VRCompositorError_None) {
 			printf("OpenVR reports: %i\n", vrerr);
 		}
@@ -450,9 +533,22 @@ void godot_arvr_process(void *p_data) {
 void *godot_arvr_constructor(godot_object *p_instance) {
 	godot_string ret;
 
+	printf("Constructing openvr\n");
+
 	arvr_data_struct *arvr_data = (arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
 	arvr_data->ovr = NULL;
+	arvr_data->framebuffer = 0;
+	arvr_data->eyetexture = 0;
+	arvr_data->width = 0;
+	arvr_data->height = 0;
 	api->godot_transform_new_identity(&arvr_data->hmd_transform);
+
+	printf("Init blitshader\n");
+
+	// we should have only one so should be pretty safe
+	arvr_data->shader = new blit_shader();
+
+	printf("Finished\n");
 
 	return arvr_data;
 };
@@ -460,9 +556,17 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 void godot_arvr_destructor(void *p_data) {
 	if (p_data != NULL) {
 		arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+
+		godot_arvr_cleanup_framebuffer(arvr_data);
+
 		if (arvr_data->ovr != NULL) {
 			// this should have already been called... But just in case...
 			godot_arvr_uninitialize(p_data);
+		}
+
+		if (arvr_data->shader != NULL) {
+			delete arvr_data->shader;
+			arvr_data->shader = NULL;
 		}
 
 		api->godot_free(p_data);

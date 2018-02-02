@@ -6,6 +6,7 @@
 #define GODOT_CALLS_H
 
 #include <stdint.h>
+#include <glad/glad.h>
 
 // fully define these, don't waste time with needless callbacks for access
 #define GODOT_CORE_API_GODOT_VECTOR2_TYPE_DEFINED
