@@ -1,111 +1,16 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=11 format=2]
 
-[ext_resource path="res://ovr/teleport_arrow.png" type="Texture" id=1]
-[ext_resource path="res://ovr/teleport_target.png" type="Texture" id=2]
+[ext_resource path="res://ovr/Function_Teleport.gd" type="Script" id=1]
+[ext_resource path="res://ovr/teleport_arrow.png" type="Texture" id=2]
+[ext_resource path="res://ovr/teleport_target.png" type="Texture" id=3]
 
-[sub_resource type="GDScript" id=1]
-
-script/source = "extends Spatial
-
-# Add this scene as a sub scene of your ARVRController node to implement a teleport function on that controller.
-
-export var strength = 5.0
-var is_teleporting = false
-var can_teleport = true
-var teleport_rotation = 0.0;
-var last_target_transform = Transform()
-onready var ws = ARVRServer.world_scale
-
-func _ready():
-	# It's inactive when we start
-	$Teleport.visible = false
-	$Target.visible = false
-	
-	# Scale to our world scale
-	$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
-	$Target.mesh.size = Vector2(ws, ws)
-
-func _physics_process(delta):
-	# We should be the child or the controller on which the teleport is implemented
-	var controller = get_parent()
-	# And its parent should be our origin point
-	var origin = controller.get_parent()
-	
-	# check if our world scale has changed..
-	var new_ws = ARVRServer.world_scale
-	if ws != new_ws:
-		ws = new_ws
-		$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
-		$Target.mesh.size = Vector2(ws, ws)
-	
-	# button 15 is mapped to our trigger
-	if controller and controller.get_is_active() and controller.is_button_pressed(15):
-		if !is_teleporting:
-			is_teleporting = true
-			$Teleport.visible = true
-			$Target.visible = true
-			teleport_rotation = 0.0
-		
-		# check our axis to see if we need to rotate
-		teleport_rotation += (delta * controller.get_joystick_axis(0) * -4.0)
-		
-		# and update our transform
-		var teleport_transform = $Teleport.global_transform
-		var location = teleport_transform.origin
-			
-		# update rotation
-		var target_basis = Basis()
-		target_basis.z = Vector3(teleport_transform.basis.z.x, 0.0, teleport_transform.basis.z.z).normalized()
-		target_basis.y = Vector3(0.0, 1.0, 0.0)
-		target_basis.x = target_basis.y.cross(target_basis.z)
-		target_basis = target_basis.rotated(Vector3(0.0, 1.0, 0.0), teleport_rotation)
-		last_target_transform.basis = target_basis
-			
-		# update location
-		var target_origin = teleport_transform.origin
-		var down = Vector3(0.0, -1.0 / ws, 0.0)
-		var v = teleport_transform.basis.z
-			
-		# Apply quadratic to figure out where we hit the ground
-		var vys = v.y * strength 
-		var sqrt_b2_4ac = sqrt((vys * vys) - (4.0 * down.y * (target_origin.y - 0.1)))
-		var t = (-vys + sqrt_b2_4ac) / (2.0 * down.y)
-			
-		target_origin += (v * t * strength)
-		target_origin += (down * t * t)
-			
-		last_target_transform.origin = target_origin
-			
-		$Target.global_transform = last_target_transform
-			
-		# and just update our shader
-		$Teleport.get_surface_material(0).set_shader_param(\"scale_t\", 1.0 / strength)
-		$Teleport.get_surface_material(0).set_shader_param(\"ws\", ws)
-		$Teleport.get_surface_material(0).set_shader_param(\"length\", t * -5.0)
-		
-		# should check if we can teleport where we are pointing and change colour accordingly..
-		can_teleport = true # for now assume so
-	elif is_teleporting:
-		if can_teleport:
-			# reset our player position to center
-			ARVRServer.center_on_hmd(true, true)
-			last_target_transform.origin.y = 0.0 # just in case
-			origin.global_transform = last_target_transform
-		
-		# and disable
-		is_teleporting = false;
-		$Teleport.visible = false
-		$Target.visible = false
-
-"
-
-[sub_resource type="PlaneMesh" id=2]
+[sub_resource type="PlaneMesh" id=1]
 
 size = Vector2( 0.05, 1 )
 subdivide_width = 0
 subdivide_depth = 40
 
-[sub_resource type="Shader" id=3]
+[sub_resource type="Shader" id=2]
 
 code = "shader_type spatial;
 render_mode unshaded, cull_disabled, skip_vertex_transform;
@@ -148,24 +53,24 @@ void fragment() {
 }
 "
 
-[sub_resource type="ShaderMaterial" id=4]
+[sub_resource type="ShaderMaterial" id=3]
 
 render_priority = 0
-shader = SubResource( 3 )
+shader = SubResource( 2 )
 shader_param/scale_t = 0.2
 shader_param/length = 30.0
 shader_param/ws = null
 shader_param/mix_color = Color( 0.176471, 0.313726, 0.862745, 1 )
-shader_param/arrow_texture = ExtResource( 1 )
+shader_param/arrow_texture = ExtResource( 2 )
 _sections_unfolded = [ "shader_param" ]
 
-[sub_resource type="PlaneMesh" id=5]
+[sub_resource type="PlaneMesh" id=4]
 
 size = Vector2( 1, 1 )
 subdivide_width = 0
 subdivide_depth = 0
 
-[sub_resource type="SpatialMaterial" id=6]
+[sub_resource type="SpatialMaterial" id=5]
 
 render_priority = 0
 flags_transparent = true
@@ -189,7 +94,7 @@ params_billboard_mode = 0
 params_grow = false
 params_use_alpha_scissor = false
 albedo_color = Color( 0.176471, 0.313726, 0.862745, 1 )
-albedo_texture = ExtResource( 2 )
+albedo_texture = ExtResource( 3 )
 metallic = 0.0
 metallic_specular = 0.5
 metallic_texture_channel = 0
@@ -218,9 +123,86 @@ proximity_fade_enable = false
 distance_fade_enable = false
 _sections_unfolded = [ "Albedo", "Flags", "Parameters" ]
 
-[node name="Function_Teleport" type="Spatial" index="0"]
+[sub_resource type="CapsuleMesh" id=6]
 
-script = SubResource( 1 )
+radius = 0.3
+mid_height = 1.2
+radial_segments = 64
+rings = 8
+
+[sub_resource type="SpatialMaterial" id=7]
+
+render_priority = 0
+flags_transparent = true
+flags_unshaded = false
+flags_vertex_lighting = false
+flags_no_depth_test = false
+flags_use_point_size = false
+flags_world_triplanar = false
+flags_fixed_size = false
+flags_albedo_tex_force_srgb = false
+vertex_color_use_as_albedo = false
+vertex_color_is_srgb = false
+params_diffuse_mode = 0
+params_specular_mode = 0
+params_blend_mode = 0
+params_cull_mode = 0
+params_depth_draw_mode = 0
+params_line_width = 1.0
+params_point_size = 1.0
+params_billboard_mode = 0
+params_grow = false
+params_use_alpha_scissor = false
+albedo_color = Color( 0.0337219, 0.241112, 0.863281, 0.497255 )
+metallic = 0.0
+metallic_specular = 0.5
+metallic_texture_channel = 0
+roughness = 0.0
+roughness_texture_channel = 0
+emission_enabled = false
+normal_enabled = false
+rim_enabled = false
+clearcoat_enabled = false
+anisotropy_enabled = false
+ao_enabled = false
+depth_enabled = false
+subsurf_scatter_enabled = false
+transmission_enabled = false
+refraction_enabled = false
+detail_enabled = false
+uv1_scale = Vector3( 1, 1, 1 )
+uv1_offset = Vector3( 0, 0, 0 )
+uv1_triplanar = false
+uv1_triplanar_sharpness = 1.0
+uv2_scale = Vector3( 1, 1, 1 )
+uv2_offset = Vector3( 0, 0, 0 )
+uv2_triplanar = false
+uv2_triplanar_sharpness = 1.0
+proximity_fade_enable = false
+distance_fade_enable = false
+_sections_unfolded = [ "Albedo", "Flags" ]
+
+[node name="Function_Teleport" type="KinematicBody" index="0"]
+
+input_ray_pickable = false
+input_capture_on_drag = false
+collision_layer = 1
+collision_mask = 1
+axis_lock_linear_x = false
+axis_lock_linear_y = false
+axis_lock_linear_z = false
+axis_lock_angular_x = false
+axis_lock_angular_y = false
+axis_lock_angular_z = false
+collision/safe_margin = 0.01
+script = ExtResource( 1 )
+_sections_unfolded = [ "Axis Lock", "Collision", "Transform", "collision" ]
+origin = null
+can_teleport_color = Color( 0, 1, 0, 1 )
+cant_teleport_color = Color( 1, 0, 0, 1 )
+no_collision_color = Color( 0.176471, 0.313726, 0.862745, 1 )
+player_height = 1.8
+player_radius = 0.4
 strength = 5.0
 
 [node name="Teleport" type="MeshInstance" parent="." index="0"]
@@ -234,10 +216,10 @@ lod_min_distance = 0.0
 lod_min_hysteresis = 0.0
 lod_max_distance = 0.0
 lod_max_hysteresis = 0.0
-mesh = SubResource( 2 )
+mesh = SubResource( 1 )
 skeleton = NodePath("..")
-material/0 = SubResource( 4 )
-_sections_unfolded = [ "material" ]
+material/0 = SubResource( 3 )
+_sections_unfolded = [ "Transform", "material" ]
 
 [node name="Target" type="MeshInstance" parent="." index="1"]
 
@@ -250,9 +232,28 @@ lod_min_distance = 0.0
 lod_min_hysteresis = 0.0
 lod_max_distance = 0.0
 lod_max_hysteresis = 0.0
-mesh = SubResource( 5 )
+mesh = SubResource( 4 )
 skeleton = NodePath("..")
-material/0 = SubResource( 6 )
+material/0 = SubResource( 5 )
 _sections_unfolded = [ "material" ]
+
+[node name="Player_figure" type="Position3D" parent="Target" index="0"]
+
+[node name="Capsule" type="MeshInstance" parent="Target/Player_figure" index="0"]
+
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.9, 0 )
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = SubResource( 6 )
+skeleton = NodePath("..")
+material/0 = SubResource( 7 )
+_sections_unfolded = [ "Transform", "material" ]
 
 
