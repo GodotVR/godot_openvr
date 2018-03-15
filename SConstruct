@@ -1,6 +1,10 @@
 #!python
 import os, subprocess
 
+def rpath_fix(target, source, env):
+    os.system('install_name_tool -id @rpath/libgodot_openvr.dylib {0}'.format(target[0]))
+    os.system('install_name_tool -change @rpath/OpenVR.framework/Versions/A/OpenVR @loader_path/OpenVR.framework/Versions/A/OpenVR {0}'.format(target[0]))
+
 # Local dependency paths
 godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
 openvr_path = ARGUMENTS.get("openvr", os.getenv("OPENVR_PATH", "openvr/"))
@@ -32,6 +36,7 @@ platform_dir = ''
 if platform == "osx":
     platform_dir = 'osx'
     env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
+    env.Append(CXXFLAGS='-std=c++11')
     env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
 if platform == "linux":
@@ -54,12 +59,16 @@ else:
     platform_dir += '64'
 
 env.Append(CPPPATH=[openvr_path + 'headers/'])
-env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
 
 if (os.name == "nt" and os.getenv("VCINSTALLDIR")):
+    env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
     env.Append(LINKFLAGS=['openvr_api.lib'])
 else:
-    env.Append(LIBS=['openvr_api'])
+    if platform == "osx":
+        env.Append(LINKFLAGS = ['-F' + openvr_path + 'bin/osx64', '-framework', 'OpenVR'])
+    else:
+        env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
+        env.Append(LIBS=['openvr_api'])
 
 # need to add copying the correct file from 'openvr/bin/' + platform_bin to demo/bin/
 # for now manually copy the files
@@ -71,4 +80,7 @@ sources = []
 add_sources(sources, "src")
 
 library = env.SharedLibrary(target='demo/bin/godot_openvr', source=sources)
+if platform == "osx":
+    env.AddPostAction(library, rpath_fix)
+
 Default(library)
