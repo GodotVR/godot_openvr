@@ -5,37 +5,6 @@
 #ifndef GODOT_CALLS_H
 #define GODOT_CALLS_H
 
-// fully define these, don't waste time with needless callbacks for access
-#define GODOT_CORE_API_GODOT_VECTOR2_TYPE_DEFINED
-typedef struct {
-	float x;
-	float y;
-
-	inline void set(float p_x, float p_y) {
-		x = p_x;
-		y = p_y;
-	};
-} godot_vector2;
-
-#define GODOT_CORE_API_GODOT_VECTOR3_TYPE_DEFINED
-typedef struct {
-	float x;
-	float y;
-	float z;
-
-	inline void set(float p_x, float p_y, float p_z) {
-		x = p_x;
-		y = p_y;
-		z = p_z;
-	};
-} godot_vector3;
-
-#define GODOT_CORE_API_GODOT_RECT2_TYPE_DEFINED
-typedef struct {
-	godot_vector2 position;
-	godot_vector2 size;
-} godot_rect2;
-
 #include <gdnative_api_struct.gen.h>
 
 #include <stdint.h>
