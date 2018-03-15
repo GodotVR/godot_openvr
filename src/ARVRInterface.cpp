@@ -279,17 +279,22 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 	if (p_eye == 1 && !api->godot_rect2_has_no_area(&screen_rect)) {
 		// blit as mono, attempt to keep our aspect ratio and center our render buffer
 		godot_vector2 render_size = godot_arvr_get_render_targetsize(p_data);
+		godot_vector2 screen_position = api->godot_rect2_get_position(&screen_rect);
+		godot_vector2 screen_size = api->godot_rect2_get_size(&screen_rect);
 
-		float new_height = screen_rect.size.x * (render_size.y / render_size.x);
-		if (new_height > screen_rect.size.y) {
-			screen_rect.position.y = (0.5 * screen_rect.size.y) - (0.5 * new_height);
-			screen_rect.size.y = new_height;
+		float new_height = api->godot_vector2_get_x(&screen_size) * (api->godot_vector2_get_y(&render_size) / api->godot_vector2_get_x(&render_size));
+		if (new_height > api->godot_vector2_get_y(&screen_size)) {
+			api->godot_vector2_set_y(&screen_position, (0.5 * api->godot_vector2_get_y(&screen_size)) - (0.5 * new_height));
+			api->godot_vector2_set_y(&screen_size, new_height);
 		} else {
-			float new_width = screen_rect.size.y * (render_size.x / render_size.y);
+			float new_width = api->godot_vector2_get_y(&screen_size) * (api->godot_vector2_get_x(&render_size) / api->godot_vector2_get_y(&render_size));
 
-			screen_rect.position.x = (0.5 * screen_rect.size.x) - (0.5 * new_width);
-			screen_rect.size.x = new_width;
+			api->godot_vector2_set_x(&screen_position, (0.5 * api->godot_vector2_get_x(&screen_size)) - (0.5 * new_width));
+			api->godot_vector2_set_x(&screen_size, new_width);
 		};
+
+		api->godot_rect2_set_position(&screen_rect, &screen_position);
+		api->godot_rect2_set_size(&screen_rect, &screen_size);
 
 		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
 
