@@ -2,7 +2,7 @@
 
 [sub_resource type="GDScript" id=1]
 
-script/source = "\"res://ovr/Function_pointer.tscn\"extends Spatial
+script/source = "\"res://addons/vr-common/functions/Function_pointer.tscn\"extends Spatial
 
 var target = null
 var last_collided_at = Vector3(0, 0, 0)

@@ -10,7 +10,7 @@ func _ready():
 		get_viewport().hdr = false
 	
 	# just for testing, list what models are available
-	var ovr_model = preload("res://bin/OpenVRRenderModel.gdns").new()
+	var ovr_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
 	var model_names = ovr_model.model_names()
 	print("models: " + str(model_names))
 

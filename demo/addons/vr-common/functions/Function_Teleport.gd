@@ -139,7 +139,7 @@ func _physics_process(delta):
 			
 			# test our new location for collisions
 			query.transform = Transform(Basis(), global_target) * shape_transform
-			var cast_result = state.collide_shape(query, 5)
+			var cast_result = state.collide_shape(query, 10)
 			if cast_result.empty():
 				# we didn't collide with anything so check our next section...
 				cast_length = new_cast_length
