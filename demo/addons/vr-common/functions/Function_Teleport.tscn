@@ -1,8 +1,8 @@
 [gd_scene load_steps=11 format=2]
 
-[ext_resource path="res://ovr/Function_Teleport.gd" type="Script" id=1]
-[ext_resource path="res://ovr/teleport_arrow.png" type="Texture" id=2]
-[ext_resource path="res://ovr/teleport_target.png" type="Texture" id=3]
+[ext_resource path="res://addons/vr-common/functions/Function_Teleport.gd" type="Script" id=1]
+[ext_resource path="res://addons/vr-common/images/teleport_arrow.png" type="Texture" id=2]
+[ext_resource path="res://addons/vr-common/images/teleport_target.png" type="Texture" id=3]
 
 [sub_resource type="PlaneMesh" id=1]
 
