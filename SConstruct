@@ -29,6 +29,11 @@ if 'bits' in env:
 if ARGUMENTS.get("use_llvm", "no") == "yes":
     env["CXX"] = "clang++"
 
+# fix needed on OSX
+def rpath_fix(target, source, env):
+    os.system('install_name_tool -id @rpath/libgodot_openvr.dylib {0}'.format(target[0]))
+    os.system('install_name_tool -change @rpath/OpenVR.framework/Versions/A/OpenVR @loader_path/OpenVR.framework/Versions/A/OpenVR {0}'.format(target[0]))
+
 def add_sources(sources, directory):
     for file in os.listdir(directory):
         if file.endswith('.c'):
@@ -41,16 +46,17 @@ if platform == "osx":
     platform_dir = 'osx'
     godot_openvr_path = godot_openvr_path + 'osx/'
     env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
+    env.Append(CXXFLAGS='-std=c++11')
     env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
-if platform == "linux":
+elif platform == "linux":
     platform_dir = 'linux'
     godot_openvr_path = godot_openvr_path + 'x11/'
     env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++14'])
     env.Append(CXXFLAGS='-std=c++0x')
     env.Append(LINKFLAGS = ['-Wl,-R,\'$$ORIGIN\''])
 
-if platform == "windows":
+elif platform == "windows":
     platform_dir = 'win'
     godot_openvr_path = godot_openvr_path + 'win' + str(bits) + '/'
     if target == "debug":
@@ -62,11 +68,14 @@ if platform == "windows":
 platform_dir += str(bits)
 
 env.Append(CPPPATH=[openvr_path + 'headers/'])
-env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
 
 if (os.name == "nt" and os.getenv("VCINSTALLDIR")):
+    env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
     env.Append(LINKFLAGS=['openvr_api.lib'])
+elif platform == "osx":
+    env.Append(LINKFLAGS = ['-F' + openvr_path + 'bin/osx64', '-framework', 'OpenVR'])
 else:
+    env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
     env.Append(LIBS=['openvr_api'])
 
 # need to add copying the correct file from 'openvr/bin/' + platform_bin to demo/bin/
@@ -79,4 +88,6 @@ sources = []
 add_sources(sources, "src")
 
 library = env.SharedLibrary(target=godot_openvr_path + 'godot_openvr', source=sources)
+if platform == "osx":
+    env.AddPostAction(library, rpath_fix)
 Default(library)
