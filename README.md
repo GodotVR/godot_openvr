@@ -2,6 +2,9 @@
 
 This is a GDNative based plugin that adds OpenVR support to Godot.
 
+The leading version of this repository now lives at:
+https://github.com/GodotVR/godot_openvr
+
 Submodules
 ----------
 This project references two submodules. If you do not already have these repositories downloaded somewhere you can execute:
@@ -78,4 +81,15 @@ If you build Godot from the latest master you can place the file in the bin fold
 
 License
 -------
-Note that the source in this repository is licensed by the unlicense license model. This covers only the source code in this repository. Both Godot and OpenVR have their own license requirements. See their respective git repositories for more details.
+Note that the source in this repository is licensed by the MIT license model. This covers only the source code in this repository. 
+Both Godot and OpenVR have their own license requirements. See their respective git repositories for more details.
+
+About this repository
+---------------------
+This repository was created by and is maintained by Bastiaan Olij a.k.a. Mux213
+
+You can follow me on twitter for regular updates here:
+https://twitter.com/mux213
+
+Videos about my work with Godot including tutorials on working with VR in Godot can by found on my youtube page:
+https://www.youtube.com/channel/UCrbLJYzJjDf2p-vJC011lYw
