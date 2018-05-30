@@ -66,6 +66,9 @@ extern const godot_gdnative_ext_nativescript_api_struct *nativescript_api;
 extern "C" {
 #endif
 
+void GDN_EXPORT godot_openvr_gdnative_init(godot_gdnative_init_options *p_options);
+void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options *p_options);
+
 int64_t ___godot_icall_int(godot_method_bind *mb, godot_object *inst);
 void ___godot_icall_void_int(godot_method_bind *mb, godot_object *inst, const int arg0);
 void ___godot_icall_void_int_Array_Array_int(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_array& arg1, const godot_array& arg2, const int arg3);

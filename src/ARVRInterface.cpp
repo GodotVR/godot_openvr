@@ -470,6 +470,7 @@ void godot_arvr_destructor(void *p_data) {
 };
 
 const godot_arvr_interface_gdnative interface_struct = {
+	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
 	godot_arvr_constructor,
 	godot_arvr_destructor,
 	godot_arvr_get_name,

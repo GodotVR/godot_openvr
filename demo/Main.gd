@@ -6,8 +6,11 @@ func _ready():
 	if arvr_interface and arvr_interface.initialize():
 		get_viewport().arvr = true
 		
-		# workaround in OpenVR because OpenVR does not like our HDR buffers, so turn it off for now...
-		get_viewport().hdr = false
+		# If https://github.com/godotengine/godot/pull/19724 isn't applied:
+		# get_viewport().hdr = false
+
+		# If https://github.com/godotengine/godot/pull/19724 is applied:
+		get_viewport().rgba8_out = true
 	
 	# just for testing, list what models are available
 	var ovr_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()

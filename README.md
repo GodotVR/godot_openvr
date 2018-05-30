@@ -5,6 +5,9 @@ This is a GDNative based plugin that adds OpenVR support to Godot.
 The leading version of this repository now lives at:
 https://github.com/GodotVR/godot_openvr
 
+**note** The master on this repository is now kept in sync with the Godot master.
+To build versions for official releases of Godot please check the branches that are named in sync with the Godot release.
+
 Submodules
 ----------
 This project references two submodules. If you do not already have these repositories downloaded somewhere you can execute:
@@ -14,8 +17,9 @@ git submodule update
 ```
 To download the required versions.
 
-Godot_headers is a git repository that keeps a copy of the headers needed for compiling GDNative modules. It ususally contains a copy of the latest official release of Godot and may be outdated.
-You can use the switch headers to the location of more recent files which will be inside of your Godot source after compiling in the folder modules/gdnative/include.
+Godot_headers is a git repository that keeps a copy of the headers needed for compiling GDNative modules. We try to keep the version of the files in sync with the version of Godot this branch relates.
+
+If it is outdated you can use the switch headers to the location of more recent files which will be inside of your Godot source after compiling in the folder modules/gdnative/include.
 
 OpenVR is a git repository maintained by Valve that contains the OpenVR SDK used to interact with the OpenVR/SteamVR platform.
 Alternatively you can use the switch openvr or set the environment variable OPENVR_PATH to the location where you have downloaded a copy of this SDK.
@@ -72,6 +76,16 @@ I am not 100% sure this is a requirement as it automatically installs this when 
 
 For Windows you need to supply a copy of openvr_api.dll along with your executable which can be found in openvr/bin/win64
 
+HDR support
+-----------
+OpenVR does not accept Godots HDR color buffer for rendering.
+
+HDR support for the headset is currently being evaluated through PR:
+https://github.com/godotengine/godot/pull/19724
+This PR allows Godot to use full HDR rendering but has the last step in post processing do a conversion to RGBA8 which Godot does support.
+
+If you are building Godot without this PR, you will have to turn HDR on your viewport off!
+
 Using the main viewport
 -----------------------
 The ARVR server module requires a viewport to be configured as the ARVR viewport. If you chose to use the main viewport an aspect ratio corrected copy of the left eye will be rendered to the viewport automatically.
@@ -82,14 +96,14 @@ You will need to add the following code to a script on your root node:
 var interface = ARVRServer.find_interface("OpenVR")
 if interface and interface.initialize():
 	get_viewport().arvr = true
-	get_viewport().hdr = false
+	get_viewport().rgba8_out = true
 ```
 
 Using a separate viewport
 -------------------------
 If you want control over the output on screen so you can show something independent on the desktop you can add a viewport to your scene.
 
-Make sure that you turn the arvr property of this viewport to true and the HDR property to false. Also make sure that both the clear mode and update mode are set to always.
+Make sure that you turn the arvr property of this viewport to true and the rgba8_out property to true. Also make sure that both the clear mode and update mode are set to always.
 
 You can add a normal camera to your scene to render a spectator view or turn the main viewport into a 2D viewport and save some rendering overhead.
 
@@ -100,10 +114,6 @@ var interface = ARVRServer.find_interface("OpenVR")
 if interface:
 	interface.initialize()
 ```
-
-HDR support
------------
-HDR support for the headset is currently not available. OpenVR does not accept Godots HDR color buffer for rendering. A solution is currently under review for Godot 3.1
 
 License
 -------
