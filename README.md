@@ -15,7 +15,7 @@ git submodule update
 To download the required versions.
 
 Godot_headers is a git repository that keeps a copy of the headers needed for compiling GDNative modules. It ususally contains a copy of the latest official release of Godot and may be outdated.
-You can use the switch headers or set the environment variable GODOT_HEADERS to the location of more recent files. You'll need to clone a copy of the godot source code for this.
+You can use the switch headers to the location of more recent files which will be inside of your Godot source after compiling in the folder modules/gdnative/include.
 
 OpenVR is a git repository maintained by Valve that contains the OpenVR SDK used to interact with the OpenVR/SteamVR platform.
 Alternatively you can use the switch openvr or set the environment variable OPENVR_PATH to the location where you have downloaded a copy of this SDK.
@@ -26,20 +26,15 @@ Scons is used for compiling this module. I made the assumption that scons is ins
 
 You can compile this module by executing:
 ```
-scons platform=windows
+scons platform=windows target=release
 ```
 
 Platform can be windows, linux or osx. OSX is untested.
-
-Note that the master in this repository is lined up with the master godot source. New functionality that is dependent on PRs not yet added to the Godot master will also have accompanying PRs here and won't be merged into master until they are ready.
-There is also an alpha 2 branch that is lined up with the alpha 2 Godot release.
 
 Deploying
 ---------
 Note that besides compiling the GDNative module you must also include valves openvr_api.dll (windows), libopenvr_api.so (linux) or OpenVR.framework (Mac OS X). See platform notes for placement of these files.
 The godot_openvr.dll or libgodot_openvr.so file should be placed in the location the godot_openvr.gdnlib file is pointing to (at the moment bin).
-
-Note that as at the time of writing this I have only tested this on Windows. Others have let me know the Linux build is working as well but tweaks may be needed.
 
 Mac notes
 ---------
@@ -76,8 +71,39 @@ Also when deploying users may need to first install the correct redistributable 
 I am not 100% sure this is a requirement as it automatically installs this when installing MSVC but past experiences and such... :)
 
 For Windows you need to supply a copy of openvr_api.dll along with your executable which can be found in openvr/bin/win64
-Up until and including Godot 3 beta 0 this file needs to be placed alongside the EXE.
-If you build Godot from the latest master you can place the file in the bin folder alongside the godot_openvr.dll
+
+Using the main viewport
+-----------------------
+The ARVR server module requires a viewport to be configured as the ARVR viewport. If you chose to use the main viewport an aspect ratio corrected copy of the left eye will be rendered to the viewport automatically.
+
+You will need to add the following code to a script on your root node:
+
+```
+var interface = ARVRServer.find_interface("OpenVR")
+if interface and interface.initialize():
+	get_viewport().arvr = true
+	get_viewport().hdr = false
+```
+
+Using a separate viewport
+-------------------------
+If you want control over the output on screen so you can show something independent on the desktop you can add a viewport to your scene.
+
+Make sure that you turn the arvr property of this viewport to true and the HDR property to false. Also make sure that both the clear mode and update mode are set to always.
+
+You can add a normal camera to your scene to render a spectator view or turn the main viewport into a 2D viewport and save some rendering overhead.
+
+You can now simplify you initialisation code on your root node to:
+
+```
+var interface = ARVRServer.find_interface("OpenVR")
+if interface:
+	interface.initialize()
+```
+
+HDR support
+-----------
+HDR support for the headset is currently not available. OpenVR does not accept Godots HDR color buffer for rendering. A solution is currently under review for Godot 3.1
 
 License
 -------
