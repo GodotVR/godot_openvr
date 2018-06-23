@@ -13,4 +13,15 @@
 #include "ARVRInterface.h"
 #include "OVRRenderModel.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void GDN_EXPORT godot_openvr_gdnative_singleton();
+void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* !GODOT_OPENVR_H */
