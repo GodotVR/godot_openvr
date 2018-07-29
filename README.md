@@ -78,13 +78,21 @@ For Windows you need to supply a copy of openvr_api.dll along with your executab
 
 HDR support
 -----------
-OpenVR does not accept Godots HDR color buffer for rendering.
+OpenVR does not accept Godot's HDR color buffer for rendering, so your scene may receive position and rotation information and display correctly on the desktop but won't render anything inside your headset. 
 
 HDR support for the headset is currently being evaluated through PR:
 https://github.com/godotengine/godot/pull/19724
 This PR allows Godot to use full HDR rendering but has the last step in post processing do a conversion to RGBA8 which Godot does support.
 
-If you are building Godot without this PR, you will have to turn HDR on your viewport off!
+If you are building Godot without this PR or using the stable version, you will have to set `hdr` to `false` on your viewport in addition to enabling `arvr`: 
+
+```
+func _ready():
+    var interface = ARVRServer.find_interface("OpenVR")
+    if interface and interface.initialize():
+        get_viewport().arvr = true
+        get_viewport().hdr = false
+```
 
 Using the main viewport
 -----------------------
