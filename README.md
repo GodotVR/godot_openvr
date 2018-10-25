@@ -94,6 +94,10 @@ func _ready():
         get_viewport().hdr = false
 ```
 
+GLES2 support
+-------------
+The new GLES2 renderer in Godot 3.1 renders directly to RGBA8 buffers and thus doesn't need the HDR workaround. The GLES2 renderer is also much more lightweight then the GLES3 renderer and thus more suited for VR.
+
 Using the main viewport
 -----------------------
 The ARVR server module requires a viewport to be configured as the ARVR viewport. If you chose to use the main viewport an aspect ratio corrected copy of the left eye will be rendered to the viewport automatically.
@@ -103,15 +107,25 @@ You will need to add the following code to a script on your root node:
 ```
 var interface = ARVRServer.find_interface("OpenVR")
 if interface and interface.initialize():
+	# turn to ARVR mode
 	get_viewport().arvr = true
-	get_viewport().rgba8_out = true
+
+	# turn HDR off, not needed with the GLES2 renderer
+	get_viewport().hdr = false
+
+	# make sure vsync is disabled or we'll be limited to 60fps
+	OS.vsync_enabled = false
+	
+	# up our physics to 90fps to get in sync with our rendering
+	Engine.target_fps = 90
 ```
 
 Using a separate viewport
 -------------------------
 If you want control over the output on screen so you can show something independent on the desktop you can add a viewport to your scene.
 
-Make sure that you turn the arvr property of this viewport to true and the rgba8_out property to true. Also make sure that both the clear mode and update mode are set to always.
+Make sure that you turn the ARVR property of this viewport to true and the HDR property to false.
+Also make sure that both the clear mode and update mode are set to always.
 
 You can add a normal camera to your scene to render a spectator view or turn the main viewport into a 2D viewport and save some rendering overhead.
 
@@ -121,6 +135,12 @@ You can now simplify you initialisation code on your root node to:
 var interface = ARVRServer.find_interface("OpenVR")
 if interface:
 	interface.initialize()
+
+	# make sure vsync is disabled or we'll be limited to 60fps
+	OS.vsync_enabled = false
+	
+	# up our physics to 90fps to get in sync with our rendering
+	Engine.target_fps = 90
 ```
 
 License

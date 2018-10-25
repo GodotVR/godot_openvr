@@ -4,13 +4,17 @@ func _ready():
 	# Find the interface and initialise
 	var arvr_interface = ARVRServer.find_interface("OpenVR")
 	if arvr_interface and arvr_interface.initialize():
+		# switch to ARVR mode
 		get_viewport().arvr = true
 		
-		# If https://github.com/godotengine/godot/pull/19724 isn't applied:
-		# get_viewport().hdr = false
-
-		# If https://github.com/godotengine/godot/pull/19724 is applied:
-		get_viewport().rgba8_out = true
+		# workaround for OpenVR not supporting RGBA16F buffers, not needed for GLES2 renderer.
+		get_viewport().hdr = false
+		
+		# make sure vsync is disabled or we'll be limited to 60fps
+		OS.vsync_enabled = false
+		
+		# up our physics to 90fps to get in sync with our rendering
+		Engine.target_fps = 90
 	
 	# just for testing, list what models are available
 	var ovr_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
