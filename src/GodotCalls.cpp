@@ -62,6 +62,14 @@ void ___godot_icall_void_int(godot_method_bind *mb, godot_object *inst, const in
 	api->godot_method_bind_ptrcall(mb, inst, args, nullptr);
 }
 
+void ___godot_icall_void_float(godot_method_bind *mb, godot_object *inst, const double arg0) {
+	const void *args[] = {
+		(void *) &arg0,
+	};
+
+	api->godot_method_bind_ptrcall(mb, inst, args, nullptr);
+}
+
 void ___godot_icall_void_int_Array_Array_int(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_array& arg1, const godot_array& arg2, const int arg3) {
 	const void *args[] = {
 		(void *) &arg0,

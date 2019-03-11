@@ -69,6 +69,7 @@ func _ready():
 	# Scale to our world scale
 	$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
 	$Target.mesh.size = Vector2(ws, ws)
+	$Target/Player_figure.scale = Vector3(ws, ws, ws)
 	
 	# create shape object
 	collision_shape = CapsuleShape.new()
@@ -88,6 +89,7 @@ func _physics_process(delta):
 		ws = new_ws
 		$Teleport.mesh.size = Vector2(0.05 * ws, 1.0)
 		$Target.mesh.size = Vector2(ws, ws)
+		$Target/Player_figure.scale = Vector3(ws, ws, ws)
 	
 	# button 15 is mapped to our trigger
 	if controller and controller.get_is_active() and controller.is_button_pressed(15):
@@ -209,24 +211,34 @@ func _physics_process(delta):
 
 			$Teleport.get_surface_material(0).set_shader_param("mix_color", color)
 			$Target.get_surface_material(0).albedo_color = color
-			$Target.visible = true
+			$Target.visible = can_teleport
 		else:
 			can_teleport = false
 			$Target.visible = false
 			$Teleport.get_surface_material(0).set_shader_param("mix_color", no_collision_color)
 	elif is_teleporting:
 		if can_teleport:
-			# reset our player position to center
-			ARVRServer.center_on_hmd(true, true)
 			
 			# make our target horizontal again
 			var new_transform = last_target_transform
 			new_transform.basis.y = Vector3(0.0, 1.0, 0.0)
-			new_transform.basis.x = new_transform.basis.y.cross(new_transform.basis.z)
-			new_transform.basis.z = new_transform.basis.x.cross(new_transform.basis.y)
+			new_transform.basis.x = new_transform.basis.y.cross(new_transform.basis.z).normalized()
+			new_transform.basis.z = new_transform.basis.x.cross(new_transform.basis.y).normalized()
 			
-			# and change our location
-			origin_node.global_transform = new_transform
+			# find out our user's feet's transformation
+			var camera_node = origin_node.get_node("ARVRCamera")
+			var cam_transform = camera_node.transform
+			var user_feet_transform = Transform()
+			user_feet_transform.origin = cam_transform.origin
+			user_feet_transform.origin.y = 0 # the feet are on the ground, but have the same X,Z as the camera
+			
+			# ensure this transform is upright
+			user_feet_transform.basis.y = Vector3(0.0, 1.0, 0.0)
+			user_feet_transform.basis.x = user_feet_transform.basis.y.cross(cam_transform.basis.z).normalized()
+			user_feet_transform.basis.z = user_feet_transform.basis.x.cross(user_feet_transform.basis.y).normalized()
+			
+			# now move the origin such that the new global user_feet_transform would be == new_transform
+			origin_node.global_transform = new_transform * user_feet_transform.inverse()
 		
 		# and disable
 		is_teleporting = false;

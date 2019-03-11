@@ -71,6 +71,7 @@ void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options
 
 int64_t ___godot_icall_int(godot_method_bind *mb, godot_object *inst);
 void ___godot_icall_void_int(godot_method_bind *mb, godot_object *inst, const int arg0);
+void ___godot_icall_void_float(godot_method_bind *mb, godot_object *inst, const double arg0);
 void ___godot_icall_void_int_Array_Array_int(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_array& arg1, const godot_array& arg2, const int arg3);
 void ___godot_icall_void_int_Object(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_object *arg1);
 void ___godot_icall_void_Color(godot_method_bind *mb, godot_object *inst, const godot_color& arg0);

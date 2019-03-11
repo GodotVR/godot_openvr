@@ -20,6 +20,22 @@ void SpatialMaterial_set_albedo(godot_object *p_this, const godot_color albedo) 
 	___godot_icall_void_Color(mb, p_this, albedo);
 }
 
+void SpatialMaterial_set_metallic(godot_object *p_this, const double metallic) {
+	static godot_method_bind *mb = nullptr;
+	if (mb == nullptr) {
+		mb = api->godot_method_bind_get_method("SpatialMaterial", "set_metallic");
+	}
+	___godot_icall_void_float(mb, p_this, metallic);
+}
+
+void SpatialMaterial_set_roughness(godot_object *p_this, const double roughness) {
+	static godot_method_bind *mb = nullptr;
+	if (mb == nullptr) {
+		mb = api->godot_method_bind_get_method("SpatialMaterial", "set_roughness");
+	}
+	___godot_icall_void_float(mb, p_this, roughness);
+}
+
 void SpatialMaterial_set_texture(godot_object *p_this, const int64_t param, const godot_object *texture) {
 	static godot_method_bind *mb = NULL;
 	if (mb == NULL) {

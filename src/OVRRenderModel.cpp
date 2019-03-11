@@ -115,9 +115,6 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				godot_pool_int_array indices;
 				godot_array prim_array;
 				godot_array blend_array;
-				godot_object *material;
-				godot_object *texture;
-				godot_object *image;
 
 				// copy our vertices
 				api->godot_pool_vector3_array_new(&vertices);
@@ -181,7 +178,12 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 				if (err != vr::VRRenderModelError_None) {
 					printf("Couldn''t load texture for render model\n");
 				} else {
+					godot_object *material;
+					godot_object *texture;
+					godot_object *image;
 					godot_pool_byte_array image_data;
+
+					// allocate memory for our image data
 					api->godot_pool_byte_array_new(&image_data);
 					api->godot_pool_byte_array_resize(&image_data, ovr_texture->unWidth * ovr_texture->unHeight * 4);
 
@@ -201,9 +203,13 @@ GDCALLINGCONV godot_variant openvr_render_model_load(godot_object *p_instance, v
 
 					// and prepare our material
 					material = SpatialMaterial_new();
+					SpatialMaterial_set_metallic(material, 0.4);
+					SpatialMaterial_set_roughness(material, 0.6);
 					SpatialMaterial_set_texture(material, TEXTURE_ALBEDO, texture);
 
 					ArrayMesh_surface_set_material(p_instance, 0, material);
+
+					// no need to destroy image, texture and material, they will be destroyed when they are unreferenced
 				};
 
 				// and cleanup
