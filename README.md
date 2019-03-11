@@ -94,6 +94,16 @@ func _ready():
         get_viewport().hdr = false
 ```
 
+Shader hickup
+-----------------
+There are a few moment where OpenVR has a hickup.
+
+One is around the teleporter function which can be solved by adding the `VR_Common_Shader_Cache.tscn` as a child scene to our ARVRCamera. `ovr_first_person.tscn` does this.
+
+For the controllers they use a standard material. Adding a mesh instance with a standard material will ensure the shader is pre-compiled. Again we do this in `ovr_first_person.tscn`. 
+
+However there is still an issue with loading the texture. We need to redo loading of the controller mesh by handing it off to a separate thread.
+
 GLES2 support
 -------------
 The new GLES2 renderer in Godot 3.1 renders directly to RGBA8 buffers and thus doesn't need the HDR workaround. The GLES2 renderer is also much more lightweight then the GLES3 renderer and thus more suited for VR.

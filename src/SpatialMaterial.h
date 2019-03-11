@@ -33,6 +33,8 @@ extern "C" {
 
 godot_object *SpatialMaterial_new();
 void SpatialMaterial_set_albedo(godot_object *p_this, const godot_color albedo);
+void SpatialMaterial_set_metallic(godot_object *p_this, const double metallic);
+void SpatialMaterial_set_roughness(godot_object *p_this, const double roughness);
 void SpatialMaterial_set_texture(godot_object *p_this, const int64_t param, const godot_object *texture);
 
 #ifdef __cplusplus
