@@ -12,6 +12,8 @@
 	
 #include "ARVRInterface.h"
 #include "OVRRenderModel.h"
+#include "OpenVRConfig.h"
+#include "OpenVROverlay.h"
 
 #ifdef __cplusplus
 extern "C" {
