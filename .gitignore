@@ -1,6 +1,5 @@
 *.o
 *.os
-*.dylib
 .import/
 *.dblite
 *.exp
