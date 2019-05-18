@@ -69,12 +69,17 @@ extern "C" {
 void GDN_EXPORT godot_openvr_gdnative_init(godot_gdnative_init_options *p_options);
 void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options *p_options);
 
+godot_rid ___godot_icall_RID(godot_method_bind *mb, godot_object *inst);
+godot_rid ___godot_icall_RID_Object_int(godot_method_bind *mb, godot_object *inst, const godot_object *arg0, const int arg1);
+void ___godot_icall_void_RID(godot_method_bind *mb, godot_object *inst, const godot_rid &);
+int64_t ___godot_icall_int_RID(godot_method_bind *mb, godot_object *inst, const godot_rid &arg0);
+void ___godot_icall_void_RID_int_int_int_int_int_int(godot_method_bind *mb, godot_object *inst, const godot_rid &arg0, const int64_t arg1, const int64_t arg2, const int64_t arg3, const int64_t arg4, const int64_t arg5, const int64_t arg6);
 int64_t ___godot_icall_int(godot_method_bind *mb, godot_object *inst);
 void ___godot_icall_void_int(godot_method_bind *mb, godot_object *inst, const int arg0);
 void ___godot_icall_void_float(godot_method_bind *mb, godot_object *inst, const double arg0);
-void ___godot_icall_void_int_Array_Array_int(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_array& arg1, const godot_array& arg2, const int arg3);
+void ___godot_icall_void_int_Array_Array_int(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_array &arg1, const godot_array &arg2, const int arg3);
 void ___godot_icall_void_int_Object(godot_method_bind *mb, godot_object *inst, const int arg0, const godot_object *arg1);
-void ___godot_icall_void_Color(godot_method_bind *mb, godot_object *inst, const godot_color& arg0);
+void ___godot_icall_void_Color(godot_method_bind *mb, godot_object *inst, const godot_color &arg0);
 void ___godot_icall_void_Object_int(godot_method_bind *mb, godot_object *inst, const godot_object *arg0, const int arg1);
 void ___godot_icall_void_int_int_bool_int_PoolByteArray(godot_method_bind *mb, godot_object *inst, const int arg0, const int arg1, const bool arg2, const int arg3, const godot_pool_byte_array *arg4);
 godot_vector2 ___godot_icall_Vector2_int(godot_method_bind *mb, godot_object *inst, const int arg0);

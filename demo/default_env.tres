@@ -13,4 +13,3 @@ sun_energy = 16.0
 background_mode = 2
 background_sky = SubResource( 1 )
 ssao_blur = 1
-

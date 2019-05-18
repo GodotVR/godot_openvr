@@ -6,18 +6,8 @@
 // and openvr uses pesky things such as namespaces
 
 #include "ARVRInterface.h"
-
-typedef struct arvr_data_struct {
-	openvr_data_struct *ovr;
-	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
-	vr::VRControllerState_t tracked_device_state[vr::k_unMaxTrackedDeviceCount];
-	godot_int trackers[vr::k_unMaxTrackedDeviceCount];
-	uint64_t last_rumble_update[vr::k_unMaxTrackedDeviceCount];
-	godot_transform hmd_transform;
-	bool device_hands_are_available;
-	uint32_t left_hand_device;
-	uint32_t right_hand_device;
-} arvr_data_struct;
+#include "Image.h"
+#include "VisualServer.h"
 
 void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
@@ -60,10 +50,10 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 				p_arvr_data->left_hand_device = p_device_index;
 			} else if ((hand == 2) && (p_arvr_data->right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
 				p_arvr_data->right_hand_device = p_device_index;
-			};
-		};
-	};
-};
+			}
+		}
+	}
+}
 
 void godot_detach_device(arvr_data_struct *p_arvr_data,
 		uint32_t p_device_index) {
@@ -77,8 +67,8 @@ void godot_detach_device(arvr_data_struct *p_arvr_data,
 		} else if (p_arvr_data->right_hand_device == p_device_index) {
 			p_arvr_data->right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
 		}
-	};
-};
+	}
+}
 
 godot_string godot_arvr_get_name(const void *p_data) {
 	godot_string ret;
@@ -96,7 +86,7 @@ godot_int godot_arvr_get_capabilities(const void *p_data) {
 	ret = 2 + 8; // 2 = ARVR_STEREO, 8 = ARVR_EXTERNAL
 
 	return ret;
-};
+}
 
 godot_bool godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 	godot_bool ret;
@@ -104,12 +94,11 @@ godot_bool godot_arvr_get_anchor_detection_is_enabled(const void *p_data) {
 	ret = false; // does not apply here
 
 	return ret;
-};
+}
 
-void godot_arvr_set_anchor_detection_is_enabled(void *p_data,
-		bool p_enable){
+void godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable) {
 	// we ignore this, not supported in this interface!
-};
+}
 
 godot_bool godot_arvr_is_stereo(const void *p_data) {
 	godot_bool ret;
@@ -117,7 +106,7 @@ godot_bool godot_arvr_is_stereo(const void *p_data) {
 	ret = true;
 
 	return ret;
-};
+}
 
 godot_bool godot_arvr_is_initialized(const void *p_data) {
 	godot_bool ret;
@@ -126,7 +115,7 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 	ret = arvr_data == NULL ? false : arvr_data->ovr != NULL;
 
 	return ret;
-};
+}
 
 godot_bool godot_arvr_initialize(void *p_data) {
 	godot_bool ret;
@@ -142,7 +131,7 @@ godot_bool godot_arvr_initialize(void *p_data) {
 			for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 				arvr_data->trackers[i] = 0;
 				arvr_data->last_rumble_update[i] = 0;
-			};
+			}
 
 			// init our controller tracking variables
 			arvr_data->device_hands_are_available = false;
@@ -153,17 +142,20 @@ godot_bool godot_arvr_initialize(void *p_data) {
 			for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
 				if (arvr_data->ovr->hmd->IsTrackedDeviceConnected(i)) {
 					godot_attach_device(arvr_data, i);
-				};
-			};
+				}
+			}
+
+			// go and get our recommended target size
+			arvr_data->ovr->hmd->GetRecommendedRenderTargetSize(&arvr_data->width, &arvr_data->height);
 
 			// note, this will be made the primary interface by ARVRInterfaceGDNative
-		};
-	};
+		}
+	}
 
 	// and return our result
 	ret = arvr_data->ovr != NULL;
 	return ret;
-};
+}
 
 void godot_arvr_uninitialize(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
@@ -179,25 +171,24 @@ void godot_arvr_uninitialize(void *p_data) {
 
 		openvr_release_data();
 		arvr_data->ovr = NULL;
-	};
-};
+	}
+}
 
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_vector2 size;
 
 	if (arvr_data->ovr != NULL) {
-		uint32_t width, height;
+		// TODO: we should periodically check if the recommended size has changed (the user can adjust this) and if so update our width/height
+		// and reset our render texture (RID)
 
-		arvr_data->ovr->hmd->GetRecommendedRenderTargetSize(&width, &height);
-
-		api->godot_vector2_new(&size, width, height);
+		api->godot_vector2_new(&size, arvr_data->width, arvr_data->height);
 	} else {
 		api->godot_vector2_new(&size, 500, 500);
-	};
+	}
 
 	return size;
-};
+}
 
 godot_transform godot_arvr_get_transform_for_eye(
 		void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
@@ -236,7 +227,7 @@ godot_transform godot_arvr_get_transform_for_eye(
 	ret = api->godot_transform_operator_multiply(&ret, &transform_for_eye);
 
 	return ret;
-};
+}
 
 void godot_arvr_fill_projection_for_eye(
 		void *p_data, godot_real *p_projection, godot_int p_eye,
@@ -251,12 +242,12 @@ void godot_arvr_fill_projection_for_eye(
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
 				p_projection[k++] = matrix.m[j][i];
-			};
-		};
+			}
+		}
 	} else {
 		// uhm, should do something here really..
-	};
-};
+	}
+}
 
 void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 		godot_rid *p_render_target,
@@ -289,12 +280,12 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 
 			screen_rect.position.x = (0.5 * screen_rect.size.x) - (0.5 * new_width);
 			screen_rect.size.x = new_width;
-		};
+		}
 
 		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
 
 		arvr_api->godot_arvr_blit(0, p_render_target, &screen_rect);
-	};
+	}
 
 	if (arvr_data->ovr != NULL) {
 		vr::VRTextureBounds_t bounds;
@@ -305,15 +296,13 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 
 		uint32_t texid = arvr_api->godot_arvr_get_texid(p_render_target);
 
-		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid,
-			vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(
-				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
+		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
+		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
 		if (vrerr != vr::VRCompositorError_None) {
 			printf("OpenVR reports: %i\n", vrerr);
 		}
-	};
-};
+	}
+}
 
 void godot_arvr_process(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
@@ -340,7 +329,7 @@ void godot_arvr_process(void *p_data) {
 					if (button == vr::k_EButton_SteamVR_Touchpad) {
 						// If the button being pressed is the Touchpad, reassign it to button 14
 						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+					} else if (button == vr::k_EButton_SteamVR_Trigger) {
 						// If the button being pressed is the trigger, reassign it to button 15
 						button = 15;
 					}
@@ -351,16 +340,16 @@ void godot_arvr_process(void *p_data) {
 					//Do that again when the button is released
 					if (button == vr::k_EButton_SteamVR_Touchpad) {
 						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+					} else if (button == vr::k_EButton_SteamVR_Trigger) {
 						button = 15;
 					}
 					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
-				}break;
+				} break;
 				default: {
 					// ignored for now...
 				}; break;
-			};
-		};
+			}
+		}
 
 		///@TODO we should time how long it takes between calling WaitGetPoses and
 		/// committing the output to the HMD and using that as the 4th parameter...
@@ -392,13 +381,10 @@ void godot_arvr_process(void *p_data) {
 							&transform, true, true);
 
 					// update our button state structure
-					vr::VRControllerState_t old_state =
-							arvr_data->tracked_device_state[i];
+					vr::VRControllerState_t old_state = arvr_data->tracked_device_state[i];
 					vr::VRControllerState_t new_state;
-					arvr_data->ovr->hmd->GetControllerState(i, &new_state,
-							sizeof(vr::VRControllerState_t));
-					if (arvr_data->tracked_device_state[i].unPacketNum !=
-							new_state.unPacketNum) {
+					arvr_data->ovr->hmd->GetControllerState(i, &new_state, sizeof(vr::VRControllerState_t));
+					if (arvr_data->tracked_device_state[i].unPacketNum != new_state.unPacketNum) {
 						// OpenVR supports 5 axis with x/y, for triggers only x is set
 						for (int axis = 0; axis < 5; axis++) {
 							vr::EVRControllerAxisType axis_type =
@@ -414,25 +400,25 @@ void godot_arvr_process(void *p_data) {
 									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true); // had some weirdness with this false, I think it may be -1.0 to 1.0 afterall
-								};
+								}
 							} else {
 								// this can be trackpad or joystick. Might need to do more with trackpad..
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
 									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true);
-								};
+								}
 
 								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
 									arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], (axis * 2) + 1,
 											new_state.rAxis[axis].y, true);
-								};
-							};
-						};
+								}
+							}
+						}
 
 						arvr_data->tracked_device_state[i] = new_state;
-					};
+					}
 
 					// update rumble
 					float rumble = arvr_api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
@@ -440,22 +426,24 @@ void godot_arvr_process(void *p_data) {
 						// We should only call this once ever 5ms...
 						arvr_data->ovr->hmd->TriggerHapticPulse(i, 0, (rumble * 5000.0));
 						arvr_data->last_rumble_update[i] = msec;
-					};
-				};
-			};
-		};
-	};
-};
+					}
+				}
+			}
+		}
+	}
+}
 
 void *godot_arvr_constructor(godot_object *p_instance) {
 	godot_string ret;
 
 	arvr_data_struct *arvr_data = (arvr_data_struct *)api->godot_alloc(sizeof(arvr_data_struct));
 	arvr_data->ovr = NULL;
+	arvr_data->have_rid = false;
+	arvr_data->video_driver = OS_get_current_video_driver();
 	api->godot_transform_new_identity(&arvr_data->hmd_transform);
 
 	return arvr_data;
-};
+}
 
 void godot_arvr_destructor(void *p_data) {
 	if (p_data != NULL) {
@@ -464,10 +452,56 @@ void godot_arvr_destructor(void *p_data) {
 			// this should have already been called... But just in case...
 			godot_arvr_uninitialize(p_data);
 		}
+		if (arvr_data->have_rid) {
+			VisualServer *VS = VisualServer::get_singleton();
+			VS->free_rid(arvr_data->rid);
+			arvr_data->have_rid = false;
+		}
 
 		api->godot_free(p_data);
-	};
-};
+	}
+}
+
+int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
+	// This gets called in Godot 3.2, we can create our render destination buffer. We'll create a RGBA8 texture so we don't need our HDR hack.
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+
+	if (arvr_data->ovr == NULL) {
+		// uhm, too early I guess?
+		return 0;
+	} else if (arvr_data->video_driver == 1) {
+		// GLES2 ? no need to do this
+		return 0;
+	} else if (!arvr_data->have_rid) {
+		VisualServer *VS = VisualServer::get_singleton();
+
+		//		arvr_data->rid = VS->texture_create();
+		//		VS->texture_allocate(arvr_data->rid, arvr_data->width, arvr_data->height, 1, 5 /* FORMAT_RGBA8 */, 0 /* TEXTURE_TYPE_2D */, 4 /* TEXTURE_FLAG_FILTER */ + 2048 /* TEXTURE_FLAG_USED_FOR_STREAMING */);
+
+		// Bit of a crazy way of doing this but only through creating a texture from an Image does Godot setup the opengl texture object correctly...
+		godot_pool_byte_array img_data;
+		api->godot_pool_byte_array_new(&img_data);
+		api->godot_pool_byte_array_resize(&img_data, arvr_data->width * arvr_data->height * 4);
+
+		godot_object *img = Image_new();
+		Image_create_from_data(img, arvr_data->width, arvr_data->height, false, FORMAT_RGBA8, &img_data);
+
+		arvr_data->rid = VS->texture_create_from_image(img, 4);
+
+		arvr_data->texture_id = VS->texture_get_texid(arvr_data->rid);
+		arvr_data->have_rid = true;
+
+		// cleanup
+		// api->godot_object_destroy(img); // don't do this, VS now owns this image
+		api->godot_pool_byte_array_destroy(&img_data);
+	}
+
+	return arvr_data->texture_id;
+}
+
+void godot_arvr_notification(void *p_data, int p_what) {
+	// nothing to do here for now but we should implement this.
+}
 
 const godot_arvr_interface_gdnative interface_struct = {
 	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
@@ -485,5 +519,8 @@ const godot_arvr_interface_gdnative interface_struct = {
 	godot_arvr_get_transform_for_eye,
 	godot_arvr_fill_projection_for_eye,
 	godot_arvr_commit_for_eye,
-	godot_arvr_process
+	godot_arvr_process,
+	// only available in Godot 3.2+
+	godot_arvr_get_external_texture_for_eye,
+	godot_arvr_notification
 };
