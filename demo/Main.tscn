@@ -2,10 +2,10 @@
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://Milkyway.png" type="Texture" id=2]
-[ext_resource path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" type="PackedScene" id=3]
-[ext_resource path="res://addons/vr-common/functions/Function_Direct_movement.tscn" type="PackedScene" id=4]
-[ext_resource path="res://addons/vr-common/functions/Function_Teleport.tscn" type="PackedScene" id=5]
-[ext_resource path="res://Table.tscn" type="PackedScene" id=6]
+[ext_resource path="res://Table.tscn" type="PackedScene" id=3]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" type="PackedScene" id=4]
+[ext_resource path="res://addons/vr-common/functions/Function_Direct_movement.tscn" type="PackedScene" id=5]
+[ext_resource path="res://addons/vr-common/functions/Function_Teleport.tscn" type="PackedScene" id=6]
 
 [sub_resource type="PanoramaSky" id=1]
 panorama = ExtResource( 2 )
@@ -20,7 +20,7 @@ ssao_blur = 1
 [sub_resource type="SpatialMaterial" id=3]
 params_diffuse_mode = 1
 albedo_color = Color( 0.0342134, 0.992188, 0.116539, 1 )
-roughness = 0.0
+roughness = 0.8
 
 [sub_resource type="PlaneMesh" id=4]
 material = SubResource( 3 )
@@ -28,7 +28,8 @@ size = Vector2( 10, 10 )
 subdivide_width = 10
 subdivide_depth = 10
 
-[sub_resource type="PlaneShape" id=5]
+[sub_resource type="BoxShape" id=5]
+extents = Vector3( 20, 0.1, 20 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 1 )
@@ -42,24 +43,24 @@ transform = Transform( 0.623013, -0.733525, 0.271654, 0.321394, 0.55667, 0.76604
 [node name="StaticBody" type="StaticBody" parent="."]
 
 [node name="Ground" type="MeshInstance" parent="StaticBody"]
-transform = Transform( 100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0 )
+transform = Transform( 100, 0, 0, 0, 100, 0, 0, 0, 100, -0.251513, -1.19209e-07, -0.137402 )
 mesh = SubResource( 4 )
 material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0 )
 shape = SubResource( 5 )
 
-[node name="Table" parent="." instance=ExtResource( 6 )]
+[node name="Table" parent="." instance=ExtResource( 3 )]
 
 [node name="Test" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63647, -1.15364 )
 
-[node name="OVRFirstPerson" parent="." instance=ExtResource( 3 )]
+[node name="OVRFirstPerson" parent="." instance=ExtResource( 4 )]
 
-[node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 5 )]
-origin = NodePath("../..")
+[node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 6 )]
 
-[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 4 )]
+[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 5 )]
 origin = NodePath("../..")
 camera = NodePath("../../ARVRCamera")
 

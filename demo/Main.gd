@@ -7,9 +7,6 @@ func _ready():
 		# switch to ARVR mode
 		get_viewport().arvr = true
 		
-		# workaround for OpenVR not supporting RGBA16F buffers, not needed for GLES2 renderer.
-		get_viewport().hdr = false
-		
 		# make sure vsync is disabled or we'll be limited to 60fps
 		OS.vsync_enabled = false
 		

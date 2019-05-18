@@ -10,23 +10,32 @@ To build versions for official releases of Godot please check the branches that 
 
 Submodules
 ----------
-This project references two submodules. If you do not already have these repositories downloaded somewhere you can execute:
+This project references two submodules.
+If you do not already have these repositories downloaded somewhere you can execute:
 ```
 git submodule init
 git submodule update
 ```
 To download the required versions.
 
-Godot_headers is a git repository that keeps a copy of the headers needed for compiling GDNative modules. We try to keep the version of the files in sync with the version of Godot this branch relates.
+You may need to run these commands in the `godot-cpp` subfolder to obtain the correct version of `godot_headers`
 
-If it is outdated you can use the switch headers to the location of more recent files which will be inside of your Godot source after compiling in the folder modules/gdnative/include.
+Godot_cpp is a git repository that implements C++ bindings to Godots internal classes.
 
 OpenVR is a git repository maintained by Valve that contains the OpenVR SDK used to interact with the OpenVR/SteamVR platform.
-Alternatively you can use the switch openvr or set the environment variable OPENVR_PATH to the location where you have downloaded a copy of this SDK.
+
+Alternatively you can use the switch openvr to the location where you have downloaded a copy of this SDK by adding `openvr_path=<path>` when running scons.
 
 Compiling
 ---------
 Scons is used for compiling this module. I made the assumption that scons is installed as it is also used as the build mechanism for Godot and if you are building from source you will likely need to build Godot as well.
+
+You must compile `godot-cpp` first by executing:
+```
+cd godot-cpp
+scons platform=windows target=release generate_bindings=yes bits=64
+cd ..
+```
 
 You can compile this module by executing:
 ```
@@ -80,11 +89,9 @@ HDR support
 -----------
 OpenVR does not accept Godot's HDR color buffer for rendering, so your scene may receive position and rotation information and display correctly on the desktop but won't render anything inside your headset. 
 
-HDR support for the headset is currently being evaluated through PR:
-https://github.com/godotengine/godot/pull/19724
-This PR allows Godot to use full HDR rendering but has the last step in post processing do a conversion to RGBA8 which Godot does support.
+Valve have a fix in the works which is currently in testing. 
 
-If you are building Godot without this PR or using the stable version, you will have to set `hdr` to `false` on your viewport in addition to enabling `arvr`: 
+For now you will have to set `hdr` to `false` on your viewport in addition to enabling `arvr`: 
 
 ```
 func _ready():
@@ -93,6 +100,8 @@ func _ready():
         get_viewport().arvr = true
         get_viewport().hdr = false
 ```
+
+Note that once SteamVR is updated it expects linear color buffers while Godot converts the render buffer to sRGB. You can replace `get_viewport().hdr = false` with `get_viewport().keep_linear = true` to work around this problem. Everything will look right inside of the headset but the preview on screen will be too dark. We're still working on this.
 
 Shader hickup
 -----------------
@@ -166,4 +175,4 @@ You can follow me on twitter for regular updates here:
 https://twitter.com/mux213
 
 Videos about my work with Godot including tutorials on working with VR in Godot can by found on my youtube page:
-https://www.youtube.com/channel/UCrbLJYzJjDf2p-vJC011lYw
+https://www.youtube.com/BastiaanOlij

@@ -35,6 +35,5 @@ singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
 
 [rendering]
 
-quality/voxel_cone_tracing/high_quality=false
 quality/filters/msaa=1
 environment/default_environment="res://default_env.tres"
