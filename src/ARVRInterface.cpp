@@ -340,7 +340,7 @@ void godot_arvr_process(void *p_data) {
 					if (button == vr::k_EButton_SteamVR_Touchpad) {
 						// If the button being pressed is the Touchpad, reassign it to button 14
 						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+					} else if (button == vr::k_EButton_SteamVR_Trigger) {
 						// If the button being pressed is the trigger, reassign it to button 15
 						button = 15;
 					}
@@ -351,11 +351,11 @@ void godot_arvr_process(void *p_data) {
 					//Do that again when the button is released
 					if (button == vr::k_EButton_SteamVR_Touchpad) {
 						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger ) {
+					} else if (button == vr::k_EButton_SteamVR_Trigger) {
 						button = 15;
 					}
 					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
-				}break;
+				} break;
 				default: {
 					// ignored for now...
 				}; break;
@@ -469,6 +469,15 @@ void godot_arvr_destructor(void *p_data) {
 	};
 };
 
+int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
+
+	return 0;
+}
+
+void godot_arvr_notification(void *p_data, int p_what) {
+	// nothing to do here for now but we should implement this.
+}
+
 const godot_arvr_interface_gdnative interface_struct = {
 	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
 	godot_arvr_constructor,
@@ -485,5 +494,8 @@ const godot_arvr_interface_gdnative interface_struct = {
 	godot_arvr_get_transform_for_eye,
 	godot_arvr_fill_projection_for_eye,
 	godot_arvr_commit_for_eye,
-	godot_arvr_process
+	godot_arvr_process,
+	// only available in Godot 3.2+
+	godot_arvr_get_external_texture_for_eye,
+	godot_arvr_notification
 };

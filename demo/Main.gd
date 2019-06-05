@@ -17,9 +17,9 @@ func _ready():
 		Engine.target_fps = 90
 	
 	# just for testing, list what models are available
-	var ovr_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
-	var model_names = ovr_model.model_names()
-	print("models: " + str(model_names))
+	# var ovr_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
+	# var model_names = ovr_model.model_names()
+	# print("models: " + str(model_names))
 
 func _process(delta):
 	# Test for escape to close application, space to reset our reference frame
