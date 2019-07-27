@@ -48,4 +48,142 @@ void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle) {
 
 		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRRenderModel", "load_model", attributes, get_data);
 	}
+
+	{
+		godot_instance_create_func create = { NULL, NULL, NULL };
+		create.create_func = &openvr_config_constructor;
+
+		godot_instance_destroy_func destroy = { NULL, NULL, NULL };
+		destroy.destroy_func = &openvr_config_destructor;
+
+		nativescript_api->godot_nativescript_register_class(p_handle, "OpenVRConfig", "Reference", create, destroy);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_config_get_application_type;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRConfig", "get_application_type", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_config_set_application_type;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRConfig", "set_application_type", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_config_get_tracking_universe;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRConfig", "get_tracking_universe", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_config_set_tracking_universe;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVRConfig", "set_tracking_universe", attributes, get_data);
+	}
+
+	{
+		godot_instance_create_func create = { NULL, NULL, NULL };
+		create.create_func = &openvr_overlay_constructor;
+
+		godot_instance_destroy_func destroy = { NULL, NULL, NULL };
+		destroy.destroy_func = &openvr_overlay_destructor;
+
+		nativescript_api->godot_nativescript_register_class(p_handle, "OpenVROverlay", "Reference", create, destroy);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_create_overlay;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "create_overlay", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_destroy_overlay;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "destroy_overlay", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_get_overlay_width_in_meters;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "get_overlay_width_in_meters", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_set_overlay_width_in_meters;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "set_overlay_width_in_meters", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_is_overlay_visible;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "is_overlay_visible", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_show_overlay;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "show_overlay", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_hide_overlay;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "hide_overlay", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_track_relative_to_device;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "track_relative_to_device", attributes, get_data);
+	}
+
+	{
+		godot_instance_method get_data = { NULL, NULL, NULL };
+		get_data.method = &openvr_overlay_position_absolute;
+
+		godot_method_attributes attributes = { GODOT_METHOD_RPC_MODE_DISABLED };
+
+		nativescript_api->godot_nativescript_register_method(p_handle, "OpenVROverlay", "overlay_position_absolute", attributes, get_data);
+	}
 }
+

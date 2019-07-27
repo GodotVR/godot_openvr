@@ -66,7 +66,13 @@ openvr_data_struct *openvr_get_data() {
 
 			if (success) {
 				// Loading the SteamVR Runtime
-				openvr_data_singleton->hmd = vr::VR_Init(&error, vr::VRApplication_Scene);
+				if (get_openvr_config_data()->application_type == OpenVRApplicationType::OVERLAY) {
+					openvr_data_singleton->hmd = vr::VR_Init(&error, vr::VRApplication_Overlay);
+					printf("Application in overlay mode.\n");
+				} else {
+					openvr_data_singleton->hmd = vr::VR_Init(&error, vr::VRApplication_Scene);
+					printf("Application in scene (normal) mode.\n");
+				}
 
 				if (error != vr::VRInitError_None) {
 					success = false;
@@ -94,6 +100,14 @@ openvr_data_struct *openvr_get_data() {
 
 				printf("Compositor initialization failed. See log file for details.\n");
 			};
+
+			if (get_openvr_config_data()->application_type == OpenVRApplicationType::OVERLAY) {
+				if (!vr::VROverlay()) {
+					success = false;
+
+					printf("Overlay system initialization failed. See log file for details.\n");
+				};
+			}
 
 			if (!success) {
 				openvr_release_data();
@@ -148,3 +162,22 @@ void openvr_transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_
 			p_matrix->m[2][3] * p_world_scale);
 	api->godot_transform_new(p_dest, &basis, &origin);
 };
+
+void openvr_matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_transform *p_dest, godot_real p_world_scale) {
+	godot_vector3 origin = api->godot_transform_get_origin(p_dest);
+	godot_basis basis = api->godot_transform_get_basis(p_dest);
+
+	p_matrix->m[0][3] = origin.x / p_world_scale;
+	p_matrix->m[1][3] = origin.y / p_world_scale;
+	p_matrix->m[2][3] = origin.z / p_world_scale;
+
+	float *basis_ptr = (float *)&basis;
+
+	int k = 0;
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			p_matrix->m[i][j] = basis_ptr[k++];
+		};
+	};
+};
+

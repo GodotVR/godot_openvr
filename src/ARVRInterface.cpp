@@ -307,10 +307,30 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye,
 
 		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid,
 			vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(
+
+		if (get_openvr_config_data()->application_type == OpenVRApplicationType::OVERLAY) {
+			// Overlay mode
+			if (p_eye == 1) {
+				vr::EVROverlayError vrerr;
+
+				vrerr = vr::VROverlay()->SetOverlayTexture(arvr_data->ovr->overlay, &eyeTexture);
+
+				if (vrerr != vr::VROverlayError_None) {
+					printf("OpenVR could not set texture for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
+				}
+
+				vrerr = vr::VROverlay()->SetOverlayTextureBounds(arvr_data->ovr->overlay, &bounds);
+
+				if (vrerr != vr::VROverlayError_None) {
+					printf("OpenVR could not set textute bounds for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
+				}
+			}
+		} else {
+			vr::EVRCompositorError vrerr = vr::VRCompositor()->Submit(
 				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, &eyeTexture, &bounds);
-		if (vrerr != vr::VRCompositorError_None) {
-			printf("OpenVR reports: %i\n", vrerr);
+			if (vrerr != vr::VRCompositorError_None) {
+				printf("OpenVR reports: %i\n", vrerr);
+			}
 		}
 	};
 };
@@ -366,9 +386,19 @@ void godot_arvr_process(void *p_data) {
 		/// committing the output to the HMD and using that as the 4th parameter...
 
 		// update our poses structure, this tracks our controllers
-		vr::VRCompositor()->WaitGetPoses(arvr_data->tracked_device_pose,
+		if (get_openvr_config_data()->application_type == OpenVRApplicationType::OVERLAY) {
+			if (get_openvr_config_data()->tracking_universe == OpenVRTrackingUniverse::SEATED) {
+				vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0, arvr_data->tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+			} else if (get_openvr_config_data()->tracking_universe == OpenVRTrackingUniverse::STANDING) {
+				vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0, arvr_data->tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+			} else {
+				vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseRawAndUncalibrated, 0.0, arvr_data->tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+			}
+		} else {
+			vr::VRCompositor()->WaitGetPoses(arvr_data->tracked_device_pose,
 				vr::k_unMaxTrackedDeviceCount, NULL, 0);
-
+		}
+		
 		// we scale all our positions by our world scale
 		godot_real world_scale = arvr_api->godot_arvr_get_worldscale();
 
