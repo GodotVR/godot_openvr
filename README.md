@@ -87,21 +87,19 @@ For Windows you need to supply a copy of openvr_api.dll along with your executab
 
 HDR support
 -----------
-OpenVR does not accept Godot's HDR color buffer for rendering, so your scene may receive position and rotation information and display correctly on the desktop but won't render anything inside your headset. 
+OpenVR from version 1.6 onwards is able to support the HDR render buffers Godot uses and you will no longer need to turn HDR off.
 
-Valve have a fix in the works which is currently in testing. 
+OpenVR however expects the color buffer to contain color values in linear color space, its build in sRGB support only works for 8bit color buffers. Godot performs all 3D color calculations in linear color space but will do a final conversion to sRGB during post processing. The result is that everything inside of the headset will look far too bright.
 
-For now you will have to set `hdr` to `false` on your viewport in addition to enabling `arvr`: 
+You can work around this by turning `keep_3d_linear` on for our viewport, this will skip the sRGB conversion and result the display inside of the headset to be correct however the output to screen will be too dark. We'll be looking at an interim solution for this soon however a full solution will likely not become available until after Godots rewrite to Vulkan. 
 
 ```
 func _ready():
     var interface = ARVRServer.find_interface("OpenVR")
     if interface and interface.initialize():
         get_viewport().arvr = true
-        get_viewport().hdr = false
+        get_viewport().keep_3d_linear = true
 ```
-
-Note that once SteamVR is updated it expects linear color buffers while Godot converts the render buffer to sRGB. You can replace `get_viewport().hdr = false` with `get_viewport().keep_linear = true` to work around this problem. Everything will look right inside of the headset but the preview on screen will be too dark. We're still working on this.
 
 Shader hickup
 -----------------
@@ -129,8 +127,8 @@ if interface and interface.initialize():
 	# turn to ARVR mode
 	get_viewport().arvr = true
 
-	# turn HDR off, not needed with the GLES2 renderer
-	get_viewport().hdr = false
+	# keep linear color space, not needed with the GLES2 renderer
+	get_viewport().keep_3d_linear = true
 
 	# make sure vsync is disabled or we'll be limited to 60fps
 	OS.vsync_enabled = false
@@ -143,7 +141,7 @@ Using a separate viewport
 -------------------------
 If you want control over the output on screen so you can show something independent on the desktop you can add a viewport to your scene.
 
-Make sure that you turn the ARVR property of this viewport to true and the HDR property to false.
+Make sure that you turn the ARVR property and keep_3d_linear property of this viewport to true.
 Also make sure that both the clear mode and update mode are set to always.
 
 You can add a normal camera to your scene to render a spectator view or turn the main viewport into a 2D viewport and save some rendering overhead.

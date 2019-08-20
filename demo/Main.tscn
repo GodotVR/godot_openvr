@@ -2,10 +2,10 @@
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://Milkyway.png" type="Texture" id=2]
-[ext_resource path="res://Table.tscn" type="PackedScene" id=3]
-[ext_resource path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" type="PackedScene" id=4]
-[ext_resource path="res://addons/vr-common/functions/Function_Direct_movement.tscn" type="PackedScene" id=5]
-[ext_resource path="res://addons/vr-common/functions/Function_Teleport.tscn" type="PackedScene" id=6]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" type="PackedScene" id=3]
+[ext_resource path="res://addons/vr-common/functions/Function_Direct_movement.tscn" type="PackedScene" id=4]
+[ext_resource path="res://addons/vr-common/functions/Function_Teleport.tscn" type="PackedScene" id=5]
+[ext_resource path="res://Table.tscn" type="PackedScene" id=6]
 
 [sub_resource type="PanoramaSky" id=1]
 panorama = ExtResource( 2 )
@@ -51,16 +51,16 @@ material/0 = null
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0 )
 shape = SubResource( 5 )
 
-[node name="Table" parent="." instance=ExtResource( 3 )]
+[node name="Table" parent="." instance=ExtResource( 6 )]
 
 [node name="Test" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63647, -1.15364 )
 
-[node name="OVRFirstPerson" parent="." instance=ExtResource( 4 )]
+[node name="OVRFirstPerson" parent="." instance=ExtResource( 3 )]
 
-[node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 6 )]
+[node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 5 )]
 
-[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 5 )]
+[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 4 )]
 origin = NodePath("../..")
 camera = NodePath("../../ARVRCamera")
 
