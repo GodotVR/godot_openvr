@@ -1,93 +1,136 @@
 #!python
-import os, subprocess
+import os
 
-# Local dependency paths
-godot_headers_path = ARGUMENTS.get("headers", os.getenv("GODOT_HEADERS", "godot_headers/"))
-openvr_path = ARGUMENTS.get("openvr", os.getenv("OPENVR_PATH", "openvr/"))
+# Reads variables from an optional file.
+customs = ['../custom.py']
+opts = Variables(customs, ARGUMENTS)
 
-# default to release build, add target=debug to build debug build
-target = ARGUMENTS.get("target", "release")
+# Gets the standart flags CC, CCX, etc.
+env = DefaultEnvironment()
 
-# platform= makes it in line with Godots scons file, keeping p for backwards compatibility
-platform = ARGUMENTS.get("p", "linux")
-platform = ARGUMENTS.get("platform", platform)
+# Define our parameters
+opts.Add(EnumVariable('target', "Compilation target", 'release', ['d', 'debug', 'r', 'release']))
+opts.Add(EnumVariable('platform', "Compilation platform", 'windows', ['windows', 'x11', 'linux', 'osx']))
+opts.AddVariables(
+    PathVariable('openvr_path', 'The path where the OpenVR repo is located.', 'openvr/'),
+    PathVariable('target_path', 'The path where the lib is installed.', 'demo/addons/godot-openvr/bin/'),
+    PathVariable('target_name', 'The library name.', 'libgodot_openvr', PathVariable.PathAccept),
+)
+opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
+opts.Add(EnumVariable('bits', "CPU architecture", '64', ['32', '64']))
 
-# start building our destination path
-godot_openvr_path = 'demo/addons/godot-openvr/bin/'
+# Other needed paths
+godot_headers_path = "godot-cpp/godot_headers/"
+godot_cpp_path = "godot-cpp/"
+godot_cpp_library = "libgodot-cpp"
 
-# This makes sure to keep the session environment variables on windows, 
-# that way you can run scons in a vs 2017 prompt and it will find all the required tools
-env = Environment()
-if platform == "windows":
-    env = Environment(ENV = os.environ)
+# Updates the environment with the option variables.
+opts.Update(env)
 
-# bits
-bits = 64
-if 'bits' in env:
-    bits = env['bits']
-
-if ARGUMENTS.get("use_llvm", "no") == "yes":
-    env["CXX"] = "clang++"
+# Check some environment settings
+if env['use_llvm']:
+    env['CXX'] = 'clang++'
 
 # fix needed on OSX
 def rpath_fix(target, source, env):
     os.system('install_name_tool -id @rpath/libgodot_openvr.dylib {0}'.format(target[0]))
     os.system('install_name_tool -change @rpath/OpenVR.framework/Versions/A/OpenVR @loader_path/OpenVR.framework/Versions/A/OpenVR {0}'.format(target[0]))
 
-def add_sources(sources, directory):
-    for file in os.listdir(directory):
-        if file.endswith('.c'):
-            sources.append(directory + '/' + file)
-        elif file.endswith('.cpp'):
-            sources.append(directory + '/' + file)
-
+# platform dir for openvr libraries
 platform_dir = ''
-if platform == "osx":
+
+# Setup everything for our platform
+if env['platform'] == 'windows':
+    env['target_path'] += 'win' + env['bits'] + '/'
+    godot_cpp_library += '.windows'
+    platform_dir = 'win'
+    if not env['use_llvm']:
+        # This makes sure to keep the session environment variables on windows,
+        # that way you can run scons in a vs 2017 prompt and it will find all the required tools
+        env.Append(ENV = os.environ)
+
+        env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
+        if env['target'] in ('debug', 'd'):
+            env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd'])
+        else:
+            env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
+    # untested
+    else:
+        if env['target'] in ('debug', 'd'):
+            env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
+        else:
+            env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
+
+# untested
+elif env['platform'] == 'osx':
+    env['target_path'] += 'osx/'
+    godot_cpp_library += '.osx'
     platform_dir = 'osx'
-    godot_openvr_path = godot_openvr_path + 'osx/'
-    env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
+    if env['target'] in ('debug', 'd'):
+        env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64'])
+    else:
+        env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
     env.Append(CXXFLAGS='-std=c++11')
     env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
-elif platform == "linux":
+elif env['platform'] in ('x11', 'linux'):
+    env['target_path'] += 'x11/'
+    godot_cpp_library += '.linux'
     platform_dir = 'linux'
-    godot_openvr_path = godot_openvr_path + 'x11/'
-    env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++14'])
+    if env['target'] in ('debug', 'd'):
+        env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
+    else:
+        env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
     env.Append(CXXFLAGS='-std=c++0x')
     env.Append(LINKFLAGS = ['-Wl,-R,\'$$ORIGIN\''])
 
-elif platform == "windows":
-    platform_dir = 'win'
-    godot_openvr_path = godot_openvr_path + 'win' + str(bits) + '/'
-    if target == "debug":
-        env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '/MDd'])
-    else:
-        env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '/MD'])
+# Complete godot-cpp library path
+if env['target'] in ('debug', 'd'):
+    godot_cpp_library += '.debug'
+else:
+    godot_cpp_library += '.release'
 
-# add our openvr library
-platform_dir += str(bits)
+godot_cpp_library += '.' + str(env['bits'])
 
-env.Append(CPPPATH=[openvr_path + 'headers/'])
+# Update our include search path 
+env.Append(CPPPATH=[
+    '.', 
+    'src/', 
+    'src/open_vr/', 
+    godot_headers_path,
+    godot_cpp_path + 'include/',
+    godot_cpp_path + 'include/core/',
+    godot_cpp_path + 'include/gen/',
+    env['openvr_path'] + 'headers/'])
+
+# Add our godot-cpp library
+env.Append(LIBPATH=[godot_cpp_path + 'bin/'])
+env.Append(LIBS=[godot_cpp_library])
+
+# Add our openvr library
+platform_dir += str(env['bits'])
 
 if (os.name == "nt" and os.getenv("VCINSTALLDIR")):
-    env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
+    env.Append(LIBPATH=[env['openvr_path'] + 'lib/' + platform_dir])
     env.Append(LINKFLAGS=['openvr_api.lib'])
-elif platform == "osx":
-    env.Append(LINKFLAGS = ['-F' + openvr_path + 'bin/osx64', '-framework', 'OpenVR'])
+elif env['platform'] == "osx":
+    env.Append(LINKFLAGS = ['-F' + env['openvr_path'] + 'bin/osx64', '-framework', 'OpenVR'])
 else:
-    env.Append(LIBPATH=[openvr_path + 'lib/' + platform_dir])
+    env.Append(LIBPATH=[env['openvr_path'] + 'lib/' + platform_dir])
     env.Append(LIBS=['openvr_api'])
 
-# need to add copying the correct file from 'openvr/bin/' + platform_bin to demo/bin/
-# for now manually copy the files
+# Add our sources
+sources = Glob('src/*.c')
+sources += Glob('src/*.cpp')
+sources += Glob('src/*/*.c')
+sources += Glob('src/*/*.cpp')
 
-# and our stuff
-env.Append(CPPPATH=['.', godot_headers_path])
-
-sources = []
-add_sources(sources, "src")
-
-library = env.SharedLibrary(target=godot_openvr_path + 'godot_openvr', source=sources)
-if platform == "osx":
+# Build our library
+library = env.SharedLibrary(target=env['target_path'] + env['target_name'], source=sources)
+if env['platform'] == "osx":
     env.AddPostAction(library, rpath_fix)
+
 Default(library)
+
+# Generates help for the -h scons option.
+Help(opts.GenerateHelpText(env))

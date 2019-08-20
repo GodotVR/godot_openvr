@@ -8,8 +8,8 @@ reloadable=false
 [entry]
 
 X11.64="res://addons/godot-openvr/bin/x11/libgodot_openvr.so"
-Windows.32="res://addons/godot-openvr/bin/win32/godot_openvr.dll"
-Windows.64="res://addons/godot-openvr/bin/win64/godot_openvr.dll"
+Windows.32="res://addons/godot-openvr/bin/win32/libgodot_openvr.dll"
+Windows.64="res://addons/godot-openvr/bin/win64/libgodot_openvr.dll"
 OSX.64="res://addons/godot-openvr/bin/osx/libgodot_openvr.dylib"
 
 [dependencies]
