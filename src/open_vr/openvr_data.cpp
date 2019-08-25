@@ -233,6 +233,14 @@ bool openvr_data::is_tracked_device_connected(vr::TrackedDeviceIndex_t p_tracked
 	return hmd->IsTrackedDeviceConnected(p_tracked_device_index);
 }
 
+vr::TrackedDeviceClass openvr_data::get_tracked_device_class(vr::TrackedDeviceIndex_t p_tracked_device_index) {
+	if (hmd == NULL) {
+		return vr::TrackedDeviceClass_Invalid;
+	}
+
+	return hmd->GetTrackedDeviceClass(p_tracked_device_index);	
+}
+
 void openvr_data::get_eye_to_head_transform(godot_transform *p_transform, int p_eye, float p_world_scale) {
 	if (hmd == NULL) {
 		return;

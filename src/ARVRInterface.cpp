@@ -11,37 +11,46 @@
 void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
 		// we no longer track our HMD, this is all handled in ARVROrigin :)
+	} else if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		// really?!
 	} else if (p_arvr_data->trackers[p_device_index] == 0) {
 		char device_name[256];
 		strcpy(device_name, p_arvr_data->ovr->get_device_name(p_device_index, 255));
-		printf("Found openvr device %i (%s)\n", p_device_index, device_name);
 
-		if (strstr(device_name, "basestation") != NULL) {
-			// ignore base stations for now
-		} else if (strstr(device_name, "camera") != NULL) {
-			// ignore cameras for now
+		vr::TrackedDeviceClass device_class = p_arvr_data->ovr->get_tracked_device_class(p_device_index);
+		if (device_class == vr::TrackedDeviceClass_TrackingReference) {
+			// ignore base stations and cameras for now
+			printf("Found base station %i (%s)\n", p_device_index, device_name);
+		} else if (device_class == vr::TrackedDeviceClass_HMD) {
+			// ignore any HMD
+			printf("Found HMD %i (%s)\n", p_device_index, device_name);
 		} else {
 			godot_int hand = 0;
-			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
 
-			// get our controller role
-			vr::ETrackedPropertyError error;
-			int32_t controllerRole = p_arvr_data->ovr->get_controller_role(p_device_index);
-			if (controllerRole == vr::TrackedControllerRole_RightHand) {
-				hand = 2;
-				p_arvr_data->device_hands_are_available = true;
-			} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
-				hand = 1;
-				p_arvr_data->device_hands_are_available = true;
-			} else if (!p_arvr_data->device_hands_are_available) {
-				// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
-				if (p_arvr_data->left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
-					hand = 1;
-				} else if (p_arvr_data->right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+			if (device_class == vr::TrackedDeviceClass_Controller) {
+				printf("Found controller %i (%s)\n", p_device_index, device_name);
+
+				// If this is a controller than get our controller role
+				int32_t controllerRole = p_arvr_data->ovr->get_controller_role(p_device_index);
+				if (controllerRole == vr::TrackedControllerRole_RightHand) {
 					hand = 2;
+					p_arvr_data->device_hands_are_available = true;
+				} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
+					hand = 1;
+					p_arvr_data->device_hands_are_available = true;
+				} else if (!p_arvr_data->device_hands_are_available) {
+					// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
+					if (p_arvr_data->left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+						hand = 1;
+					} else if (p_arvr_data->right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+						hand = 2;
+					}
 				}
+			} else {
+				printf("Found tracker %i (%s)\n", p_device_index, device_name);				
 			}
 
+			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
 			p_arvr_data->trackers[p_device_index] = arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
 
 			// remember our primary left and right hand devices
@@ -55,7 +64,9 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 }
 
 void godot_detach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
-	if (p_arvr_data->trackers[p_device_index] != 0) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		// really?!
+	} else if (p_arvr_data->trackers[p_device_index] != 0) {
 		arvr_api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
 		p_arvr_data->trackers[p_device_index] = 0;
 
@@ -337,25 +348,29 @@ void godot_arvr_process(void *p_data) {
 				}; break;
 				// Get buttons from ButtonPress and ButtonUnpress events
 				case vr::VREvent_ButtonPress: {
-					int button = int(event.data.controller.button);
-					if (button == vr::k_EButton_SteamVR_Touchpad) {
-						// If the button being pressed is the Touchpad, reassign it to button 14
-						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger) {
-						// If the button being pressed is the trigger, reassign it to button 15
-						button = 15;
+					if (event.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
+						int button = int(event.data.controller.button);
+						if (button == vr::k_EButton_SteamVR_Touchpad) {
+							// If the button being pressed is the Touchpad, reassign it to button 14
+							button = 14;
+						} else if (button == vr::k_EButton_SteamVR_Trigger) {
+							// If the button being pressed is the trigger, reassign it to button 15
+							button = 15;
+						}
+						arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, true);
 					}
-					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, true);
 				}; break;
 				case vr::VREvent_ButtonUnpress: {
-					int button = int(event.data.controller.button);
-					//Do that again when the button is released
-					if (button == vr::k_EButton_SteamVR_Touchpad) {
-						button = 14;
-					} else if (button == vr::k_EButton_SteamVR_Trigger) {
-						button = 15;
+					if (event.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
+						int button = int(event.data.controller.button);
+						//Do that again when the button is released
+						if (button == vr::k_EButton_SteamVR_Touchpad) {
+							button = 14;
+						} else if (button == vr::k_EButton_SteamVR_Trigger) {
+							button = 15;
+						}
+						arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
 					}
-					arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
 				} break;
 				default: {
 					// ignored for now...

@@ -94,6 +94,7 @@ public:
 	char *get_device_name(vr::TrackedDeviceIndex_t p_tracked_device_index, int pMaxLen);
 	int32_t get_controller_role(vr::TrackedDeviceIndex_t p_tracked_device_index);
 	bool is_tracked_device_connected(vr::TrackedDeviceIndex_t p_tracked_device_index);
+	vr::TrackedDeviceClass get_tracked_device_class(vr::TrackedDeviceIndex_t p_tracked_device_index);
 
 	void get_eye_to_head_transform(godot_transform *p_transform, int p_eye, float p_world_scale = 1.0);
 
