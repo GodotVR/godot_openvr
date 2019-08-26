@@ -10,27 +10,19 @@
 using namespace godot;
 
 void OpenVROverlay::_register_methods() {
-	register_method("create_overlay", &OpenVROverlay::create_overlay);
-	register_method("destroy_overlay", &OpenVROverlay::destroy_overlay);
-
-	// I'm not sure if using properties here is safe, it may end up setting stuff before we're ready to set them...
-
-	register_method("get_overlay_width_in_meters", &OpenVROverlay::get_overlay_width_in_meters);
-	register_method("set_overlay_width_in_meters", &OpenVROverlay::set_overlay_width_in_meters);
-	register_property<OpenVROverlay, real_t>("overlay_width", &OpenVROverlay::set_overlay_width_in_meters, &OpenVROverlay::get_overlay_width_in_meters, 1.0);
+	register_method("_ready", &OpenVROverlay::_ready);
+	register_method("_exit_tree", &OpenVROverlay::_exit_tree);
 
 	register_method("is_overlay_visible", &OpenVROverlay::is_overlay_visible);
 	register_method("set_overlay_visible", &OpenVROverlay::set_overlay_visible);
-	register_method("show_overlay", &OpenVROverlay::show_overlay);
-	register_method("hide_overlay", &OpenVROverlay::hide_overlay);
-	register_property<OpenVROverlay, bool>("overlay_visible", &OpenVROverlay::set_overlay_visible, &OpenVROverlay::is_overlay_visible, false);
+	register_property<OpenVROverlay, bool>("overlay_visible", &OpenVROverlay::set_overlay_visible, &OpenVROverlay::is_overlay_visible, true);
+
+	register_method("get_overlay_width_in_meters", &OpenVROverlay::get_overlay_width_in_meters);
+	register_method("set_overlay_width_in_meters", &OpenVROverlay::set_overlay_width_in_meters);
+	register_property<OpenVROverlay, real_t>("overlay_width_in_meters", &OpenVROverlay::set_overlay_width_in_meters, &OpenVROverlay::get_overlay_width_in_meters, 1.0);
 
 	register_method("track_relative_to_device", &OpenVROverlay::track_relative_to_device);
 	register_method("overlay_position_absolute", &OpenVROverlay::overlay_position_absolute);
-}
-
-void OpenVROverlay::_init() {
-	// nothing to do here
 }
 
 OpenVROverlay::OpenVROverlay() {
@@ -44,118 +36,140 @@ OpenVROverlay::~OpenVROverlay() {
 	}
 }
 
-bool OpenVROverlay::create_overlay(String p_overlay_key, String p_overlay_name) {
-	CharString overlay_key = p_overlay_key.ascii();
-	CharString overlay_name = p_overlay_name.ascii();
+void OpenVROverlay::_init() {
+	overlay_width_in_meters = 1.0;
+	overlay_visible = true;
+	overlay = 0;
+}
 
-	vr::VROverlayHandle_t overlay;
+void OpenVROverlay::_ready() {
+	String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
+	String overlay_identifier = appname + String::num_int64(ovr->get_overlay_count() + 1);
+
+	CharString overlay_key = overlay_identifier.ascii();
+	CharString overlay_name = overlay_identifier.ascii();
+
 	vr::EVROverlayError vrerr = vr::VROverlay()->CreateOverlay(overlay_key.get_data(), overlay_name.get_data(), &overlay);
 	if (vrerr != vr::VROverlayError_None) {
 		Godot::print(String("Could not create overlay, OpenVR error:") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-
-		return false;
 	}
 
-	ovr->set_overlay(overlay);
+	overlay_id = ovr->add_overlay(overlay, get_viewport_rid());
 
-	return true;
+	Transform initial_transform;
+	initial_transform = initial_transform.translated(Vector3(0, 0, 1) * -1.4);
+
+	overlay_position_absolute(initial_transform);
+	set_overlay_width_in_meters(overlay_width_in_meters);
+	set_overlay_visible(overlay_visible);
+	set_use_arvr(true);
 }
 
+void OpenVROverlay::_exit_tree() {
+	if (overlay) {
+		vr::EVROverlayError vrerr = vr::VROverlay()->DestroyOverlay(overlay);
+		if (vrerr != vr::VROverlayError_None) {
+			Godot::print(String("Could not destroy overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		}
 
-bool OpenVROverlay::destroy_overlay() {
-	vr::EVROverlayError vrerr = vr::VROverlay()->DestroyOverlay(ovr->get_overlay());
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not destroy overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-
-		return false;
+		overlay = 0;
+		ovr->remove_overlay(overlay_id);
 	}
-
-	ovr->set_overlay(0);
-	return true;
 }
 
 real_t OpenVROverlay::get_overlay_width_in_meters() const {
-	float overlay_size;
+	if (overlay) {
+		float overlay_size;
 
-	vr::VROverlay()->GetOverlayWidthInMeters(ovr->get_overlay(), &overlay_size);
-	return overlay_size;
+		vr::VROverlay()->GetOverlayWidthInMeters(overlay, &overlay_size);
+		return overlay_size;
+	} else {
+		return -1;
+	}
 }
 
 void OpenVROverlay::set_overlay_width_in_meters(real_t p_new_size) {
-	vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayWidthInMeters(ovr->get_overlay(), p_new_size);
+	overlay_width_in_meters = p_new_size;
 
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not set overlay width in meters, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+	if (overlay) {
+		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayWidthInMeters(overlay, p_new_size);
+
+		if (vrerr != vr::VROverlayError_None) {
+			Godot::print(String("Could not set overlay width in meters, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		}
 	}
 }
 
 bool OpenVROverlay::is_overlay_visible() const {
-	return vr::VROverlay()->IsOverlayVisible(ovr->get_overlay());
+	if (overlay) {
+		return vr::VROverlay()->IsOverlayVisible(overlay);
+	} else {
+		return false;
+	}
 }
 
 void OpenVROverlay::set_overlay_visible(bool p_visible) {
-	if (p_visible) {
-		show_overlay();
-	} else {
-		hide_overlay();
-	}
-}
+	overlay_visible = p_visible;
 
-void OpenVROverlay::show_overlay() {
-	vr::EVROverlayError vrerr = vr::VROverlay()->ShowOverlay(ovr->get_overlay());
+	if (overlay) {
+		if (p_visible) {
+			vr::EVROverlayError vrerr = vr::VROverlay()->ShowOverlay(overlay);
 
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not show overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-	}
-}
+			if (vrerr != vr::VROverlayError_None) {
+				Godot::print(String("Could not show overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+			}
+		} else {
+			vr::EVROverlayError vrerr = vr::VROverlay()->HideOverlay(overlay);
 
-void OpenVROverlay::hide_overlay() {
-	vr::EVROverlayError vrerr = vr::VROverlay()->HideOverlay(ovr->get_overlay());
-
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not hide overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+			if (vrerr != vr::VROverlayError_None) {
+				Godot::print(String("Could not hide overlay, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+			}
+		}
 	}
 }
 
 bool OpenVROverlay::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform p_transform) {
-	vr::HmdMatrix34_t matrix;
-	
-	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
+	if (overlay) {
+		vr::HmdMatrix34_t matrix;
 
-	vr::EVROverlayError vrerr =  vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(ovr->get_overlay(), p_tracked_device_index, &matrix);
+		ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
 
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not track overlay relative to device, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, p_tracked_device_index, &matrix);
 
-		return false;
+		if (vrerr != vr::VROverlayError_None) {
+			Godot::print(String("Could not track overlay relative to device, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+
+			return false;
+		}
+
+		return true;
 	}
-
-	return true;
 }
 
 bool OpenVROverlay::overlay_position_absolute(Transform p_transform) {
-	vr::HmdMatrix34_t matrix;
-	vr::TrackingUniverseOrigin origin;
+	if (overlay) {
+		vr::HmdMatrix34_t matrix;
+		vr::TrackingUniverseOrigin origin;
 
-	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
+		ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
 
-	openvr_data::OpenVRTrackingUniverse tracking_universe = ovr->get_tracking_universe();
-	if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {
-		origin = vr::TrackingUniverseSeated;
-	} else if (tracking_universe == openvr_data::OpenVRTrackingUniverse::STANDING) {
-		origin = vr::TrackingUniverseStanding;
-	} else {
-		origin = vr::TrackingUniverseRawAndUncalibrated;
+		openvr_data::OpenVRTrackingUniverse tracking_universe = ovr->get_tracking_universe();
+		if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {
+			origin = vr::TrackingUniverseSeated;
+		} else if (tracking_universe == openvr_data::OpenVRTrackingUniverse::STANDING) {
+			origin = vr::TrackingUniverseStanding;
+		} else {
+			origin = vr::TrackingUniverseRawAndUncalibrated;
+		}
+
+		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformAbsolute(overlay, origin, &matrix);
+
+		if (vrerr != vr::VROverlayError_None) {
+			Godot::print(String("Could not track overlay absolute, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+
+			return false;
+		}
+
+		return true;
 	}
-
-	vr::EVROverlayError vrerr =  vr::VROverlay()->SetOverlayTransformAbsolute(ovr->get_overlay(), origin, &matrix);
-
-	if (vrerr != vr::VROverlayError_None) {
-		Godot::print(String("Could not track overlay absolute, OpenVR error: ") + String::num_int64(vrerr) + ", " + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-
-		return false;
-	}
-
-	return true;
 }
-

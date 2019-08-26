@@ -153,12 +153,25 @@ void openvr_data::process() {
 	}
 }
 
-vr::VROverlayHandle_t openvr_data::get_overlay() {
-	return overlay;
+int openvr_data::get_overlay_count() {
+	return overlays.size();
 }
 
-void openvr_data::set_overlay(vr::VROverlayHandle_t p_new_value) {
-	overlay = p_new_value;
+openvr_data::overlay openvr_data::get_overlay(int p_overlay_id) {
+	return overlays[p_overlay_id];
+}
+
+int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid) {
+	overlay new_entry;
+	new_entry.handle = p_new_value;
+	new_entry.viewport_rid = p_viewport_rid;
+	
+	overlays.push_back(new_entry);
+	return overlays.size() - 1;
+}
+
+void openvr_data::remove_overlay(int p_overlay_id) {
+	overlays.erase(overlays.begin() + p_overlay_id);
 }
 
 openvr_data::OpenVRApplicationType openvr_data::get_application_type() {

@@ -35,7 +35,14 @@ private:
 	int use_count;
 
 	vr::IVRRenderModels *render_models;
-	vr::VROverlayHandle_t overlay;
+
+	// structure to record which overlays go with which viewport
+	struct overlay {
+		vr::VROverlayHandle_t handle;
+		godot::RID viewport_rid;
+	};
+
+	std::vector<overlay> overlays;
 
 	OpenVRApplicationType application_type;
 	OpenVRTrackingUniverse tracking_universe;
@@ -82,8 +89,10 @@ public:
 	void process();
 
 	// properties
-	vr::VROverlayHandle_t get_overlay();
-	void set_overlay(vr::VROverlayHandle_t p_new_value);
+	int get_overlay_count();
+	overlay get_overlay(int p_overlay_id);
+	int add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid);
+	void remove_overlay(int p_overlay_id);
 	OpenVRApplicationType get_application_type();
 	void set_application_type(OpenVRApplicationType p_new_value);
 	OpenVRTrackingUniverse get_tracking_universe();

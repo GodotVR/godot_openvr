@@ -7,6 +7,7 @@
 
 #include "ARVRInterface.h"
 #include "OS.hpp"
+#include "VisualServer.hpp"
 
 void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndex_Hmd) {
@@ -47,7 +48,7 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 					}
 				}
 			} else {
-				printf("Found tracker %i (%s)\n", p_device_index, device_name);				
+				printf("Found tracker %i (%s)\n", p_device_index, device_name);
 			}
 
 			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
@@ -302,16 +303,22 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 			if (p_eye == 1) {
 				vr::EVROverlayError vrerr;
 
-				vrerr = vr::VROverlay()->SetOverlayTexture(arvr_data->ovr->get_overlay(), &eyeTexture);
+				for (unsigned i = 0; i < arvr_data->ovr->get_overlay_count(); i++) {
+					vr::TextureID_t texidov = godot::VisualServer::get_singleton()->texture_get_texid(godot::VisualServer::get_singleton()->viewport_get_texture(arvr_data->ovr->get_overlay(i).viewport_rid));
 
-				if (vrerr != vr::VROverlayError_None) {
-					printf("OpenVR could not set texture for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
-				}
+					if (texid == texidov) {
+						vrerr = vr::VROverlay()->SetOverlayTexture(arvr_data->ovr->get_overlay(i).handle, &eyeTexture);
 
-				vrerr = vr::VROverlay()->SetOverlayTextureBounds(arvr_data->ovr->get_overlay(), &bounds);
+						if (vrerr != vr::VROverlayError_None) {
+							printf("OpenVR could not set texture for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
+						}
 
-				if (vrerr != vr::VROverlayError_None) {
-					printf("OpenVR could not set textute bounds for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
+						vrerr = vr::VROverlay()->SetOverlayTextureBounds(arvr_data->ovr->get_overlay(i).handle, &bounds);
+
+						if (vrerr != vr::VROverlayError_None) {
+							printf("OpenVR could not set textute bounds for overlay: %i, %s\n", vrerr, vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr));
+						}
+					}
 				}
 			}
 		} else {
