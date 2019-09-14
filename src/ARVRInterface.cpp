@@ -51,7 +51,7 @@ void godot_attach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 			}
 
 			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
-			p_arvr_data->trackers[p_device_index] = arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
+			p_arvr_data->trackers[p_device_index] = godot::arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
 
 			// remember our primary left and right hand devices
 			if ((hand == 1) && (p_arvr_data->left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
@@ -67,7 +67,7 @@ void godot_detach_device(arvr_data_struct *p_arvr_data, uint32_t p_device_index)
 	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
 		// really?!
 	} else if (p_arvr_data->trackers[p_device_index] != 0) {
-		arvr_api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
+		godot::arvr_api->godot_arvr_remove_controller(p_arvr_data->trackers[p_device_index]);
 		p_arvr_data->trackers[p_device_index] = 0;
 
 		// unset left/right hand devices
@@ -200,9 +200,9 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 	// todo - rewrite this to use Transform object
 
 	godot_transform transform_for_eye;
-	godot_transform reference_frame = arvr_api->godot_arvr_get_reference_frame();
+	godot_transform reference_frame = godot::arvr_api->godot_arvr_get_reference_frame();
 	godot_transform ret;
-	godot_real world_scale = arvr_api->godot_arvr_get_worldscale();
+	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
 
 	if (p_eye == 0) {
 		// we want a monoscopic transform.. shouldn't really apply here
@@ -283,7 +283,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 
 		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
 
-		arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
+		godot::arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
 	}
 
 	if (arvr_data->ovr->is_initialised()) {
@@ -293,7 +293,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 		bounds.vMin = 0.0;
 		bounds.vMax = 1.0;
 
-		uint32_t texid = arvr_api->godot_arvr_get_texid(p_render_target);
+		uint32_t texid = godot::arvr_api->godot_arvr_get_texid(p_render_target);
 
 		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 
@@ -357,7 +357,7 @@ void godot_arvr_process(void *p_data) {
 							// If the button being pressed is the trigger, reassign it to button 15
 							button = 15;
 						}
-						arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, true);
+						godot::arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, true);
 					}
 				}; break;
 				case vr::VREvent_ButtonUnpress: {
@@ -369,7 +369,7 @@ void godot_arvr_process(void *p_data) {
 						} else if (button == vr::k_EButton_SteamVR_Trigger) {
 							button = 15;
 						}
-						arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
+						godot::arvr_api->godot_arvr_set_controller_button(arvr_data->trackers[event.trackedDeviceIndex], button, false);
 					}
 				} break;
 				default: {
@@ -396,7 +396,7 @@ void godot_arvr_process(void *p_data) {
 		}
 
 		// we scale all our positions by our world scale
-		godot_real world_scale = arvr_api->godot_arvr_get_worldscale();
+		godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
 
 		// update trackers and joysticks
 		for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
@@ -413,7 +413,7 @@ void godot_arvr_process(void *p_data) {
 					// update our location and orientation
 					godot_transform transform;
 					arvr_data->ovr->transform_from_matrix(&transform, &matPose, 1.0);
-					arvr_api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
+					godot::arvr_api->godot_arvr_set_controller_transform(arvr_data->trackers[i],
 							&transform, true, true);
 
 					// update our button state structure
@@ -433,20 +433,20 @@ void godot_arvr_process(void *p_data) {
 							} else if (axis_type == vr::k_eControllerAxis_Trigger) {
 								// only x which ranges between 0. and 1.0
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									arvr_api->godot_arvr_set_controller_axis(
+									godot::arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true); // had some weirdness with this false, I think it may be -1.0 to 1.0 afterall
 								}
 							} else {
 								// this can be trackpad or joystick. Might need to do more with trackpad..
 								if (new_state.rAxis[axis].x != old_state.rAxis[axis].x) {
-									arvr_api->godot_arvr_set_controller_axis(
+									godot::arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], axis * 2, new_state.rAxis[axis].x,
 											true);
 								}
 
 								if (new_state.rAxis[axis].y != old_state.rAxis[axis].y) {
-									arvr_api->godot_arvr_set_controller_axis(
+									godot::arvr_api->godot_arvr_set_controller_axis(
 											arvr_data->trackers[i], (axis * 2) + 1,
 											new_state.rAxis[axis].y, true);
 								}
@@ -457,7 +457,7 @@ void godot_arvr_process(void *p_data) {
 					}
 
 					// update rumble
-					float rumble = arvr_api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
+					float rumble = godot::arvr_api->godot_arvr_get_controller_rumble(arvr_data->trackers[i]);
 					if ((rumble > 0.0) && ((msec - arvr_data->last_rumble_update[i]) > 5)) {
 						// We should only call this once ever 5ms...
 						arvr_data->ovr->hmd->TriggerHapticPulse(i, 0, (rumble * 5000.0));

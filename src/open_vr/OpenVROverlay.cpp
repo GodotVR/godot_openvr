@@ -120,7 +120,7 @@ void OpenVROverlay::hide_overlay() {
 bool OpenVROverlay::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform p_transform) {
 	vr::HmdMatrix34_t matrix;
 	
-	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, arvr_api->godot_arvr_get_worldscale());
+	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
 
 	vr::EVROverlayError vrerr =  vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(ovr->get_overlay(), p_tracked_device_index, &matrix);
 
@@ -137,7 +137,7 @@ bool OpenVROverlay::overlay_position_absolute(Transform p_transform) {
 	vr::HmdMatrix34_t matrix;
 	vr::TrackingUniverseOrigin origin;
 
-	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, arvr_api->godot_arvr_get_worldscale());
+	ovr->matrix_from_transform(&matrix, (godot_transform *)&p_transform, godot::arvr_api->godot_arvr_get_worldscale());
 
 	openvr_data::OpenVRTrackingUniverse tracking_universe = ovr->get_tracking_universe();
 	if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {

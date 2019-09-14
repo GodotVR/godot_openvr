@@ -14,9 +14,6 @@
 #include "OpenVRConfig.h"
 #include "OpenVROverlay.h"
 
-// forward declarations (this should move into godot-cpp)
-extern const godot_gdnative_ext_arvr_api_struct *arvr_api;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
