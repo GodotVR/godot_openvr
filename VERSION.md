@@ -1,7 +1,7 @@
 1.2 (in progress)
 ====
 - Rewrite to using godot_cpp classes
-- Updated to OpenVR 1.16.10
+- Updated to OpenVR 1.8.19
 - Proper asynchronious loading of controller meshes and textures
 - Overlay mode support so overlay features can be created with Godota
 
