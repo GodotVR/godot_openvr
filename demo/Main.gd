@@ -4,11 +4,14 @@ func _ready():
 	# Find the interface and initialise
 	var arvr_interface = ARVRServer.find_interface("OpenVR")
 	if arvr_interface and arvr_interface.initialize():
-		# switch to ARVR mode
-		get_viewport().arvr = true
+		var vp = get_viewport()
 		
-		# keep linear color space, not needed with the GLES2 renderer
-		get_viewport().keep_3d_linear = true
+		# switch to ARVR mode
+		vp.arvr = true
+		
+		if OS.get_current_video_driver() == 0:
+			# keep linear color space, not needed with the GLES2 renderer
+			vp.keep_3d_linear = true
 		
 		# make sure vsync is disabled or we'll be limited to 60fps
 		OS.vsync_enabled = false
