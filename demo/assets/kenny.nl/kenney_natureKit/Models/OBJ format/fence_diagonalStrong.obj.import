@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/fence_diagonalStrong.obj-6210430ed4f56859c55c0b55761fa80c.mesh"
+
+[deps]
+
+files=[ "res://.import/fence_diagonalStrong.obj-6210430ed4f56859c55c0b55761fa80c.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/fence_diagonalStrong.obj"
+dest_files=[ "res://.import/fence_diagonalStrong.obj-6210430ed4f56859c55c0b55761fa80c.mesh", "res://.import/fence_diagonalStrong.obj-6210430ed4f56859c55c0b55761fa80c.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( -5, 0, 5 )
+optimize_mesh=true

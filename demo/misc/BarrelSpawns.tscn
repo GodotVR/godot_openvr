@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://misc/BarrelSpawns.gd" type="Script" id=1]
+[ext_resource path="res://misc/Barrel.tscn" type="PackedScene" id=2]
+
+[node name="BarrelSpawns" type="Spatial"]
+script = ExtResource( 1 )
+Spawn = ExtResource( 2 )
+
+[node name="SpawnTimer" type="Timer" parent="."]
+one_shot = true
+[connection signal="timeout" from="SpawnTimer" to="." method="_on_Timer_timeout"]

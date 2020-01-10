@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/tree_blocks_dark.obj-f0c95f03db22ca3b0de966f3dbb09d2a.mesh"
+
+[deps]
+
+files=[ "res://.import/tree_blocks_dark.obj-f0c95f03db22ca3b0de966f3dbb09d2a.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/tree_blocks_dark.obj"
+dest_files=[ "res://.import/tree_blocks_dark.obj-f0c95f03db22ca3b0de966f3dbb09d2a.mesh", "res://.import/tree_blocks_dark.obj-f0c95f03db22ca3b0de966f3dbb09d2a.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

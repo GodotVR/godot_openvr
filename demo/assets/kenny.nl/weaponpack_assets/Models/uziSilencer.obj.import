@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/uziSilencer.obj-3f6ef7f90666826430ce5b232ad1cf13.mesh"
+
+[deps]
+
+files=[ "res://.import/uziSilencer.obj-3f6ef7f90666826430ce5b232ad1cf13.mesh" ]
+
+source_file="res://assets/kenny.nl/weaponpack_assets/Models/uziSilencer.obj"
+dest_files=[ "res://.import/uziSilencer.obj-3f6ef7f90666826430ce5b232ad1cf13.mesh", "res://.import/uziSilencer.obj-3f6ef7f90666826430ce5b232ad1cf13.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

@@ -28,3 +28,25 @@ func _process(delta):
 	elif (Input.is_key_pressed(KEY_SPACE)):
 		# Calling center_on_hmd will cause the ARVRServer to adjust all tracking data so the player is centered on the origin point looking forward
 		ARVRServer.center_on_hmd(true, true)
+
+func _on_left_hand_picked_up(what):
+	# left hand picked up something, disable the teleporter
+	$OVRFirstPerson/Left_Hand/Function_Teleport.enabled = false
+	
+	# and hide our controller mesh
+	$OVRFirstPerson/Left_Hand.show_controller_mesh = false
+
+func _on_left_hand_dropped():
+	# enable it again
+	$OVRFirstPerson/Left_Hand/Function_Teleport.enabled = true
+	
+	# and show our controller mesh
+	$OVRFirstPerson/Left_Hand.show_controller_mesh = true
+
+func _on_Function_Pickup_has_picked_up(what):
+	# hide our controller mesh
+	$OVRFirstPerson/Right_Hand.show_controller_mesh = false
+
+func _on_Function_Pickup_has_dropped():
+	# show our controller mesh
+	$OVRFirstPerson/Right_Hand.show_controller_mesh = true

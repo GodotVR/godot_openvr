@@ -19,10 +19,6 @@ config/name="OpenVR demo"
 run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
-[debug]
-
-settings/stdout/print_fps=true
-
 [display]
 
 window/size/width=800
@@ -33,7 +29,15 @@ window/vsync/use_vsync=false
 
 singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
 
+[layer_names]
+
+3d_physics/layer_1="Player"
+3d_physics/layer_2="Environment"
+3d_physics/layer_3="Objects"
+3d_physics/layer_4="Projectiles"
+3d_physics/layer_5="Enemies"
+3d_physics/layer_6="Picked up ammo"
+
 [rendering]
 
-quality/filters/msaa=1
-environment/default_environment="res://default_env.tres"
+quality/filters/msaa=2

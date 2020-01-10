@@ -28,9 +28,11 @@ mesh = SubResource( 1 )
 material/0 = SubResource( 3 )
 
 [node name="StaticBody" type="StaticBody" parent="."]
+collision_layer = 15
 collision_mask = 0
 script = ExtResource( 2 )
 viewport = NodePath("../Viewport")
+viewport_size = Vector2( 300, 200 )
 
 [node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
 shape = SubResource( 4 )

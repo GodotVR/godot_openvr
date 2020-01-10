@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/cliffBrown_cornerMid.obj-8e97551946c8bb17844bd9c6a961ca67.mesh"
+
+[deps]
+
+files=[ "res://.import/cliffBrown_cornerMid.obj-8e97551946c8bb17844bd9c6a961ca67.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/cliffBrown_cornerMid.obj"
+dest_files=[ "res://.import/cliffBrown_cornerMid.obj-8e97551946c8bb17844bd9c6a961ca67.mesh", "res://.import/cliffBrown_cornerMid.obj-8e97551946c8bb17844bd9c6a961ca67.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( -5, 0, 5 )
+optimize_mesh=true

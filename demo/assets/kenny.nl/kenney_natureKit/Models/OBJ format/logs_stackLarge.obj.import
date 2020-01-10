@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/logs_stackLarge.obj-1a2a00a436a875bfc790310b81d96f79.mesh"
+
+[deps]
+
+files=[ "res://.import/logs_stackLarge.obj-1a2a00a436a875bfc790310b81d96f79.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/logs_stackLarge.obj"
+dest_files=[ "res://.import/logs_stackLarge.obj-1a2a00a436a875bfc790310b81d96f79.mesh", "res://.import/logs_stackLarge.obj-1a2a00a436a875bfc790310b81d96f79.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

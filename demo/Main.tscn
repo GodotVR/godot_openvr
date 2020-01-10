@@ -1,69 +1,182 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
-[ext_resource path="res://Milkyway.png" type="Texture" id=2]
+[ext_resource path="res://environment.tres" type="Environment" id=2]
 [ext_resource path="res://addons/vr-common/misc/VR_Common_Shader_Cache.tscn" type="PackedScene" id=3]
-[ext_resource path="res://Table.tscn" type="PackedScene" id=4]
+[ext_resource path="res://misc/Table.tscn" type="PackedScene" id=4]
 [ext_resource path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" type="PackedScene" id=5]
 [ext_resource path="res://addons/vr-common/functions/Function_Direct_movement.tscn" type="PackedScene" id=6]
 [ext_resource path="res://addons/vr-common/functions/Function_Teleport.tscn" type="PackedScene" id=7]
+[ext_resource path="res://addons/vr-common/functions/Function_Pickup.tscn" type="PackedScene" id=8]
+[ext_resource path="res://assets/kenny.nl/kenney_natureKit/Godot/kenney_naturekit_tileset.meshlib" type="MeshLibrary" id=9]
+[ext_resource path="res://assets/kenny.nl/kenney_natureKit/Godot/natureKit-leaves.material" type="Material" id=10]
+[ext_resource path="res://misc/Uzi.tscn" type="PackedScene" id=11]
+[ext_resource path="res://misc/UziMag.tscn" type="PackedScene" id=12]
+[ext_resource path="res://misc/BarrelSpawns.tscn" type="PackedScene" id=13]
+[ext_resource path="res://assets/godot/smoke_particle.png" type="Texture" id=14]
 
-[sub_resource type="PanoramaSky" id=1]
-panorama = ExtResource( 2 )
-
-[sub_resource type="Environment" id=2]
-background_mode = 2
-background_sky = SubResource( 1 )
-background_color = Color( 0, 0.53833, 0.703125, 1 )
-ambient_light_color = Color( 0.328125, 0.328125, 0.328125, 1 )
-ssao_blur = 1
-
-[sub_resource type="SpatialMaterial" id=3]
-params_diffuse_mode = 1
-albedo_color = Color( 0.0342134, 0.992188, 0.116539, 1 )
-roughness = 0.8
-
-[sub_resource type="PlaneMesh" id=4]
-material = SubResource( 3 )
+[sub_resource type="PlaneMesh" id=1]
+material = ExtResource( 10 )
 size = Vector2( 10, 10 )
 subdivide_width = 10
 subdivide_depth = 10
 
-[sub_resource type="BoxShape" id=5]
-extents = Vector3( 20, 0.1, 20 )
+[sub_resource type="BoxShape" id=2]
+extents = Vector3( 100, 10, 100 )
+
+[sub_resource type="ParticlesMaterial" id=4]
+emission_shape = 2
+emission_box_extents = Vector3( 3, 0.2, 0.05 )
+direction = Vector3( 0, 1, 0 )
+spread = 10.0
+initial_velocity = 5.0
+
+[sub_resource type="SpatialMaterial" id=5]
+flags_transparent = true
+params_blend_mode = 1
+params_cull_mode = 2
+params_billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+particles_anim_loop = false
+albedo_color = Color( 0.129412, 0.301961, 0.976471, 1 )
+albedo_texture = ExtResource( 14 )
+metallic_specular = 0.0
+emission_enabled = true
+emission = Color( 0.254902, 0.670588, 0.921569, 1 )
+emission_energy = 0.85
+emission_operator = 0
+emission_on_uv2 = false
+
+[sub_resource type="QuadMesh" id=6]
+material = SubResource( 5 )
+size = Vector2( 2, 2 )
+
+[sub_resource type="BoxShape" id=3]
+extents = Vector3( 2.72617, 1, 6.08307 )
 
 [node name="Main" type="Spatial"]
 script = ExtResource( 1 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 2 )
+environment = ExtResource( 2 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 0.623013, -0.733525, 0.271654, 0.321394, 0.55667, 0.766044, -0.713134, -0.389948, 0.582563, 0, 100, 0 )
+transform = Transform( 0.819152, 0.0996005, -0.564862, 0, 0.984808, 0.173648, 0.573576, -0.142244, 0.806707, 0, 100, 0 )
+light_energy = 2.0
+shadow_enabled = true
 
-[node name="StaticBody" type="StaticBody" parent="."]
+[node name="Ground" type="StaticBody" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.99831, 0 )
+collision_layer = 2
+collision_mask = 0
 
-[node name="Ground" type="MeshInstance" parent="StaticBody"]
-transform = Transform( 100, 0, 0, 0, 100, 0, 0, 0, 100, -0.251513, -1.19209e-07, -0.137402 )
-mesh = SubResource( 4 )
+[node name="Mesh" type="MeshInstance" parent="Ground"]
+transform = Transform( 100, 0, 0, 0, 100, 0, 0, 0, 100, 0, 0, 0 )
+mesh = SubResource( 1 )
 material/0 = null
 
-[node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0 )
-shape = SubResource( 5 )
+[node name="CollisionShape" type="CollisionShape" parent="Ground"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0 )
+shape = SubResource( 2 )
 
-[node name="Table" parent="." instance=ExtResource( 4 )]
+[node name="Terrain" type="GridMap" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, 0 )
+mesh_library = ExtResource( 9 )
+cell_size = Vector3( 10, 2.5, 10 )
+collision_layer = 2
+collision_mask = 0
+data = {
+"cells": PoolIntArray( 0, 0, 1048624, 1, 0, 1048622, 2, 0, 1048625, 3, 0, 38, 4, 0, 655365, 5, 0, 655365, 6, 0, 5, 65532, 0, 1048581, 65533, 0, 38, 65534, 0, 655408, 65535, 0, 1441835, 65539, 0, 1048590, 65540, 0, 3, 65541, 0, 655363, 131069, 0, 1441818, 393213, 0, 1441822, 0, 1, 1441838, 1, 1, 1441840, 2, 1, 49, 3, 1, 38, 4, 1, 655365, 5, 1, 655365, 6, 1, 5, 65532, 1, 1048581, 65533, 1, 38, 65534, 1, 1441841, 65535, 1, 1441840, 65539, 1, 1048590, 65540, 1, 3, 65541, 1, 655363, 131069, 1, 9, 0, 2, 1048620, 1, 2, 1048581, 2, 2, 38, 3, 2, 38, 4, 2, 655365, 5, 2, 655365, 6, 2, 5, 65532, 2, 1048581, 65533, 2, 38, 65534, 2, 5, 65535, 2, 1441830, 65536, 2, 18, 65537, 2, 2, 65538, 2, 2, 65539, 2, 1048591, 65540, 2, 3, 65541, 2, 655363, 131069, 2, 7, 131070, 2, 2, 131071, 2, 2, 327680, 2, 536870931, 327681, 2, 17, 327682, 2, 17, 327683, 2, 9, 393213, 2, 1048585, 393214, 2, 17, 393215, 2, 17, 0, 3, 46, 1, 3, 655365, 2, 3, 655365, 3, 3, 655365, 4, 3, 655365, 5, 3, 655365, 6, 3, 5, 65532, 3, 1048581, 65533, 3, 655365, 65534, 3, 655365, 65535, 3, 655365, 65536, 3, 3, 65537, 3, 3, 65538, 3, 3, 65539, 3, 3, 65540, 3, 3, 65541, 3, 655363, 131069, 3, 3, 131070, 3, 3, 131071, 3, 3, 327683, 3, 7, 393213, 3, 1048583, 524288, 3, 39, 524289, 3, 5, 524290, 3, 5, 589822, 3, 5, 589823, 3, 5, 0, 4, 1048581, 1, 4, 537919493, 2, 4, 1048581, 3, 4, 1048581, 4, 4, 1048581, 5, 4, 1048580, 6, 4, 5, 65532, 4, 1048581, 65533, 4, 1048581, 65534, 4, 1048581, 65535, 4, 1048581, 65536, 4, 1048579, 65537, 4, 1048579, 65538, 4, 1048579, 65539, 4, 1048579, 65540, 4, 1048579, 65541, 4, 1048579, 131069, 4, 1048579, 131070, 4, 1048579, 131071, 4, 1048579, 327680, 4, 1048579, 327681, 4, 1048579, 327682, 4, 1048579, 327683, 4, 1048579, 327684, 4, 7, 327685, 4, 9, 393213, 4, 1048579, 393214, 4, 1048579, 393215, 4, 1048579, 0, 65529, 5, 1, 65529, 5, 2, 65529, 5, 3, 65529, 5, 4, 65529, 5, 5, 65529, 5, 6, 65529, 5, 65532, 65529, 5, 65533, 65529, 5, 65534, 65529, 5, 65535, 65529, 5, 0, 65530, 655365, 1, 65530, 655365, 2, 65530, 655365, 3, 65530, 655365, 4, 65530, 655365, 5, 65530, 655365, 6, 65530, 5, 65532, 65530, 1048581, 65533, 65530, 655365, 65534, 65530, 655365, 65535, 65530, 655365, 65536, 65530, 1441817, 65539, 65530, 1048611, 65540, 65530, 655381, 65541, 65530, 655381, 131069, 65530, 655381, 131070, 65530, 655381, 131071, 65530, 655381, 393213, 65530, 655383, 393214, 65530, 1441821, 458749, 65530, 655383, 0, 65531, 655365, 1, 65531, 655365, 2, 65531, 655365, 3, 65531, 655365, 4, 65531, 655365, 5, 65531, 655365, 6, 65531, 5, 65532, 65531, 1048581, 65533, 65531, 655365, 65534, 65531, 655365, 65535, 65531, 655365, 65536, 65531, 1441819, 65539, 65531, 655387, 65540, 65531, 655385, 65541, 65531, 655381, 131069, 65531, 655381, 131070, 65531, 655381, 131071, 65531, 1441817, 393213, 65531, 655389, 393214, 65531, 1441822, 0, 65532, 655398, 1, 65532, 655405, 2, 65532, 655398, 3, 65532, 655398, 4, 65532, 655365, 5, 65532, 655365, 6, 65532, 5, 65532, 65532, 1048581, 65533, 65532, 655398, 65534, 65532, 655398, 65535, 65532, 655398, 65540, 65532, 655387, 65541, 65532, 655395, 131069, 65532, 655381, 131070, 65532, 1441817, 131071, 65532, 1441819, 0, 65533, 655398, 1, 65533, 39, 2, 65533, 38, 3, 65533, 38, 4, 65533, 655365, 5, 65533, 655365, 6, 65533, 5, 65532, 65533, 1048581, 65533, 65533, 655398, 65534, 65533, 655398, 65535, 65533, 655398, 65540, 65533, 1048584, 65541, 65533, 2, 131069, 65533, 1441817, 131070, 65533, 1441819, 327684, 65533, 1048588, 327685, 65533, 11, 393213, 65533, 30, 0, 65534, 38, 1, 65534, 47, 2, 65534, 38, 3, 65534, 38, 4, 65534, 655365, 5, 65534, 655365, 6, 65534, 5, 65532, 65534, 1048581, 65533, 65534, 38, 65534, 65534, 38, 65535, 65534, 38, 65540, 65534, 3, 131069, 65534, 1441812, 327684, 65534, 1048587, 393213, 65534, 1441821, 393221, 65534, 655365, 0, 65535, 1048614, 1, 65535, 40, 2, 65535, 38, 3, 65535, 38, 4, 65535, 655365, 5, 65535, 5, 6, 65535, 5, 65532, 65535, 1048627, 65533, 65535, 38, 65534, 65535, 655409, 65535, 65535, 1048625, 65539, 65535, 1048592, 65540, 65535, 3, 65541, 65535, 655363, 131069, 65535, 1441820, 327684, 65535, 655372, 327685, 65535, 655371, 393213, 65535, 1441821 )
+}
+__meta__ = {
+"_editor_clip_": 0,
+"_editor_floor_": Vector3( 0, 1, 0 )
+}
 
-[node name="Test" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63647, -1.15364 )
+[node name="Objects" type="GridMap" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0 )
+mesh_library = ExtResource( 9 )
+cell_size = Vector3( 10, 2.5, 10 )
+collision_layer = 2
+data = {
+"cells": PoolIntArray( 1, 65530, 655417, 2, 65531, 655420, 3, 65531, 655415, 3, 65532, 1048629, 3, 65533, 1048629, 1, 65534, 0 )
+}
+__meta__ = {
+"_editor_clip_": 0
+}
+
+[node name="Particles" type="Particles" parent="Objects"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.47444, 0.797916, 25.762 )
+amount = 1000
+lifetime = 2.0
+process_material = SubResource( 4 )
+draw_pass_1 = SubResource( 6 )
+
+[node name="BarrelSpawns" parent="Objects" instance=ExtResource( 13 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.34244, 22.2845, 36.2341 )
 
 [node name="OVRFirstPerson" parent="." instance=ExtResource( 5 )]
+transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0, 1.52916, -12.0157 )
 
 [node name="vr_common_shader_cache" parent="OVRFirstPerson/ARVRCamera/shader_cache" index="5" instance=ExtResource( 3 )]
 
 [node name="Function_Teleport" parent="OVRFirstPerson/Left_Hand" index="1" instance=ExtResource( 7 )]
+collision_mask = 1048574
+camera = NodePath("../../ARVRCamera")
+
+[node name="Function_Pickup" parent="OVRFirstPerson/Left_Hand" index="2" instance=ExtResource( 8 )]
+transform = Transform( 1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0 )
+collision_mask = 4
 
 [node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="1" instance=ExtResource( 6 )]
 camera = NodePath("../../ARVRCamera")
+canFly = false
+
+[node name="KinematicBody" parent="OVRFirstPerson/Right_Hand/Function_Direct_movement" index="0"]
+collision_mask = 30
+
+[node name="Function_Pickup" parent="OVRFirstPerson/Right_Hand" index="2" instance=ExtResource( 8 )]
+transform = Transform( 1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0 )
+collision_mask = 4
+
+[node name="Stuff" type="Spatial" parent="."]
+
+[node name="Uzi" parent="Stuff" instance=ExtResource( 11 )]
+transform = Transform( 0.317106, 0.94839, 0, -0.94839, 0.317106, 0, 0, 0, 1, 0, 3.70127, -9.31093 )
+
+[node name="Table" parent="Stuff" instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -9 )
+
+[node name="UziMag01" parent="Stuff" instance=ExtResource( 12 )]
+transform = Transform( 0.298741, 0.954334, 0, -0.954334, 0.298741, 0, 0, 0, 1, -0.723825, 3.79188, -9.13482 )
+
+[node name="UziMag02" parent="Stuff" instance=ExtResource( 12 )]
+transform = Transform( 0.298741, 0.954334, 0, -0.954334, 0.298741, 0, 0, 0, 1, -0.723825, 3.79188, -9.32293 )
+
+[node name="UziMag03" parent="Stuff" instance=ExtResource( 12 )]
+transform = Transform( 0.298741, 0.954334, 0, -0.954334, 0.298741, 0, 0, 0, 1, -0.723825, 3.79188, -9.53826 )
+
+[node name="UziMag04" parent="Stuff" instance=ExtResource( 12 )]
+transform = Transform( 0.298741, 0.954334, 0, -0.954334, 0.298741, 0, 0, 0, 1, -0.723825, 3.79188, -8.94163 )
+
+[node name="Spawns" type="Spatial" parent="."]
+
+[node name="Area" type="Area" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 5.17572, 23.1249, 31.9698 )
+space_override = 1
+gravity_vec = Vector3( 0, 0, -1 )
+gravity = 4.0
+collision_layer = 16
+collision_mask = 16
+
+[node name="CollisionShape" type="CollisionShape" parent="Area"]
+shape = SubResource( 3 )
+[connection signal="has_dropped" from="OVRFirstPerson/Left_Hand/Function_Pickup" to="." method="_on_left_hand_dropped"]
+[connection signal="has_picked_up" from="OVRFirstPerson/Left_Hand/Function_Pickup" to="." method="_on_left_hand_picked_up"]
+[connection signal="has_dropped" from="OVRFirstPerson/Right_Hand/Function_Pickup" to="." method="_on_Function_Pickup_has_dropped"]
+[connection signal="has_picked_up" from="OVRFirstPerson/Right_Hand/Function_Pickup" to="." method="_on_Function_Pickup_has_picked_up"]
 
 [editable path="OVRFirstPerson"]
+
+[editable path="OVRFirstPerson/Right_Hand/Function_Direct_movement"]

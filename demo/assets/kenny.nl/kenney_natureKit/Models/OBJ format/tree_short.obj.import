@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/tree_short.obj-f4da69b5d2f9afa40173ac3cbc73b45f.mesh"
+
+[deps]
+
+files=[ "res://.import/tree_short.obj-f4da69b5d2f9afa40173ac3cbc73b45f.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/tree_short.obj"
+dest_files=[ "res://.import/tree_short.obj-f4da69b5d2f9afa40173ac3cbc73b45f.mesh", "res://.import/tree_short.obj-f4da69b5d2f9afa40173ac3cbc73b45f.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

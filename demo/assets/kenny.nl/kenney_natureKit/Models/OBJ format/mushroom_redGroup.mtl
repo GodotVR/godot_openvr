@@ -1,0 +1,12 @@
+# Exported using Kenney Suite 1.2 
+
+newmtl natureKit-_defaultMat
+Ka 0.000000 0.000000 0.000000 
+Kd 1 1 1 
+Ks 0.330000 0.330000 0.330000 
+
+newmtl natureKit-mushroom
+Ka 0.000000 0.000000 0.000000 
+Kd 0.8784314 0.2901961 0.3137255 
+Ks 0.330000 0.330000 0.330000 
+

@@ -1,0 +1,12 @@
+# Exported using Kenney Suite 1.2 
+
+newmtl natureKit-woodLight
+Ka 0.000000 0.000000 0.000000 
+Kd 0.9960784 0.7803922 0.6392157 
+Ks 0.330000 0.330000 0.330000 
+
+newmtl natureKit-wood
+Ka 0.000000 0.000000 0.000000 
+Kd 1 0.682353 0.4352941 
+Ks 0.330000 0.330000 0.330000 
+
