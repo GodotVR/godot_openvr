@@ -10,4 +10,3 @@ shader_param/length = 30.0
 shader_param/ws = 1.0
 shader_param/mix_color = Color( 0.176471, 0.313726, 0.862745, 1 )
 shader_param/arrow_texture = ExtResource( 2 )
-
