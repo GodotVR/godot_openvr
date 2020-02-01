@@ -1,5 +1,18 @@
-[gd_resource type="SpatialMaterial" format=2]
+[gd_resource type="SpatialMaterial" load_steps=5 format=2]
+
+[ext_resource path="res://assets/texturehaven.com/green_metal_rust/green_metal_rust_Nor_1k.jpg" type="Texture" id=1]
+[ext_resource path="res://assets/texturehaven.com/green_metal_rust/green_metal_rust_diff_1k.jpg" type="Texture" id=2]
+[ext_resource path="res://assets/texturehaven.com/green_metal_rust/green_metal_rust_rough_1k.jpg" type="Texture" id=3]
+[ext_resource path="res://assets/texturehaven.com/green_metal_rust/green_metal_rust_spec_1k.jpg" type="Texture" id=4]
 
 [resource]
 resource_name = "TableMat"
-roughness = 0.63
+albedo_texture = ExtResource( 2 )
+metallic = 1.0
+metallic_texture = ExtResource( 4 )
+roughness_texture = ExtResource( 3 )
+normal_enabled = true
+normal_scale = 1.0
+normal_texture = ExtResource( 1 )
+uv1_scale = Vector3( 2, 2, 2 )
+uv1_triplanar = true

@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/muzzleflash.obj-3581f1c44d4c4646ce38ff19d4303e13.mesh"
+
+[deps]
+
+files=[ "res://.import/muzzleflash.obj-3581f1c44d4c4646ce38ff19d4303e13.mesh" ]
+
+source_file="res://assets/opengameart.org/jkm_muzzleflash/muzzleflash.obj"
+dest_files=[ "res://.import/muzzleflash.obj-3581f1c44d4c4646ce38ff19d4303e13.mesh", "res://.import/muzzleflash.obj-3581f1c44d4c4646ce38ff19d4303e13.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

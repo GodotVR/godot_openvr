@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/cactus_short.obj-2c53f1f72288ba0ee89d3efe21da8edd.mesh"
+
+[deps]
+
+files=[ "res://.import/cactus_short.obj-2c53f1f72288ba0ee89d3efe21da8edd.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/cactus_short.obj"
+dest_files=[ "res://.import/cactus_short.obj-2c53f1f72288ba0ee89d3efe21da8edd.mesh", "res://.import/cactus_short.obj-2c53f1f72288ba0ee89d3efe21da8edd.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( 0, 0, 0 )
+optimize_mesh=true

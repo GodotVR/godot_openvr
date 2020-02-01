@@ -2,6 +2,9 @@ extends Node
 
 enum MOVEMENT_TYPE { MOVE_AND_ROTATE, MOVE_AND_STRAFE }
 
+# Is this active?
+export var enabled = true setget set_enabled, get_enabled
+
 # We don't know the name of the camera node... 
 export (NodePath) var camera = null
 
@@ -15,7 +18,7 @@ export var max_speed = 5.0
 export var drag_factor = 0.1
 
 # fly mode and strafe movement management
-export(MOVEMENT_TYPE) var move_type = MOVEMENT_TYPE.MOVE_AND_ROTATE
+export (MOVEMENT_TYPE) var move_type = MOVEMENT_TYPE.MOVE_AND_ROTATE
 export var canFly = true
 export var fly_move_button_id = 15
 export var fly_activate_button_id = 2
@@ -26,8 +29,24 @@ var origin_node = null
 var camera_node = null
 var velocity = Vector3(0.0, 0.0, 0.0)
 var gravity = -30.0
-onready var collision_shape = get_node("KinematicBody/CollisionShape")
-onready var tail = get_node("KinematicBody/Tail")
+onready var collision_shape: CollisionShape = get_node("KinematicBody/CollisionShape")
+onready var tail : RayCast = get_node("KinematicBody/Tail")
+
+func set_enabled(new_value):
+	enabled = new_value
+	if collision_shape:
+		collision_shape.disabled = !enabled
+	if tail:
+		tail.enabled = enabled
+	if enabled:
+		# make sure our physics process is on
+		set_physics_process(true)
+	else:
+		# we turn this off in physics process just in case we want to do some cleanup
+		pass
+
+func get_enabled():
+	return enabled
 
 func get_player_radius():
 	return player_radius
@@ -46,6 +65,9 @@ func _ready():
 		camera_node = origin_node.get_node('ARVRCamera')
 	
 	set_player_radius(player_radius)
+	
+	collision_shape.disabled = !enabled
+	tail.enabled = enabled
 
 func _physics_process(delta):
 	if !origin_node:
@@ -54,15 +76,19 @@ func _physics_process(delta):
 	if !camera_node:
 		return
 	
+	if !enabled:
+		set_physics_process(false)
+		return
+	
 	# Adjust the height of our player according to our camera position
-	var camera_height = camera_node.transform.origin.y
-	if camera_height < player_radius:
+	var player_height = camera_node.transform.origin.y + player_radius
+	if player_height < player_radius:
 		# not smaller than this
-		camera_height = player_radius
+		player_height = player_radius
 	
 	collision_shape.shape.radius = player_radius
-	collision_shape.shape.height = camera_height - player_radius
-	collision_shape.transform.origin.y = (camera_height / 2.0) + player_radius
+	collision_shape.shape.height = player_height - (player_radius * 2.0)
+	collision_shape.transform.origin.y = (player_height / 2.0)
 	
 	# We should be the child or the controller on which the teleport is implemented
 	var controller = get_parent()

@@ -1,0 +1,21 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/344142__brokenphono__gunshot-002.wav-a2effe912a22fb1de0ecf4a94d4f30b0.sample"
+
+[deps]
+
+source_file="res://assets/freesound.org/344142__brokenphono__gunshot-002.wav"
+dest_files=[ "res://.import/344142__brokenphono__gunshot-002.wav-a2effe912a22fb1de0ecf4a94d4f30b0.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=true
+edit/normalize=true
+edit/loop=false
+compress/mode=0

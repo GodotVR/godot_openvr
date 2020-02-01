@@ -1,0 +1,19 @@
+[remap]
+
+importer="wavefront_obj"
+type="Mesh"
+path="res://.import/ground_dirt.obj-c1d482303caafd2e5b5f829fdfbc9325.mesh"
+
+[deps]
+
+files=[ "res://.import/ground_dirt.obj-c1d482303caafd2e5b5f829fdfbc9325.mesh" ]
+
+source_file="res://assets/kenny.nl/kenney_natureKit/Models/OBJ format/ground_dirt.obj"
+dest_files=[ "res://.import/ground_dirt.obj-c1d482303caafd2e5b5f829fdfbc9325.mesh", "res://.import/ground_dirt.obj-c1d482303caafd2e5b5f829fdfbc9325.mesh" ]
+
+[params]
+
+generate_tangents=true
+scale_mesh=Vector3( 1, 1, 1 )
+offset_mesh=Vector3( -5, 0, 5 )
+optimize_mesh=true

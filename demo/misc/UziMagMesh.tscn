@@ -1,0 +1,46 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://assets/kenny.nl/weaponpack_assets/Models/ammo_uzi.obj" type="ArrayMesh" id=1]
+
+[sub_resource type="SpatialMaterial" id=3]
+albedo_color = Color( 0.0470588, 0.0470588, 0.0470588, 1 )
+
+[node name="Mag" type="Spatial"]
+
+[node name="Outside" type="CSGBox" parent="."]
+width = 0.04
+height = 0.15
+depth = 0.05
+material = SubResource( 3 )
+
+[node name="Inside" type="CSGBox" parent="Outside"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0107162, 0 )
+operation = 2
+width = 0.02
+height = 0.15
+depth = 0.042
+material = SubResource( 3 )
+
+[node name="Bullet01" type="MeshInstance" parent="."]
+transform = Transform( 4, 0, 0, 0, -1.74846e-07, 4, 0, -4, -1.74846e-07, 0, 0.071731, 0.00033436 )
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+
+[node name="Bullet02" type="MeshInstance" parent="."]
+transform = Transform( 4, 0, 0, 0, -1.74846e-07, 4, 0, -4, -1.74846e-07, 0, 0.0586107, 0.00033436 )
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+
+[node name="Bullet03" type="MeshInstance" parent="."]
+transform = Transform( 4, 0, 0, 0, -1.74846e-07, 4, 0, -4, -1.74846e-07, 0, 0.0458597, 0.00033436 )
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null

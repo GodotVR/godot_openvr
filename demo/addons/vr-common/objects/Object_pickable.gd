@@ -2,7 +2,7 @@ extends RigidBody
 
 # Set hold mode
 export (bool) var press_to_hold = true
-export (int, FLAGS, "layer_1", "layer_2", "layer_3", "layer_4", "layer_5") var picked_up_layer = 0
+export (int, FLAGS, "layer_1", "layer_2", "layer_3", "layer_4", "layer_5", "layer_6") var picked_up_layer = 0
 
 # Remember some state so we can return to it when the user drops the object
 onready var original_parent = get_parent()

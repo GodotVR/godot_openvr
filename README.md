@@ -162,8 +162,11 @@ if interface:
 
 License
 -------
-Note that the source in this repository is licensed by the MIT license model. This covers only the source code in this repository. 
+Note that the source in this repository is licensed by the MIT license model. This covers only the source code in this repository.
+
 Both Godot and OpenVR have their own license requirements. See their respective git repositories for more details.
+
+Finally you will find 3rd party assets in the assets subfolder, please check their individual licenses stored in the folders.
 
 About this repository
 ---------------------

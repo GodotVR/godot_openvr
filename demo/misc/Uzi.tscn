@@ -1,0 +1,218 @@
+[gd_scene load_steps=20 format=2]
+
+[ext_resource path="res://addons/vr-common/objects/Object_pickable.tscn" type="PackedScene" id=1]
+[ext_resource path="res://assets/kenny.nl/weaponpack_assets/Models/uziLong.obj" type="ArrayMesh" id=2]
+[ext_resource path="res://misc/Uzi.gd" type="Script" id=3]
+[ext_resource path="res://misc/Bullet.tscn" type="PackedScene" id=4]
+[ext_resource path="res://misc/Casing.tscn" type="PackedScene" id=5]
+[ext_resource path="res://addons/vr-common/objects/Viewport_2D_in_3D.tscn" type="PackedScene" id=6]
+[ext_resource path="res://misc/AmmoCount.tscn" type="PackedScene" id=7]
+[ext_resource path="res://misc/UziMagMesh.tscn" type="PackedScene" id=8]
+[ext_resource path="res://assets/freesound.org/344142__brokenphono__gunshot-002.wav" type="AudioStream" id=9]
+[ext_resource path="res://assets/freesound.org/171614__pjkasinski3__mag-reload-1.wav" type="AudioStream" id=10]
+[ext_resource path="res://assets/opengameart.org/jkm_muzzleflash/muzzleflash.obj" type="ArrayMesh" id=11]
+[ext_resource path="res://assets/opengameart.org/jkm_muzzleflash/muzzle_flash_material.tres" type="Material" id=12]
+[ext_resource path="res://assets/freesound.org/154934__klawykogut__empty-gun-shot.wav" type="AudioStream" id=13]
+
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 0.021, 0.12, 0.14 )
+
+[sub_resource type="SphereShape" id=2]
+radius = 0.1
+
+[sub_resource type="Animation" id=3]
+resource_name = "Empty"
+length = 0.15
+tracks/0/type = "value"
+tracks/0/path = NodePath("Pivot/EmptyAudio:playing")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[sub_resource type="Animation" id=4]
+resource_name = "Load"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/path = NodePath("Pivot/Mag:visible")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ true, false ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Pivot/Mag:translation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.5 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 0,
+"values": [ Vector3( 0, -0.200778, -0.449601 ), Vector3( 0, -0.0561904, -0.449601 ) ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Pivot/MagReloadAudio:playing")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+
+[sub_resource type="Animation" id=5]
+length = 0.15
+step = 0.01
+tracks/0/type = "value"
+tracks/0/path = NodePath("Pivot/ShootAudio:playing")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/keys = {
+"times": PoolRealArray( 0 ),
+"transitions": PoolRealArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Pivot/Flash:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/keys = {
+"times": PoolRealArray( 0, 0.05 ),
+"transitions": PoolRealArray( 1, 1 ),
+"update": 1,
+"values": [ true, false ]
+}
+
+[sub_resource type="Animation" id=6]
+
+[node name="Uzi" instance=ExtResource( 1 )]
+collision_layer = 4
+script = ExtResource( 3 )
+picked_up_layer = 1
+casing = ExtResource( 5 )
+bullet = ExtResource( 4 )
+
+[node name="CollisionShape" parent="." index="0"]
+shape = SubResource( 1 )
+
+[node name="Pivot" type="Spatial" parent="." index="1"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5 )
+
+[node name="Gun" type="MeshInstance" parent="Pivot" index="0"]
+transform = Transform( -5, 0, -1.62921e-06, 0, 5, 0, 1.62921e-06, 0, -5, 0, 0, -0.5 )
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+material/4 = null
+material/5 = null
+material/6 = null
+material/7 = null
+material/8 = null
+material/9 = null
+material/10 = null
+material/11 = null
+material/12 = null
+material/13 = null
+material/14 = null
+material/15 = null
+material/16 = null
+material/17 = null
+material/18 = null
+material/19 = null
+material/20 = null
+material/21 = null
+material/22 = null
+material/23 = null
+material/24 = null
+material/25 = null
+material/26 = null
+material/27 = null
+material/28 = null
+material/29 = null
+material/30 = null
+material/31 = null
+material/32 = null
+material/33 = null
+material/34 = null
+
+[node name="BulletSpawnPoint" type="Position3D" parent="Pivot" index="1"]
+transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0, 0.0830738, -0.685682 )
+
+[node name="CasingSpawnPoint" type="Position3D" parent="Pivot" index="2"]
+transform = Transform( 0.789652, 0.613555, 3.25841e-07, 0.613555, -0.789652, 0, 2.57301e-07, 1.99922e-07, -1, 0.036, 0.098, -0.447774 )
+
+[node name="AmmoCount" parent="Pivot" index="3" instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0920025, -0.341538 )
+screen_size = Vector2( 0.04, 0.03 )
+viewport_size = Vector2( 100, 75 )
+scene = ExtResource( 7 )
+collision_layer = 0
+
+[node name="Reload" type="Area" parent="Pivot" index="4"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.0967582, -0.450191 )
+collision_mask = 32
+
+[node name="CollisionShape" type="CollisionShape" parent="Pivot/Reload" index="0"]
+shape = SubResource( 2 )
+
+[node name="Flash" type="MeshInstance" parent="Pivot" index="5"]
+transform = Transform( 0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.0833482, -0.722093 )
+visible = false
+mesh = ExtResource( 11 )
+material/0 = ExtResource( 12 )
+material/1 = ExtResource( 12 )
+material/2 = ExtResource( 12 )
+
+[node name="Mag" parent="Pivot" index="6" instance=ExtResource( 8 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.200778, -0.449601 )
+visible = false
+
+[node name="ShootAudio" type="AudioStreamPlayer3D" parent="Pivot" index="7"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0816797, -0.672495 )
+stream = ExtResource( 9 )
+unit_db = -20.0
+pitch_scale = 1.5
+max_distance = 1000.0
+bus = "Gun"
+
+[node name="EmptyAudio" type="AudioStreamPlayer3D" parent="Pivot" index="8"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0810321, -0.661705 )
+stream = ExtResource( 13 )
+unit_db = -20.0
+
+[node name="MagReloadAudio" type="AudioStreamPlayer3D" parent="Pivot" index="9"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.129365, -0.443627 )
+stream = ExtResource( 10 )
+unit_db = -20.0
+bus = "Gun"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="2"]
+anims/Empty = SubResource( 3 )
+anims/Load = SubResource( 4 )
+anims/Shoot = SubResource( 5 )
+anims/none = SubResource( 6 )
+[connection signal="body_entered" from="Pivot/Reload" to="." method="_on_Reload_body_entered"]
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]

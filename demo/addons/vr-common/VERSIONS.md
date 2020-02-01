@@ -4,6 +4,8 @@
 - Added pickable object support
 - Fixed positioning of direct movement collision shape
 - Added strafe and fly mode for directional 
+- Added ability to enable/disable the movement functions
+- Added 2D in 3D viewport for UI
 
 1.1*
 ====
