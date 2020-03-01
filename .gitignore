@@ -6,5 +6,6 @@
 *.lib
 *.obj
 *.TMP
+.DS_Store
 logs
 Thumbs.db
