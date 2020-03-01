@@ -16,12 +16,8 @@ _global_script_class_icons={
 [application]
 
 config/name="OpenVR demo"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://Construct.tscn"
 config/icon="res://icon.png"
-
-[debug]
-
-settings/stdout/print_fps=true
 
 [display]
 
@@ -37,6 +33,8 @@ singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
 
 3d_physics/layer_1="Player"
 3d_physics/layer_2="Environment"
+3d_physics/layer_3="Objects"
+3d_physics/layer_5="Picked up"
 
 [rendering]
 

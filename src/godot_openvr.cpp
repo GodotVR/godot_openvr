@@ -15,7 +15,7 @@ void GDN_EXPORT godot_openvr_gdnative_init(godot_gdnative_init_options *o) {
 	godot::Godot::gdnative_init(o);
 }
 
-void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *o) {
+void GDN_EXPORT godot_openvr_gdnative_terminate(godot_gdnative_terminate_options *o) {
 	godot::Godot::gdnative_terminate(o);
 }
 
@@ -31,4 +31,8 @@ void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle) {
 	godot::register_class<godot::OpenVRRenderModel>();
 	godot::register_class<godot::OpenVRConfig>();
 	godot::register_class<godot::OpenVROverlay>();
+	godot::register_class<godot::OpenVRPose>();
+	godot::register_class<godot::OpenVRAction>();
+	godot::register_class<godot::OpenVRHaptics>();
+	godot::register_class<godot::OpenVRController>();
 }

@@ -10,9 +10,13 @@
 #include "openvr_data.h"
 
 #include "ARVRInterface.h"
-#include "OpenVRRenderModel.h"
+#include "OpenVRAction.h"
 #include "OpenVRConfig.h"
+#include "OpenVRController.h"
+#include "OpenVRHaptics.h"
 #include "OpenVROverlay.h"
+#include "OpenVRPose.h"
+#include "OpenVRRenderModel.h"
 
 #ifdef __cplusplus
 extern "C" {

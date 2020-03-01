@@ -1,0 +1,152 @@
+{
+	"action_manifest_version" : 0,
+	"alias_info" : {},
+	"bindings" : {
+		"/actions/godot" : {
+			"haptics" : [
+				{
+					"output" : "/actions/godot/out/haptic",
+					"path" : "/user/hand/left/output/haptic"
+				},
+				{
+					"output" : "/actions/godot/out/haptic",
+					"path" : "/user/hand/right/output/haptic"
+				}
+			],
+			"poses" : [
+				{
+					"output" : "/actions/godot/in/raw_pose",
+					"path" : "/user/hand/left/pose/raw"
+				},
+				{
+					"output" : "/actions/godot/in/raw_pose",
+					"path" : "/user/hand/right/pose/raw"
+				},
+				{
+					"output" : "/actions/godot/in/custom_pose",
+					"path" : "/user/hand/left/pose/handgrip"
+				},
+				{
+					"output" : "/actions/godot/in/custom_pose",
+					"path" : "/user/hand/right/pose/handgrip"
+				}
+			],
+			"sources" : [
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/grip"
+						}
+					},
+					"mode" : "button",
+					"path" : "/user/hand/right/input/grip"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/grip"
+						}
+					},
+					"mode" : "button",
+					"path" : "/user/hand/left/input/grip"
+				},
+				{
+					"inputs" : {
+						"pull" : {
+							"output" : "/actions/godot/in/analog_trigger"
+						}
+					},
+					"mode" : "trigger",
+					"path" : "/user/hand/left/input/trigger"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/trigger"
+						}
+					},
+					"mode" : "button",
+					"path" : "/user/hand/left/input/trigger"
+				},
+				{
+					"inputs" : {
+						"pull" : {
+							"output" : "/actions/godot/in/analog_trigger"
+						}
+					},
+					"mode" : "trigger",
+					"path" : "/user/hand/right/input/trigger"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/trigger"
+						}
+					},
+					"mode" : "button",
+					"path" : "/user/hand/right/input/trigger"
+				},
+				{
+					"inputs" : {
+						"value" : {
+							"output" : "/actions/godot/in/analog_grip"
+						}
+					},
+					"mode" : "scalar_constant",
+					"path" : "/user/hand/left/input/grip"
+				},
+				{
+					"inputs" : {
+						"value" : {
+							"output" : "/actions/godot/in/analog_grip"
+						}
+					},
+					"mode" : "scalar_constant",
+					"path" : "/user/hand/right/input/grip"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/analog_click"
+						},
+						"position" : {
+							"output" : "/actions/godot/in/analog"
+						}
+					},
+					"mode" : "joystick",
+					"path" : "/user/hand/left/input/joystick"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/analog_click"
+						},
+						"position" : {
+							"output" : "/actions/godot/in/analog"
+						}
+					},
+					"mode" : "joystick",
+					"path" : "/user/hand/right/input/joystick"
+				},
+				{
+					"inputs" : {
+						"click" : {
+							"output" : "/actions/godot/in/custom_boolean"
+						},
+						"position" : {
+							"output" : "/actions/godot/in/custom_analog"
+						}
+					},
+					"mode" : "trackpad",
+					"path" : "/user/hand/right/input/trackpad"
+				}
+			]
+		}
+	},
+	"category" : "steamvr_input",
+	"controller_type" : "holographic_controller",
+	"description" : "Bindings for the Godot OpenVR plugin for Windows Mixed Reality Controller",
+	"name" : "Godot bindings for Windows Mixed Reality Controller",
+	"options" : {},
+	"simulated_actions" : []
+}
