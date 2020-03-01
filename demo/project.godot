@@ -33,6 +33,11 @@ window/vsync/use_vsync=false
 
 singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
 
+[layer_names]
+
+3d_physics/layer_1="Player"
+3d_physics/layer_2="Environment"
+
 [rendering]
 
 quality/filters/msaa=1
