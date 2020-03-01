@@ -1,5 +1,0 @@
-[gd_resource type="SpatialMaterial" format=2]
-
-[resource]
-resource_name = "TableMat"
-roughness = 0.63
