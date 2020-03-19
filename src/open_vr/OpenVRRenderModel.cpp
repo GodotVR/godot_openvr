@@ -1,10 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // GDNative module that exposes the render models available in OpenVR as resources to Godot
 
-// Note, even though this is pure C code, we're using the C++ compiler as
-// Microsoft never updated their C compiler to understand more modern dialects
-// and openvr uses pesky things such as namespaces
-
 #include "OpenVRRenderModel.h"
 
 #include <Array.hpp>

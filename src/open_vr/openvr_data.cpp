@@ -1,10 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // Helper calls and singleton container for accessing openvr
 
-// Note, even though this is pure C code, we're using the C++ compiler as
-// Microsoft never updated their C compiler to understand more modern dialects
-// and openvr uses pesky things such as namespaces
-
 #include "openvr_data.h"
 
 using namespace godot;
@@ -18,12 +14,14 @@ openvr_data::openvr_data() {
 	render_models = NULL;
 	application_type = OpenVRApplicationType::SCENE;
 	tracking_universe = OpenVRTrackingUniverse::STANDING;
+	godot::api->godot_transform_new_identity(&hmd_transform);
+
+	strcpy(actions_json_path, "res://addons/godot-openvr/actions/actions.json");
+	active_action_set = register_action_set(String("/actions/godot"));
 }
 
 openvr_data::~openvr_data() {
-	if (hmd != NULL) {
-		cleanup();
-	}
+	cleanup();
 
 	if (singleton == this) {
 		singleton = NULL;
@@ -31,10 +29,32 @@ openvr_data::~openvr_data() {
 }
 
 void openvr_data::cleanup() {
-	hmd = NULL;
-	render_models = NULL;
+	if (hmd != NULL) {
+		// reset our action handles
+		for (int i = 0; i < DAH_IN_MAX; i++) {
+			input_action_handles[i] = vr::k_ulInvalidActionHandle;
+		}
+		for (int i = 0; i < DAH_OUT_MAX; i++) {
+			output_action_handles[i] = vr::k_ulInvalidActionHandle;
+		}
 
-	vr::VR_Shutdown();
+		// detach all our devices
+		for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+			detach_device(i);
+		}
+
+		// forget our custom actions
+
+		// forget our action sets
+		for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
+			it->handle = vr::k_ulInvalidActionSetHandle;
+		}
+
+		hmd = NULL;
+		render_models = NULL;
+
+		vr::VR_Shutdown();
+	}
 }
 
 openvr_data *openvr_data::retain_singleton() {
@@ -42,8 +62,8 @@ openvr_data *openvr_data::retain_singleton() {
 		singleton = new openvr_data();
 	} else {
 		singleton->use_count++;
-		godot::Godot::print(
-				godot::String("Usage count increased to ") + godot::String::num_int64(singleton->use_count));
+		Godot::print(
+				String("Usage count increased to ") + String::num_int64(singleton->use_count));
 	}
 	return singleton;
 }
@@ -51,10 +71,10 @@ openvr_data *openvr_data::retain_singleton() {
 void openvr_data::release() {
 	if (singleton != this) {
 		// this should never happen!
-		godot::Godot::print("openvr object does not match singleton!");
+		Godot::print("openvr object does not match singleton!");
 	} else if (use_count > 1) {
 		use_count--;
-		godot::Godot::print(godot::String("Usage count decreased to ") + godot::String::num_int64(use_count));
+		Godot::print(godot::String("Usage count decreased to ") + String::num_int64(use_count));
 	} else {
 		delete this;
 	}
@@ -71,13 +91,13 @@ bool openvr_data::initialise() {
 	}
 
 	// init openvr
-	godot::Godot::print("OpenVR: initialising OpenVR context\n");
+	Godot::print("OpenVR: initialising OpenVR context\n");
 
 	bool success = true;
 	vr::EVRInitError error = vr::VRInitError_None;
 
 	if (!vr::VR_IsRuntimeInstalled()) {
-		godot::Godot::print("SteamVR has not been installed.");
+		Godot::print("SteamVR has not been installed.");
 		success = false;
 	}
 
@@ -85,17 +105,17 @@ bool openvr_data::initialise() {
 		// Loading the SteamVR Runtime
 		if (application_type == OpenVRApplicationType::OVERLAY) {
 			hmd = vr::VR_Init(&error, vr::VRApplication_Overlay);
-			godot::Godot::print("Application in overlay mode.");
+			Godot::print("Application in overlay mode.");
 		} else {
 			hmd = vr::VR_Init(&error, vr::VRApplication_Scene);
-			godot::Godot::print("Application in scene (normal) mode.");
+			Godot::print("Application in scene (normal) mode.");
 		}
 
 		if (error != vr::VRInitError_None) {
 			success = false;
-			godot::Godot::print(godot::String("Unable to init VR runtime: ") + godot::String(vr::VR_GetVRInitErrorAsEnglishDescription(error)));
+			Godot::print(godot::String("Unable to init VR runtime: ") + godot::String(vr::VR_GetVRInitErrorAsEnglishDescription(error)));
 		} else {
-			godot::Godot::print("Main OpenVR interface has been initialized");
+			Godot::print("Main OpenVR interface has been initialized");
 		}
 	}
 
@@ -106,9 +126,9 @@ bool openvr_data::initialise() {
 		if (!render_models) {
 			success = false;
 
-			godot::Godot::print(godot::String("Unable to get render model interface: ") + godot::String(vr::VR_GetVRInitErrorAsEnglishDescription(error)));
+			Godot::print(godot::String("Unable to get render model interface: ") + godot::String(vr::VR_GetVRInitErrorAsEnglishDescription(error)));
 		} else {
-			godot::Godot::print("Main render models interface has been initialized.");
+			Godot::print("Main render models interface has been initialized.");
 		}
 	}
 
@@ -116,7 +136,7 @@ bool openvr_data::initialise() {
 		if (!vr::VRCompositor()) {
 			success = false;
 
-			godot::Godot::print("Compositor initialization failed. See log file for details.");
+			Godot::print("Compositor initialization failed. See log file for details.");
 		}
 	}
 
@@ -125,7 +145,60 @@ bool openvr_data::initialise() {
 			if (!vr::VROverlay()) {
 				success = false;
 
-				godot::Godot::print("Overlay system initialization failed. See log file for details.");
+				Godot::print("Overlay system initialization failed. See log file for details.");
+			}
+		}
+	}
+
+	if (success) {
+		godot::String parsed_path = godot::ProjectSettings::get_singleton()->globalize_path(actions_json_path);
+		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(parsed_path.utf8().get_data());
+		if (err == vr::VRInputError_None) {
+			Godot::print(godot::String("Loaded action json from: ") + parsed_path);
+		} else {
+			success = false;
+			Godot::print(godot::String("Failed to load action json from: ") + parsed_path);
+		}
+	}
+
+	if (success) {
+		// TODO: Contemplate whether we should parse the JSON ourselves so we know what actions and action sets are available...
+		// we can then get action handles for all of them automatically.
+
+		bind_default_action_handles();
+
+		for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
+			vr::EVRInputError err = vr::VRInput()->GetActionSetHandle(it->name.utf8().get_data(), &it->handle);
+			if (err != vr::VRInputError_None) {
+				Godot::print(godot::String("Failed to obtain action set handle for ") + String(it->name));
+			}
+		}
+
+		for (std::vector<custom_action>::iterator it = custom_actions.begin(); it != custom_actions.end(); ++it) {
+			vr::EVRInputError err = vr::VRInput()->GetActionHandle(it->name.utf8().get_data(), &it->handle);
+			if (err == vr::VRInputError_None) {
+				Godot::print(String("Bound action ") + String(it->name) + String(" to ") + String::num_int64(it->handle));
+			} else {
+				Godot::print(String("Failed to obtain action handle for ") + String(it->name));
+			}
+		}
+	}
+
+	if (success) {
+		/* reset some stuff */
+		for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+			tracked_devices[i].tracker_id = 0;
+			tracked_devices[i].last_rumble_update = 0;
+		}
+
+		device_hands_are_available = false;
+		left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+		right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+
+		// find any already attached devices
+		for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
+			if (is_tracked_device_connected(i)) {
+				attach_device(i);
 			}
 		}
 	}
@@ -138,23 +211,91 @@ bool openvr_data::initialise() {
 }
 
 void openvr_data::process() {
+	// we need timing info for one or two things..
+	uint64_t msec = godot::OS::get_singleton()->get_ticks_msec();
+
+	// we scale all our positions by our world scale
+	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
+
 	// check our model loading in reverse
-	for (int i = load_models.size() -1; i >= 0; i--) {
+	for (int i = (int)load_models.size() - 1; i >= 0; i--) {
 		if (_load_render_model(&load_models[i])) {
-			load_models.erase(load_models.begin()+i);
-		}		
+			load_models.erase(load_models.begin() + i);
+		}
 	}
 
 	// check our texture loading in reverse
-	for (int i = load_textures.size() -1; i >= 0; i--) {
+	for (int i = (int)load_textures.size() - 1; i >= 0; i--) {
 		if (_load_texture(&load_textures[i])) {
-			load_textures.erase(load_textures.begin()+i);
+			load_textures.erase(load_textures.begin() + i);
+		}
+	}
+
+	vr::VREvent_t event;
+	while (hmd->PollNextEvent(&event, sizeof(event))) {
+		switch (event.eventType) {
+			case vr::VREvent_TrackedDeviceActivated: {
+				attach_device(event.trackedDeviceIndex);
+			}; break;
+			case vr::VREvent_TrackedDeviceDeactivated: {
+				detach_device(event.trackedDeviceIndex);
+			}; break;
+			default: {
+				// ignored for now...
+			}; break;
+		}
+	}
+
+	// Update our active action set
+	vr::VRActiveActionSet_t actionSet = { 0 };
+	actionSet.ulActionSet = action_sets[active_action_set].handle;
+	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
+
+	// update our poses structure, this tracks our controllers
+	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
+
+	if (get_application_type() == openvr_data::OpenVRApplicationType::OVERLAY) {
+		openvr_data::OpenVRTrackingUniverse tracking_universe = get_tracking_universe();
+		if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {
+			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+		} else if (tracking_universe == openvr_data::OpenVRTrackingUniverse::STANDING) {
+			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+		} else {
+			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseRawAndUncalibrated, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
+		}
+	} else {
+		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+	}
+
+	// update trackers and joysticks
+	for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+		// update tracker
+		if (i == 0) {
+			if (tracked_device_pose[i].bPoseIsValid) {
+				// store our HMD transform
+				transform_from_matrix(&hmd_transform, &tracked_device_pose[i].mDeviceToAbsoluteTracking, world_scale);
+			}
+		} else if (tracked_devices[i].tracker_id != 0) {
+			// We'll keep using our main transform we got from WaitGetPoses
+			// To obtain specific poses use OpenVRPose
+			if (tracked_device_pose[i].bPoseIsValid) {
+				// update our location and orientation
+				godot_transform transform;
+				transform_from_matrix(&transform, &tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
+				godot::arvr_api->godot_arvr_set_controller_transform(tracked_devices[i].tracker_id, &transform, true, true);
+			}
+
+			// for our fixed actions we'll hardcode checking our state
+			process_device_actions(&tracked_devices[i], msec);
 		}
 	}
 }
 
+////////////////////////////////////////////////////////////////
+// properties
+
 int openvr_data::get_overlay_count() {
-	return overlays.size();
+	return (int)overlays.size();
 }
 
 openvr_data::overlay openvr_data::get_overlay(int p_overlay_id) {
@@ -165,9 +306,9 @@ int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_vie
 	overlay new_entry;
 	new_entry.handle = p_new_value;
 	new_entry.viewport_rid = p_viewport_rid;
-	
+
 	overlays.push_back(new_entry);
-	return overlays.size() - 1;
+	return (int)overlays.size() - 1;
 }
 
 void openvr_data::remove_overlay(int p_overlay_id) {
@@ -190,6 +331,9 @@ void openvr_data::set_tracking_universe(openvr_data::OpenVRTrackingUniverse p_ne
 	tracking_universe = p_new_value;
 }
 
+////////////////////////////////////////////////////////////////
+// interact with openvr
+
 void openvr_data::get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height) {
 	if (hmd != NULL) {
 		hmd->GetRecommendedRenderTargetSize(p_width, p_height);
@@ -201,7 +345,7 @@ void openvr_data::get_recommended_rendertarget_size(uint32_t *p_width, uint32_t 
 }
 
 // todo - change this to String or keep char *?
-char *openvr_data::get_device_name(vr::TrackedDeviceIndex_t p_tracked_device_index, int pMaxLen) {
+char *openvr_data::get_device_name(vr::TrackedDeviceIndex_t p_tracked_device_index, uint32_t pMaxLen) {
 	static char returnstring[1025] = "Not initialised";
 
 	if (hmd != NULL) {
@@ -251,7 +395,7 @@ vr::TrackedDeviceClass openvr_data::get_tracked_device_class(vr::TrackedDeviceIn
 		return vr::TrackedDeviceClass_Invalid;
 	}
 
-	return hmd->GetTrackedDeviceClass(p_tracked_device_index);	
+	return hmd->GetTrackedDeviceClass(p_tracked_device_index);
 }
 
 void openvr_data::get_eye_to_head_transform(godot_transform *p_transform, int p_eye, float p_world_scale) {
@@ -264,6 +408,447 @@ void openvr_data::get_eye_to_head_transform(godot_transform *p_transform, int p_
 	transform_from_matrix(p_transform, &matrix, p_world_scale);
 }
 
+////////////////////////////////////////////////////////////////
+// Interact with tracking info
+
+////////////////////////////////////////////////////////////////
+// Register an action set
+// Note that we can't remove action sets once added so our index
+// shouldn't change
+int openvr_data::register_action_set(const String p_action_set) {
+	for (int i = 0; i < action_sets.size(); i++) {
+		if (action_sets[i].name == p_action_set) {
+			return i;
+		}
+	}
+
+	action_set new_action_set;
+	new_action_set.name = p_action_set;
+	new_action_set.handle = vr::k_ulInvalidActionSetHandle;
+
+	if (is_initialised()) {
+		vr::EVRInputError err = vr::VRInput()->GetActionSetHandle(new_action_set.name.utf8().get_data(), &new_action_set.handle);
+		if (err != vr::VRInputError_None) {
+			Godot::print(String("Failed to obtain action set handle for ") + new_action_set.name);
+		}
+	}
+
+	action_sets.push_back(new_action_set);
+
+	return (int)action_sets.size() - 1;
+}
+
+////////////////////////////////////////////////////////////////
+// Set the active action set
+void openvr_data::set_active_action_set(const String p_action_set) {
+	for (int i = 0; i < action_sets.size(); i++) {
+		if (action_sets[i].name == p_action_set) {
+			// found it!
+			active_action_set = i;
+			return;
+		}
+	}
+
+	// couldn't find it?? Make our default active
+	active_action_set = 0;
+}
+
+////////////////////////////////////////////////////////////////
+// Bind our default actions, if the actions file has been edit
+// and the defaults removed they will simply be undefined
+void openvr_data::bind_default_action_handles() {
+	const char *input_actions[DAH_IN_MAX] = {
+		"trigger",
+		"analog_trigger",
+		"grip",
+		"analog_grip",
+		"analog",
+		"analog_click",
+		"button_ax",
+		"button_by"
+	};
+	const char *output_actions[DAH_OUT_MAX] = {
+		"haptic"
+	};
+
+	for (int i = 0; i < DAH_IN_MAX; i++) {
+		char action_path[1024];
+		sprintf(action_path, "%s/in/%s", action_sets[0].name.utf8().get_data(), input_actions[i]);
+
+		input_action_handles[i] = vr::k_ulInvalidActionHandle;
+
+		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &input_action_handles[i]);
+		if (err == vr::VRInputError_None) {
+			Godot::print(
+					godot::String("Bound action ") + godot::String(action_path) + godot::String(" to ") + String::num_int64(input_action_handles[i]));
+		} else {
+			Godot::print(
+					godot::String("Failed to bind action ") + godot::String(action_path) + godot::String(", error code: ") + String::num_int64(err));
+		}
+	}
+
+	for (int i = 0; i < DAH_OUT_MAX; i++) {
+		char action_path[1024];
+		sprintf(action_path, "%s/out/%s", action_sets[0].name.utf8().get_data(), output_actions[i]);
+
+		output_action_handles[i] = vr::k_ulInvalidActionHandle;
+
+		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &output_action_handles[i]);
+		if (err == vr::VRInputError_None) {
+			Godot::print(
+					godot::String("Bound action ") + godot::String(action_path) + godot::String(" to ") + String::num_int64(output_action_handles[i]));
+		} else {
+			Godot::print(
+					godot::String("Failed to bind action ") + godot::String(action_path) + godot::String(", error code: ") + String::num_int64(err));
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Register a custom action
+// Note that we can't remove actions once added so our index
+// shouldn't change
+int openvr_data::register_custom_action(const String p_action) {
+	// first find if we already have this
+	// TODO: we should contemplate changing this to a dictionary, but I think this array will remain small enough
+	for (int i = 0; i < custom_actions.size(); i++) {
+		if (custom_actions[i].name == p_action) {
+			// found it
+			return i;
+		}
+	}
+
+	// ok this one is new, lets add it
+	custom_action new_action;
+	new_action.name = p_action;
+	new_action.handle = vr::k_ulInvalidActionHandle;
+
+	if (is_initialised()) {
+		vr::EVRInputError err = vr::VRInput()->GetActionHandle(new_action.name.utf8().get_data(), &new_action.handle);
+		if (err == vr::VRInputError_None) {
+			Godot::print(String("Bound action ") + new_action.name + String(" to ") + String::num_int64(new_action.handle));
+		} else {
+			Godot::print(String("Failed to obtain action handle for ") + new_action.name);
+		}
+	}
+
+	custom_actions.push_back(new_action);
+	return (int)custom_actions.size() - 1;
+}
+
+bool openvr_data::get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand) {
+	if (p_action_idx < 0) {
+		// we never registered our handle
+		// printf("Index not setup: %i\n", p_action_idx);
+		return false;
+	} else if (p_action_idx >= custom_actions.size()) {
+		// index out of bounds
+		// printf("Index out of bounds: %i\n", p_action_idx);
+		return false;
+	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
+		// action doesn't exist
+		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
+		return false;
+	}
+
+	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
+	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[left_hand_device].source_handle;
+	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[right_hand_device].source_handle;
+	}
+
+	// let's retrieve it
+	vr::EVRInputError err = vr::VRInput()->GetPoseActionDataForNextFrame(custom_actions[p_action_idx].handle, vr::TrackingUniverseStanding, p_data, sizeof(vr::InputPoseActionData_t), source_handle);
+	if (err != vr::VRInputError_None) {
+		// printf("Couldn't retrieve pose %i\n", err);
+		return false;
+	}
+
+	return true;
+}
+
+bool openvr_data::get_custom_digital_data(int p_action_idx, int p_on_hand) {
+	if (p_action_idx < 0) {
+		// we never registered our handle
+		// printf("Index not setup: %i\n", p_action_idx);
+		return false;
+	} else if (p_action_idx >= custom_actions.size()) {
+		// index out of bounds
+		// printf("Index out of bounds: %i\n", p_action_idx);
+		return false;
+	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
+		// action doesn't exist
+		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
+		return false;
+	}
+
+	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
+	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[left_hand_device].source_handle;
+	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[right_hand_device].source_handle;
+	}
+
+	// let's retrieve it
+	vr::InputDigitalActionData_t digital_data;
+	vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(custom_actions[p_action_idx].handle, &digital_data, sizeof(digital_data), source_handle);
+	if (err != vr::VRInputError_None) {
+		// printf("Couldn't retrieve digital %i\n", err);
+		return false;
+	}
+
+	return digital_data.bActive && digital_data.bState;
+}
+
+godot::Vector2 openvr_data::get_custom_analog_data(int p_action_idx, int p_on_hand) {
+	if (p_action_idx < 0) {
+		// we never registered our handle
+		// printf("Index not setup: %i\n", p_action_idx);
+		return godot::Vector2();
+	} else if (p_action_idx >= custom_actions.size()) {
+		// index out of bounds
+		// printf("Index out of bounds: %i\n", p_action_idx);
+		return godot::Vector2();
+	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
+		// action doesn't exist
+		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
+		return godot::Vector2();
+	}
+
+	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
+	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[left_hand_device].source_handle;
+	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[right_hand_device].source_handle;
+	}
+
+	// let's retrieve it
+	vr::InputAnalogActionData_t analog_data;
+	vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(custom_actions[p_action_idx].handle, &analog_data, sizeof(analog_data), source_handle);
+	if (err != vr::VRInputError_None) {
+		// printf("Couldn't retrieve analog %i\n", err);
+		return godot::Vector2();
+	} else if (!analog_data.bActive) {
+		return godot::Vector2();
+	}
+
+	return godot::Vector2(analog_data.x, analog_data.y);
+}
+
+bool openvr_data::trigger_custom_haptic(int p_action_idx, float p_start_from_now, float p_duration, float p_frequency, float p_amplitude, int p_on_hand) {
+	if (p_action_idx < 0) {
+		// we never registered our handle
+		// printf("Index not setup: %i\n", p_action_idx);
+		return false;
+	} else if (p_action_idx >= custom_actions.size()) {
+		// index out of bounds
+		// printf("Index out of bounds: %i\n", p_action_idx);
+		return false;
+	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
+		// action doesn't exist
+		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
+		return false;
+	}
+
+	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
+	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[left_hand_device].source_handle;
+	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
+		source_handle = tracked_devices[right_hand_device].source_handle;
+	}
+
+	vr::VRInput()->TriggerHapticVibrationAction(custom_actions[p_action_idx].handle, p_start_from_now, p_duration, p_frequency, p_amplitude, source_handle);
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////
+// Called when we detect a new device, set it up
+void openvr_data::attach_device(uint32_t p_device_index) {
+	tracked_device *device = &tracked_devices[p_device_index];
+
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		// really?!
+	} else if (device->tracker_id == 0) {
+		char device_name[256];
+		strcpy(device_name, get_device_name(p_device_index, 255));
+
+		vr::TrackedDeviceClass device_class = get_tracked_device_class(p_device_index);
+		if (device_class == vr::TrackedDeviceClass_TrackingReference) {
+			// ignore base stations and cameras for now
+			Godot::print(
+					godot::String("Found base station ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+		} else if (device_class == vr::TrackedDeviceClass_HMD) {
+			// ignore any HMD
+			Godot::print(
+					godot::String("Found HMD ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+		} else {
+			godot_int hand = 0;
+
+			if (device_class == vr::TrackedDeviceClass_Controller) {
+				Godot::print(
+						godot::String("Found controller ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+
+				// If this is a controller than get our controller role
+				int32_t controllerRole = get_controller_role(p_device_index);
+				if (controllerRole == vr::TrackedControllerRole_RightHand) {
+					hand = 2;
+					device_hands_are_available = true;
+				} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
+					hand = 1;
+					device_hands_are_available = true;
+				} else if (!device_hands_are_available) {
+					// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
+					if (left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+						hand = 1;
+					} else if (right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
+						hand = 2;
+					}
+				}
+			} else {
+				Godot::print(
+						godot::String("Found tracker ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+			}
+
+			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
+			device->tracker_id = godot::arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
+
+			// remember our primary left and right hand devices
+			if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
+				left_hand_device = p_device_index;
+			} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
+				right_hand_device = p_device_index;
+			} else {
+				// other devices don't have source handles...
+				device->source_handle = vr::k_ulInvalidInputValueHandle;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Called when we loose tracked device, cleanup
+void openvr_data::detach_device(uint32_t p_device_index) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		// really?!
+	} else if (tracked_devices[p_device_index].tracker_id != 0) {
+		godot::arvr_api->godot_arvr_remove_controller(tracked_devices[p_device_index].tracker_id);
+		tracked_devices[p_device_index].tracker_id = 0;
+
+		// unset left/right hand devices
+		if (left_hand_device == p_device_index) {
+			left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+		} else if (right_hand_device == p_device_index) {
+			right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Called by our process loop to handle our fixed actions
+void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_msec) {
+	const char input_types[DAH_IN_MAX] = { 'b', 'f', 'b', 'f', 'v', 'b', 'b', 'b' }; // input type (b)oolean, (f)loat, (v)ector2
+	const int godot_index[DAH_IN_MAX] = { 15, 2, 2, 4, 0, 14, 7, 1 }; // button / axis indexes
+
+	if (p_device->source_handle == vr::k_ulInvalidInputValueHandle) {
+		return;
+	}
+
+	// look through our inputs...
+	for (int i = 0; i < DAH_IN_MAX; i++) {
+		if (input_action_handles[i] != vr::k_ulInvalidActionHandle) {
+			switch (input_types[i]) {
+				case 'b': {
+					vr::InputDigitalActionData_t action_data;
+					vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(input_action_handles[i], &action_data, sizeof(action_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						godot::arvr_api->godot_arvr_set_controller_button(p_device->tracker_id, godot_index[i], action_data.bActive && action_data.bState);
+					}
+				} break;
+				case 'f': { // vector1
+					vr::InputAnalogActionData_t analog_data;
+					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input_action_handles[i], &analog_data, sizeof(analog_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						if (analog_data.bActive) {
+							godot::arvr_api->godot_arvr_set_controller_axis(
+									p_device->tracker_id, godot_index[i], analog_data.x, true);
+						}
+					}
+				} break;
+				case 'v': { // vector2
+					vr::InputAnalogActionData_t analog_data;
+					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input_action_handles[i], &analog_data, sizeof(analog_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						if (analog_data.bActive) {
+							godot::arvr_api->godot_arvr_set_controller_axis(
+									p_device->tracker_id, godot_index[i], analog_data.x, true);
+							godot::arvr_api->godot_arvr_set_controller_axis(
+									p_device->tracker_id, godot_index[i] + 1, analog_data.y, true);
+						}
+					}
+				} break;
+				default: {
+					// ????
+				} break;
+			}
+		}
+	}
+
+	// and check our haptic output
+	if (output_action_handles[DAH_OUT_HAPTIC] != vr::k_ulInvalidActionHandle) {
+		float rumble = godot::arvr_api->godot_arvr_get_controller_rumble(p_device->tracker_id);
+		if ((rumble > 0.0) && ((p_msec - p_device->last_rumble_update) > 100)) {
+			// We should only call this once ever 100ms...
+			vr::VRInput()->TriggerHapticVibrationAction(output_action_handles[DAH_OUT_HAPTIC], 0, 0.1f, 4.f, rumble, p_device->source_handle);
+			p_device->last_rumble_update = p_msec;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Get the path where we find our actions.json file
+const char *openvr_data::get_action_json_path() const {
+	return actions_json_path;
+}
+
+////////////////////////////////////////////////////////////////
+// Set the path where we find our actions.json file
+void openvr_data::set_action_json_path(const char *p_path) {
+	if (is_initialised()) {
+		Godot::print("OpenVR has already been initialised");
+	} else {
+		strcpy(actions_json_path, p_path);
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Get the name of our default action set
+String openvr_data::get_default_action_set() const {
+	return action_sets[0].name;
+}
+
+////////////////////////////////////////////////////////////////
+// Set the name of our default action set
+void openvr_data::set_default_action_set(const String p_name) {
+	if (is_initialised()) {
+		Godot::print("OpenVR has already been initialised");
+	} else {
+		action_sets[0].name = p_name;
+	}
+}
+
+const godot_transform *openvr_data::get_hmd_transform() const {
+	return &hmd_transform;
+}
+
+////////////////////////////////////////////////////////////////
+// Interact with render models
+
+////////////////////////////////////////////////////////////////
+// Return the number of render models we have access too
 uint32_t openvr_data::get_render_model_count() {
 	if (hmd == NULL) {
 		return 0;
@@ -272,6 +857,8 @@ uint32_t openvr_data::get_render_model_count() {
 	return render_models->GetRenderModelCount();
 }
 
+////////////////////////////////////////////////////////////////
+// get the name of a render model at a given index
 godot::String openvr_data::get_render_model_name(uint32_t p_model_index) {
 	godot::String s;
 
@@ -284,11 +871,13 @@ godot::String openvr_data::get_render_model_name(uint32_t p_model_index) {
 	return s;
 }
 
+////////////////////////////////////////////////////////////////
+// load the given render model into the provided ArrayMesh
 void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mesh) {
 	// if we already have an entry, remove it
 	remove_mesh(p_mesh);
 
-	// add an entry, we'll attempt a load 
+	// add an entry, we'll attempt a load
 	model_mesh new_entry;
 
 	CharString name_cs = p_model_name.ascii();
@@ -298,7 +887,12 @@ void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mes
 	load_models.push_back(new_entry);
 }
 
-bool openvr_data::_load_render_model(model_mesh * p_model) {
+////////////////////////////////////////////////////////////////
+// Actually load our model this is called from our process so
+// we're in our render thread.
+// OpenVR loads this in a separate thread so we repeatedly call this
+// until the model is loaded and only then process it
+bool openvr_data::_load_render_model(model_mesh *p_model) {
 	vr::RenderModel_t *ovr_render_model = NULL;
 
 	// Load our render model
@@ -309,7 +903,7 @@ bool openvr_data::_load_render_model(model_mesh * p_model) {
 	}
 
 	if (err != vr::VRRenderModelError_None) {
-		Godot::print(String("OpenVR: Couldn''t find model for ") + String(p_model->model_name) +" (" + String::num_int64(err) + ")");
+		Godot::print(String("OpenVR: Couldn''t find model for ") + String(p_model->model_name) + " (" + String::num_int64(err) + ")");
 
 		// don't try again, remove it from our list
 		return true;
@@ -335,23 +929,22 @@ bool openvr_data::_load_render_model(model_mesh * p_model) {
 		PoolVector3Array::Write nw = normals.write();
 		PoolVector2Array::Write tw = texcoords.write();
 
-		for (int i = 0; i < ovr_render_model->unVertexCount; i++) {
+		for (uint32_t i = 0; i < ovr_render_model->unVertexCount; i++) {
 			vw[i] = Vector3(ovr_render_model->rVertexData[i].vPosition.v[0], ovr_render_model->rVertexData[i].vPosition.v[1], ovr_render_model->rVertexData[i].vPosition.v[2]);
 			nw[i] = Vector3(ovr_render_model->rVertexData[i].vNormal.v[0], ovr_render_model->rVertexData[i].vNormal.v[1], ovr_render_model->rVertexData[i].vNormal.v[2]);
 			tw[i] = Vector2(ovr_render_model->rVertexData[i].rfTextureCoord[0], ovr_render_model->rVertexData[i].rfTextureCoord[1]);
 		}
 	}
 
-
 	// copy our indices, for some reason these are other way around :)
 	{
 		// lock for writing
 		PoolIntArray::Write iw = indices.write();
 
-		for (int i = 0; i < ovr_render_model->unTriangleCount * 3; i += 3) {
-			iw[i + 0] = ovr_render_model->rIndexData[i+2];
-			iw[i + 1] = ovr_render_model->rIndexData[i+1];
-			iw[i + 2] = ovr_render_model->rIndexData[i+0];
+		for (uint32_t i = 0; i < ovr_render_model->unTriangleCount * 3; i += 3) {
+			iw[i + 0] = ovr_render_model->rIndexData[i + 2];
+			iw[i + 1] = ovr_render_model->rIndexData[i + 1];
+			iw[i + 2] = ovr_render_model->rIndexData[i + 0];
 		}
 	}
 
@@ -384,8 +977,10 @@ bool openvr_data::_load_render_model(model_mesh * p_model) {
 	return true;
 }
 
+////////////////////////////////////////////////////////////////
+// Load a texture and load it into a spatial material
 void openvr_data::load_texture(TextureType p_type, vr::TextureID_t p_texture_id, Ref<SpatialMaterial> p_material) {
-	// add an entry, we'll attempt a load 
+	// add an entry, we'll attempt a load
 	texture_material new_entry;
 
 	new_entry.type = p_type;
@@ -395,8 +990,12 @@ void openvr_data::load_texture(TextureType p_type, vr::TextureID_t p_texture_id,
 	load_textures.push_back(new_entry);
 }
 
-
-bool openvr_data::_load_texture(texture_material * p_texture) {
+////////////////////////////////////////////////////////////////
+// Performs the actual load of a texture, called from our
+// render thread.
+// OpenVR loads this in a separate thread so we repeatedly call this
+// until the texture is loaded and only then process it
+bool openvr_data::_load_texture(texture_material *p_texture) {
 	vr::RenderModel_TextureMap_t *ovr_texture = NULL;
 
 	// load our texture
@@ -407,7 +1006,7 @@ bool openvr_data::_load_texture(texture_material * p_texture) {
 	}
 
 	if (err != vr::VRRenderModelError_None) {
-		Godot::print(String("OpenVR: Couldn''t find texture for ") + String::num_int64(p_texture->texture_id) +" (" + String::num_int64(err) + ")");
+		Godot::print(String("OpenVR: Couldn''t find texture for ") + String::num_int64(p_texture->texture_id) + " (" + String::num_int64(err) + ")");
 
 		// reset our references to ensure our material gets freed at the right time
 		p_texture->material = Ref<SpatialMaterial>();
@@ -446,16 +1045,20 @@ bool openvr_data::_load_texture(texture_material * p_texture) {
 	return true;
 }
 
-
+////////////////////////////////////////////////////////////////
+// Remove our mesh from our load queue
 void openvr_data::remove_mesh(ArrayMesh *p_mesh) {
 	// check in reverse so we can safely remove things
-	for (int i = load_models.size() -1; i >= 0; i--) {
+	for (int i = (int)load_models.size() - 1; i >= 0; i--) {
 		if (load_models[i].mesh == p_mesh) {
-			load_models.erase(load_models.begin()+i);
+			load_models.erase(load_models.begin() + i);
 		}
 	}
 }
 
+////////////////////////////////////////////////////////////////
+// Convert a matrix we get from OpenVR into the format Godot
+// requires
 void openvr_data::transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_matrix, godot_real p_world_scale) {
 	godot_basis basis;
 	godot_vector3 origin;
@@ -473,6 +1076,8 @@ void openvr_data::transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34
 	godot::api->godot_transform_new(p_dest, &basis, &origin);
 }
 
+////////////////////////////////////////////////////////////////
+// Convert a transform from Godot into a matrix OpenVR requires
 void openvr_data::matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_transform *p_transform, godot_real p_world_scale) {
 	godot::Transform *transform = (godot::Transform *)p_transform;
 

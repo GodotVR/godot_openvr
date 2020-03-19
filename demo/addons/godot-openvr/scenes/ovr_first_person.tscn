@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://addons/vr-common/misc/VR_Common_Shader_Cache.tscn" type="PackedScene" id=1]
 [ext_resource path="res://addons/godot-openvr/scenes/ovr_controller.tscn" type="PackedScene" id=2]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_main.gd" type="Script" id=3]
+
 
 [sub_resource type="PlaneMesh" id=1]
 size = Vector2( 0.001, 0.001 )
@@ -28,6 +30,7 @@ func _physics_process(delta):
 		pass"
 
 [node name="OVRFirstPerson" type="ARVROrigin"]
+script = ExtResource( 3 )
 
 [node name="ARVRCamera" type="ARVRCamera" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0 )
@@ -52,4 +55,3 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0 )
 [node name="Right_Hand" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0 )
 controller_id = 2
-

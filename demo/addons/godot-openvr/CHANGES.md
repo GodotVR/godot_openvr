@@ -4,6 +4,11 @@ Changes to the Godot OpenVR asset
 Note, version numbers listed here are the version number assigned to the asset. Each time a new version is uploaded to the asset store we will increase the version number.
 More frequent updates may be available on the source repository.
 
+1.1.0 - In progress
+-------------------
+- Build for Godot 3.2
+- Added support for actions	
+
 1.0.5 - 1 March 2019
 --------------------
 - Now using OpenVR 1.9.16

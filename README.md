@@ -5,8 +5,9 @@ This is a GDNative based plugin that adds OpenVR support to Godot.
 The leading version of this repository now lives at:
 https://github.com/GodotVR/godot_openvr
 
-**note** The master on this repository is now kept in sync with the Godot master.
-To build versions for official releases of Godot please check the branches that are named in sync with the Godot release.
+>> **Important** this version of the OpenVR plugin now uses the OpenVR actions system.
+>> While we have taken care to try and keep a measure of backwards compatibility there are structural differences in how OpenVR handles actions and once enabled the old method of button and axis handling is deactivated.
+>> Please read the [OpenVR Actions documentation](https://github.com/GodotVR/godot-openvr-asset/wiki/OpenVR-actions) for more information!
 
 Submodules
 ----------
