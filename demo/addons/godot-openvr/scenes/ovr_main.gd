@@ -54,5 +54,5 @@ func _ready():
 		OS.vsync_enabled = false
 		
 		# up our physics to 90fps to get in sync with our rendering
-		Engine.target_fps = 90
+		Engine.iterations_per_second = 90
 
