@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=2]
+[gd_scene load_steps=23 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://assets/wahooney.itch.io/green_grid.tres" type="Material" id=2]
@@ -17,14 +17,18 @@
 [ext_resource path="res://misc/SmallCube.tscn" type="PackedScene" id=15]
 [ext_resource path="res://player/HandInteraction.tscn" type="PackedScene" id=16]
 [ext_resource path="res://addons/vr-common/functions/Function_Pickup.tscn" type="PackedScene" id=17]
+[ext_resource path="res://addons/godot-openvr/OpenVRAction.gdns" type="Script" id=18]
+[ext_resource path="res://player/Guardian.tscn" type="PackedScene" id=19]
 
-[sub_resource type="PlaneMesh" id=1]
+[sub_resource type="ArrayMesh" id=1]
+
+[sub_resource type="PlaneMesh" id=2]
 material = ExtResource( 2 )
 size = Vector2( 400, 400 )
 subdivide_width = 10
 subdivide_depth = 10
 
-[sub_resource type="BoxShape" id=2]
+[sub_resource type="BoxShape" id=3]
 extents = Vector3( 20, 0.1, 20 )
 
 [node name="Main" type="Spatial"]
@@ -72,6 +76,7 @@ canFly = false
 transform = Transform( 0.707107, 2.98023e-08, -0.707107, 0.5, 0.707107, 0.5, 0.5, -0.707107, 0.5, 0.15, 0.1, 0 )
 screen_size = Vector2( 0.2, 0.2 )
 viewport_size = Vector2( 200, 200 )
+transparent = true
 scene = ExtResource( 11 )
 collision_layer = 0
 
@@ -95,17 +100,25 @@ on_hand = 2
 [node name="Hand_Interaction" parent="Player/Right_Hand_Pose" instance=ExtResource( 16 )]
 on_hand = 2
 
+[node name="Guardian" parent="Player" instance=ExtResource( 19 )]
+visible = false
+mesh = SubResource( 1 )
+
+[node name="Toggle" type="Spatial" parent="Player/Guardian"]
+script = ExtResource( 18 )
+pressed_action = "/actions/godot/in/toggle_guardian"
+
 [node name="Floor" type="StaticBody" parent="."]
 collision_layer = 2
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance" parent="Floor"]
-mesh = SubResource( 1 )
+mesh = SubResource( 2 )
 material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="Floor"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0 )
-shape = SubResource( 2 )
+shape = SubResource( 3 )
 
 [node name="Misc" type="Spatial" parent="."]
 
@@ -123,3 +136,4 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2, -4 )
 [node name="Box03" parent="Misc" instance=ExtResource( 8 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 3, -4 )
 [connection signal="action_pressed" from="Player/Right_Hand" to="." method="_on_Right_Hand_action_pressed"]
+[connection signal="pressed" from="Player/Guardian/Toggle" to="." method="_on_Toggle_Guardian_pressed"]

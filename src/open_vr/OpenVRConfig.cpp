@@ -24,6 +24,9 @@ void OpenVRConfig::_register_methods() {
 
 	register_method("register_action_set", &OpenVRConfig::register_action_set);
 	register_method("set_active_action_set", &OpenVRConfig::set_active_action_set);
+
+	register_method("play_area_available", &OpenVRConfig::play_area_available);
+	register_method("get_play_area", &OpenVRConfig::get_play_area);
 }
 
 void OpenVRConfig::_init() {
@@ -32,6 +35,7 @@ void OpenVRConfig::_init() {
 
 OpenVRConfig::OpenVRConfig() {
 	ovr = openvr_data::retain_singleton();
+	server = ARVRServer::get_singleton();
 }
 
 OpenVRConfig::~OpenVRConfig() {
@@ -79,4 +83,27 @@ void OpenVRConfig::register_action_set(const String p_action_set) {
 
 void OpenVRConfig::set_active_action_set(const String p_action_set) {
 	ovr->set_active_action_set(p_action_set);
+}
+
+bool OpenVRConfig::play_area_available() const {
+	return ovr->play_area_available();
+}
+
+PoolVector3Array OpenVRConfig::get_play_area() const {
+	const Vector3 *play_area = ovr->get_play_area();
+	Transform reference = server->get_reference_frame();
+	float ws = server->get_world_scale();
+
+	PoolVector3Array arr;
+	arr.resize(4);
+
+	{
+		PoolVector3Array::Write w = arr.write();
+
+		for (int i = 0; i < 4; i++) {
+			w[i] = reference.xform_inv(play_area[i]) * ws;
+		}
+	}
+
+	return arr;
 }

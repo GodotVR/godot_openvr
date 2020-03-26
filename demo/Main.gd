@@ -17,3 +17,8 @@ func _ready():
 func _on_Right_Hand_action_pressed(action):
 	print("Action pressed " + action)
 	$Player/Right_Hand.trigger_haptic("/actions/godot/out/haptic", 1.0, 4.0, 1.0)
+
+
+
+func _on_Toggle_Guardian_pressed():
+	$Player/Guardian.visible = !$Player/Guardian.visible
