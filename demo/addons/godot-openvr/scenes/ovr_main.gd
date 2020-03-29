@@ -16,17 +16,20 @@ export (String) var default_action_set = "/actions/godot"
 export (NodePath) var viewport = null
 
 var arvr_interface : ARVRInterface = null
-var OpenVRConfig = null
+var openvr_config = null
+
+func get_openvr_config():
+	return openvr_config
 
 func _ready():
 	# Load our config before we initialise
-	OpenVRConfig = preload("res://addons/godot-openvr/OpenVRConfig.gdns");
-	if OpenVRConfig:
+	openvr_config = preload("res://addons/godot-openvr/OpenVRConfig.gdns");
+	if openvr_config:
 		print("Setup configuration")
-		OpenVRConfig = OpenVRConfig.new()
+		openvr_config = openvr_config.new()
 		
-		OpenVRConfig.action_json_path = action_json_path
-		OpenVRConfig.default_action_set = default_action_set
+		openvr_config.action_json_path = action_json_path
+		openvr_config.default_action_set = default_action_set
 
 	# Find the interface and initialise
 	arvr_interface = ARVRServer.find_interface("OpenVR")

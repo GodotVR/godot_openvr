@@ -5,8 +5,11 @@
 #define OPENVR_CONFIG_H
 
 #include "openvr_data.h"
+#include <ARVRServer.hpp>
 #include <Reference.hpp>
+#include <PoolArrays.hpp>
 #include <String.hpp>
+#include <Transform.hpp>
 
 namespace godot {
 
@@ -15,6 +18,7 @@ class OpenVRConfig : public Reference {
 
 private:
 	openvr_data *ovr;
+	ARVRServer *server;
 
 public:
 	static void _register_methods();
@@ -38,6 +42,9 @@ public:
 
 	void register_action_set(const String p_action_set);
 	void set_active_action_set(const String p_action_set);
+
+	bool play_area_available() const;
+	PoolVector3Array get_play_area() const;
 };
 
 } // namespace godot

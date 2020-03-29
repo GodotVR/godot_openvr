@@ -12,10 +12,12 @@
 #include <ImageTexture.hpp>
 #include <OS.hpp>
 #include <ProjectSettings.hpp>
+#include <Rect2.hpp>
 #include <Ref.hpp>
 #include <SpatialMaterial.hpp>
 #include <String.hpp>
 #include <Vector2.hpp>
+#include <Vector3.hpp>
 
 #include <vector>
 
@@ -51,6 +53,11 @@ private:
 
 	OpenVRApplicationType application_type;
 	OpenVRTrackingUniverse tracking_universe;
+
+	vr::IVRChaperone *chaperone;
+	bool play_area_is_dirty;
+	godot::Vector3 play_area[4];
+	void update_play_area();
 
 	// interact with openvr
 	char *get_device_name(vr::TrackedDeviceIndex_t p_tracked_device_index, uint32_t pMaxLen);
@@ -170,6 +177,8 @@ public:
 	void set_application_type(OpenVRApplicationType p_new_value);
 	OpenVRTrackingUniverse get_tracking_universe();
 	void set_tracking_universe(OpenVRTrackingUniverse p_new_value);
+	bool play_area_available() const;
+	const godot::Vector3 *get_play_area() const;
 
 	// interact with openvr
 	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);

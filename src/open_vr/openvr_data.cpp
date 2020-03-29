@@ -12,8 +12,18 @@ openvr_data::openvr_data() {
 	use_count = 1;
 	hmd = NULL;
 	render_models = NULL;
+
 	application_type = OpenVRApplicationType::SCENE;
 	tracking_universe = OpenVRTrackingUniverse::STANDING;
+
+	chaperone = NULL;
+	play_area_is_dirty = true;
+	for (int i = 0; i < 4; i++) {
+		play_area[i].x = 0.0f;
+		play_area[i].y = 0.0f;
+		play_area[i].z = 0.0f;
+	}
+
 	godot::api->godot_transform_new_identity(&hmd_transform);
 
 	strcpy(actions_json_path, "res://addons/godot-openvr/actions/actions.json");
@@ -52,6 +62,7 @@ void openvr_data::cleanup() {
 
 		hmd = NULL;
 		render_models = NULL;
+		chaperone = NULL;
 
 		vr::VR_Shutdown();
 	}
@@ -151,6 +162,17 @@ bool openvr_data::initialise() {
 	}
 
 	if (success) {
+		chaperone = vr::VRChaperone();
+		if (chaperone == NULL) {
+			success = false;
+
+			Godot::print("Chaperone initialization failed. See log file for details.");
+		} else {
+			update_play_area();
+		}
+	}
+
+	if (success) {
 		godot::String parsed_path = godot::ProjectSettings::get_singleton()->globalize_path(actions_json_path);
 		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(parsed_path.utf8().get_data());
 		if (err == vr::VRInputError_None) {
@@ -210,6 +232,21 @@ bool openvr_data::initialise() {
 	return success;
 }
 
+void openvr_data::update_play_area() {
+	if (play_area_is_dirty && chaperone != NULL) {
+		vr::HmdQuad_t new_rect;
+		if (chaperone->GetPlayAreaRect(&new_rect)) {
+			for (int i = 0; i < 4; i++) {
+				play_area[i].x = new_rect.vCorners[i].v[0];
+				play_area[i].y = new_rect.vCorners[i].v[1];
+				play_area[i].z = new_rect.vCorners[i].v[2];
+			}
+
+			play_area_is_dirty = false;
+		}
+	}
+}
+
 void openvr_data::process() {
 	// we need timing info for one or two things..
 	uint64_t msec = godot::OS::get_singleton()->get_ticks_msec();
@@ -240,11 +277,17 @@ void openvr_data::process() {
 			case vr::VREvent_TrackedDeviceDeactivated: {
 				detach_device(event.trackedDeviceIndex);
 			}; break;
+			case vr::VREvent_ChaperoneDataHasChanged: {
+				play_area_is_dirty = true;
+			}; break;
 			default: {
 				// ignored for now...
 			}; break;
 		}
 	}
+
+	// update our play area data ?
+	update_play_area();
 
 	// Update our active action set
 	vr::VRActiveActionSet_t actionSet = { 0 };
@@ -329,6 +372,14 @@ openvr_data::OpenVRTrackingUniverse openvr_data::get_tracking_universe() {
 
 void openvr_data::set_tracking_universe(openvr_data::OpenVRTrackingUniverse p_new_value) {
 	tracking_universe = p_new_value;
+}
+
+bool openvr_data::play_area_available() const {
+	return !play_area_is_dirty;
+}
+
+const godot::Vector3 *openvr_data::get_play_area() const {
+	return play_area;
 }
 
 ////////////////////////////////////////////////////////////////

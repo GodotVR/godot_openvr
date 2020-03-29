@@ -86,6 +86,11 @@
 			"name": "/actions/godot/in/custom_analog",
 			"requirement" : "suggested",
 			"type": "vector2"
+		},
+		{
+			"name": "/actions/godot/in/toggle_guardian",
+			"requirement" : "suggested",
+			"type": "boolean"
 		}
 	],
 	"action_set" : [
@@ -110,7 +115,8 @@
 			"/actions/godot/out/haptic" : "Haptic Feedback",
 			"/actions/godot/in/custom_pose" : "Custom Pose",
 			"/actions/godot/in/custom_boolean" : "Custom Boolean",
-			"/actions/godot/in/custom_analog" : "Custom Analog"
+			"/actions/godot/in/custom_analog" : "Custom Analog",
+			"/actions/godot/in/toggle_guardian" : "Toggle Guardian display on/off"
 		}
 	]
 }
