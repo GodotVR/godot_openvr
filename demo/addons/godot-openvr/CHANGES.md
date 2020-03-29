@@ -7,12 +7,14 @@ More frequent updates may be available on the source repository.
 1.1.0 - In progress
 -------------------
 - Build for Godot 3.2
-- Added support for actions	
+- Added support for actions
 
 1.0.5 - 1 March 2019
 --------------------
 - Now using OpenVR 1.9.16
 - Added support for overlays
+- Proper asynchronious loading of controller meshes and textures
+- Rewrite to using godot_cpp classes
 
 1.0.4 - 27 March 2019
 ---------------------
