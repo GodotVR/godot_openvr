@@ -1,0 +1,192 @@
+#include "OpenVRSkeleton.h"
+
+using namespace godot;
+
+void OpenVRSkeleton::_register_methods() {
+	register_method("_process", &OpenVRSkeleton::_process);
+
+	register_method("get_action", &OpenVRSkeleton::get_action);
+	register_method("set_action", &OpenVRSkeleton::set_action);
+	register_property<OpenVRSkeleton, String>("action", &OpenVRSkeleton::set_action, &OpenVRSkeleton::get_action, String());
+
+	register_method("is_active", &OpenVRSkeleton::get_is_active);
+}
+
+void OpenVRSkeleton::cleanup_bones() {
+	bone_count = 0;
+	if (bones != NULL) {
+		::free(bones);
+		bones = NULL;
+	}
+}
+
+void OpenVRSkeleton::_init() {
+	// nothing to do here
+}
+
+void OpenVRSkeleton::_process(float delta) {
+	vr::EVRInputError err;
+	is_active = false;
+
+	vr::VRActionHandle_t handle = ovr->get_custom_handle(action_idx);
+	if (handle == vr::k_ulInvalidActionHandle) {
+		return;
+	}
+
+	// get our current status
+	vr::InputSkeletalActionData_t data;
+	err = vr::VRInput()->GetSkeletalActionData(handle, &data, sizeof(data));
+	if (err == vr::VRInputError_NoData) {
+		// no data yet, just exit
+		return;
+	} else if (err != vr::VRInputError_None) {
+		Godot::print(String("Couldn't retrieve skeletal action data, err: ") + String::num_int64(err));
+		return;
+	}
+	if (!data.bActive) {
+		// not active, don't continue
+		return;
+	}
+
+	if (bone_count == -1) {
+		// we failed on a previous pass, don't try again...
+		return;
+	} else if (bone_count == 0) {
+		// first time we get our handle? lets init our bone data
+		uint32_t new_bone_count;
+		vr::BoneIndex_t parent_indices[256];
+		vr::VRBoneTransform_t reference_transforms[256];
+
+		// get our bone count
+		err = vr::VRInput()->GetBoneCount(handle, &new_bone_count);
+		if (err != vr::VRInputError_None) {
+			bone_count = -1; // prevent doing this again...
+			Godot::print(String("Couldn't retrieve bone count, err: ") + String::num_int64(err));
+			return;
+		} else if (new_bone_count > 255) {
+			// I'm a lazy son of a b****, can't be bothered to allocate buffers, we won't have more then 255 bones right?
+			bone_count = -1; // prevent doing this again...
+			Godot::print(String("Too many bones: ") + String::num_int64(new_bone_count));
+			return;
+		}
+
+		// get our parent index data
+		err = vr::VRInput()->GetBoneHierarchy(handle, parent_indices, 256);
+		if (err != vr::VRInputError_None) {
+			bone_count = -1; // prevent doing this again...
+			Godot::print(String("Couldn't retrieve parent indices, err: ") + String::num_int64(err));
+			return;
+		}
+
+		// get our reference transforms
+		err = vr::VRInput()->GetSkeletalReferenceTransforms(handle, transform_space, reference_pose, reference_transforms, 256);
+		if (err != vr::VRInputError_None) {
+			bone_count = -1; // prevent doing this again...
+			Godot::print(String("Couldn't retrieve reference poses, err: ") + String::num_int64(err));
+			return;
+		}
+
+		// lets build our bone structure
+		bones = (bone *)malloc(sizeof(bone) * new_bone_count);
+		if (bones == NULL) {
+			bone_count = -1; // prevent doing this again...
+			Godot::print(String("Couldn't allocate memory"));
+			return;
+		}
+		bone_count = new_bone_count;
+
+		// remove our current bones (if any)
+		clear_bones();
+
+		// add our bones
+		for (vr::BoneIndex_t i = 0; i < bone_count; i++) {
+			bones[i].parent = parent_indices[i];
+
+			// get the bone name
+			err = vr::VRInput()->GetBoneName(handle, i, bones[i].name, 256);
+			if (err != vr::VRInputError_None) {
+				strcpy(bones[i].name, "Error");
+				Godot::print(String("Couldn't retrieve bone name, err: ") + String::num_int64(err));
+			}
+
+			// add our bone in Godot, note that for some reason our root node is named Root which it doesn't really like...
+			add_bone(String(bones[i].name).to_lower());
+			if (bones[i].parent >= 0) {
+				// our parent should always be before us...
+				set_bone_parent(i, bones[i].parent);
+			}
+
+			// get our reference transform
+			ovr->transform_from_bone(bones[i].rest_transform, &reference_transforms[i]);
+
+			// now we need the difference...
+			set_bone_rest(i, bones[i].rest_transform);
+			set_bone_pose(i, Transform());
+		}
+	}
+
+	// now populate our bone data
+	vr::VRBoneTransform_t bone_transforms[256];
+	err = vr::VRInput()->GetSkeletalBoneData(handle, transform_space, motion_range, bone_transforms, bone_count);
+	if (err != vr::VRInputError_None) {
+		Godot::print(String("Couldn't retrieve skeletal bone transform data, err: ") + String::num_int64(err));
+		return;
+	}
+
+	for (vr::BoneIndex_t i = 0; i < bone_count; i++) {
+		// convert to godot transforms, might need to inverse with parent or rest.. dunne know yet
+		ovr->transform_from_bone(bones[i].pose_transform, &bone_transforms[i]);
+
+		Transform pose_transform = bones[i].pose_transform;
+		// if (bones[i].parent >= 0) {
+		//	pose_transform = bones[bones[i].parent].pose_transform.inverse() * pose_transform;
+		// }
+		pose_transform = bones[i].rest_transform.inverse() * pose_transform;
+		set_bone_pose(i, pose_transform);
+
+		/*
+		printf("%li %0.2f, %0.2f, %0.2f\n", i, pose_transform.basis.elements[0].x, pose_transform.basis.elements[1].x, pose_transform.basis.elements[2].x);
+		printf("%li %0.2f, %0.2f, %0.2f\n", i, pose_transform.basis.elements[0].y, pose_transform.basis.elements[1].y, pose_transform.basis.elements[2].y);
+		printf("%li %0.2f, %0.2f, %0.2f\n", i, pose_transform.basis.elements[0].z, pose_transform.basis.elements[1].z, pose_transform.basis.elements[2].z);
+		printf("%li %0.2f, %0.2f, %0.2f\n", i, pose_transform.origin.x, pose_transform.origin.y, pose_transform.origin.z);
+*/
+	}
+
+	// I guess we're active...
+	is_active = true;
+}
+
+OpenVRSkeleton::OpenVRSkeleton() {
+	ovr = openvr_data::retain_singleton();
+	action_idx = -1;
+	is_active = false;
+	bone_count = 0;
+	bones = NULL;
+	//	transform_space = vr::VRSkeletalTransformSpace_Model;
+	transform_space = vr::VRSkeletalTransformSpace_Parent;
+	motion_range = vr::VRSkeletalMotionRange_WithController;
+	reference_pose = vr::VRSkeletalReferencePose_BindPose;
+}
+
+OpenVRSkeleton::~OpenVRSkeleton() {
+	cleanup_bones();
+
+	if (ovr != NULL) {
+		ovr->release();
+		ovr = NULL;
+	}
+}
+
+String OpenVRSkeleton::get_action() const {
+	return action;
+}
+
+void OpenVRSkeleton::set_action(String p_action) {
+	action = p_action;
+	action_idx = ovr->register_custom_action(p_action);
+	cleanup_bones();
+}
+
+bool OpenVRSkeleton::get_is_active() const {
+	return is_active;
+}

@@ -47,16 +47,20 @@
 			"type" : "boolean"
 		},
 		{
-			"name" : "/actions/godot/in/raw_pose",
-			"requirement" : "mandatory",
-			"type" : "pose"
-		},
-		{
 			"name" : "/actions/godot/out/haptic",
 			"requirement" : "optional",
 			"type" : "vibration"
-		}
-	],
+		},
+		{
+			"name": "/actions/godot/in/left_hand",
+			"type": "skeleton",
+			"skeleton": "/skeleton/hand/left"
+		},
+		{
+			"name": "/actions/godot/in/right_hand",
+			"type": "skeleton",
+			"skeleton": "/skeleton/hand/right"
+		}	],
 	"default_bindings" : [
 		{
 			"binding_url" : "bindings_index_controller.json",
@@ -93,9 +97,10 @@
 			"/actions/godot/in/button_ax" : "A/X Button",
 			"/actions/godot/in/button_by" : "B/Y Button",
 			"/actions/godot/in/grip" : "Grip",
-			"/actions/godot/in/raw_pose" : "Raw Pose",
 			"/actions/godot/in/trigger" : "Trigger",
 			"/actions/godot/out/haptic" : "Haptic Feedback",
+			"/actions/godot/in/left_hand" : "Left hand",
+			"/actions/godot/in/right_hand" : "Right hand",
 			"language_tag" : "en_US"
 		}
 	]

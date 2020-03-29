@@ -1,6 +1,7 @@
 {
    "action_manifest_version" : 0,
    "alias_info" : {},
+   "app_key" : "system.generated.godot.windows.tools.64.exe",
    "bindings" : {
       "/actions/godot" : {
          "haptics" : [
@@ -29,6 +30,16 @@
             {
                "output" : "/actions/godot/in/custom_pose",
                "path" : "/user/hand/right/pose/handgrip"
+            }
+         ],
+         "skeleton" : [
+            {
+               "output" : "/actions/godot/in/left_hand",
+               "path" : "/user/hand/left/input/skeleton/left"
+            },
+            {
+               "output" : "/actions/godot/in/right_hand",
+               "path" : "/user/hand/right/input/skeleton/right"
             }
          ],
          "sources" : [

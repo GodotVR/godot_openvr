@@ -35,4 +35,5 @@ void GDN_EXPORT godot_openvr_nativescript_init(void *p_handle) {
 	godot::register_class<godot::OpenVRAction>();
 	godot::register_class<godot::OpenVRHaptics>();
 	godot::register_class<godot::OpenVRController>();
+	godot::register_class<godot::OpenVRSkeleton>();
 }

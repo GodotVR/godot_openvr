@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=2]
+[gd_scene load_steps=25 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://assets/wahooney.itch.io/green_grid.tres" type="Material" id=2]
@@ -19,6 +19,8 @@
 [ext_resource path="res://addons/vr-common/functions/Function_Pickup.tscn" type="PackedScene" id=17]
 [ext_resource path="res://addons/godot-openvr/OpenVRAction.gdns" type="Script" id=18]
 [ext_resource path="res://player/Guardian.tscn" type="PackedScene" id=19]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_left_hand.tscn" type="PackedScene" id=20]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_right_hand.tscn" type="PackedScene" id=21]
 
 [sub_resource type="ArrayMesh" id=1]
 
@@ -107,6 +109,12 @@ mesh = SubResource( 1 )
 [node name="Toggle" type="Spatial" parent="Player/Guardian"]
 script = ExtResource( 18 )
 pressed_action = "/actions/godot/in/toggle_guardian"
+
+[node name="ovr_left_hand" parent="Player" instance=ExtResource( 20 )]
+transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, -0.5, 1.25, 0 )
+
+[node name="ovr_right_hand" parent="Player" instance=ExtResource( 21 )]
+transform = Transform( -1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0.5, 1.25, 0 )
 
 [node name="Floor" type="StaticBody" parent="."]
 collision_layer = 2
