@@ -24,6 +24,7 @@ private:
 	int on_hand;
 
 	bool is_active;
+	bool keep_bones;
 
 	struct bone {
 		vr::BoneIndex_t parent;
@@ -51,6 +52,12 @@ public:
 
 	String get_action() const;
 	void set_action(String p_action);
+
+	bool get_keep_bones() const;
+	void set_keep_bones(bool p_keep_bones);
+
+	int get_motion_range() const;
+	void set_motion_range(int p_motion_range);
 
 	bool get_is_active() const;
 };
