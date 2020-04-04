@@ -13,16 +13,6 @@
 					"path" : "/user/hand/right/output/haptic"
 				}
 			],
-			"poses" : [
-				{
-					"output" : "/actions/godot/in/raw_pose",
-					"path" : "/user/hand/left/pose/raw"
-				},
-				{
-					"output" : "/actions/godot/in/raw_pose",
-					"path" : "/user/hand/right/pose/raw"
-				}
-			],
 			"sources" : [
 				{
 					"inputs" : {

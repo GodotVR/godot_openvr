@@ -48,4 +48,10 @@ shadow_atlas_size = 4096
 [node name="Player" parent="Viewport/Main" index="1"]
 viewport = NodePath("../..")
 
+[node name="ovr_left_hand" parent="Viewport/Main/Player" index="6"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0 )
+
+[node name="ovr_right_hand" parent="Viewport/Main/Player" index="7"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0 )
+
 [editable path="Viewport/Main"]

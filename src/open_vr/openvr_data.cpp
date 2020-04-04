@@ -587,6 +587,20 @@ int openvr_data::register_custom_action(const String p_action) {
 	return (int)custom_actions.size() - 1;
 }
 
+vr::VRActionHandle_t openvr_data::get_custom_handle(int p_action_idx) {
+	if (p_action_idx < 0) {
+		// we never registered our handle
+		// printf("Index not setup: %i\n", p_action_idx);
+		return vr::k_ulInvalidActionHandle;
+	} else if (p_action_idx >= custom_actions.size()) {
+		// index out of bounds
+		// printf("Index out of bounds: %i\n", p_action_idx);
+		return vr::k_ulInvalidActionHandle;
+	} else {
+		return custom_actions[p_action_idx].handle;
+	}
+}
+
 bool openvr_data::get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand) {
 	if (p_action_idx < 0) {
 		// we never registered our handle
@@ -1141,4 +1155,15 @@ void openvr_data::matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_trans
 			p_matrix->m[i][j] = transform->basis[i][j];
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////
+// Convert a bone transform we get from OpenVR into a Godot
+// transform
+void openvr_data::transform_from_bone(Transform &p_transform, const vr::VRBoneTransform_t *p_bone_transform) {
+	// OpenVR uses quaternions which is so much better for bones but Godot uses matrices.. so convert back...
+	Quat q(p_bone_transform->orientation.x, p_bone_transform->orientation.y, p_bone_transform->orientation.z, p_bone_transform->orientation.w);
+
+	p_transform.basis = Basis(q);
+	p_transform.origin = Vector3(p_bone_transform->position.v[0], p_bone_transform->position.v[1], p_bone_transform->position.v[2]);
 }

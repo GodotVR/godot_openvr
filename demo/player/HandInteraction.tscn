@@ -26,6 +26,7 @@ collision_mask = 6
 shape = SubResource( 1 )
 
 [node name="Test" type="MeshInstance" parent="KinematicBody"]
+visible = false
 mesh = SubResource( 2 )
 material/0 = SubResource( 3 )
 

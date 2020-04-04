@@ -91,6 +91,16 @@
 			"name": "/actions/godot/in/toggle_guardian",
 			"requirement" : "suggested",
 			"type": "boolean"
+		},
+		{
+			"name": "/actions/godot/in/left_hand",
+			"type": "skeleton",
+			"skeleton": "/skeleton/hand/left"
+		},
+		{
+			"name": "/actions/godot/in/right_hand",
+			"type": "skeleton",
+			"skeleton": "/skeleton/hand/right"
 		}
 	],
 	"action_set" : [
@@ -116,7 +126,9 @@
 			"/actions/godot/in/custom_pose" : "Custom Pose",
 			"/actions/godot/in/custom_boolean" : "Custom Boolean",
 			"/actions/godot/in/custom_analog" : "Custom Analog",
-			"/actions/godot/in/toggle_guardian" : "Toggle Guardian display on/off"
+			"/actions/godot/in/toggle_guardian" : "Toggle Guardian display on/off",
+			"/actions/godot/in/left_hand" : "Left hand",
+			"/actions/godot/in/right_hand" : "Right hand"
 		}
 	]
 }

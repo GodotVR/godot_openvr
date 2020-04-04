@@ -12,6 +12,7 @@
 #include <ImageTexture.hpp>
 #include <OS.hpp>
 #include <ProjectSettings.hpp>
+#include <Quat.hpp>
 #include <Rect2.hpp>
 #include <Ref.hpp>
 #include <SpatialMaterial.hpp>
@@ -194,6 +195,7 @@ public:
 	void set_active_action_set(const godot::String p_action_set);
 
 	int register_custom_action(const godot::String p_action);
+	vr::VRActionHandle_t get_custom_handle(int p_action_idx);
 	bool get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand = 0);
 	bool get_custom_digital_data(int p_action_idx, int p_on_hand = 0);
 	godot::Vector2 get_custom_analog_data(int p_action_idx, int p_on_hand = 0);
@@ -210,6 +212,7 @@ public:
 	// helper functions
 	void transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_matrix, godot_real p_world_scale);
 	void matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_transform *p_transform, godot_real p_world_scale);
+	void transform_from_bone(godot::Transform &p_transform, const vr::VRBoneTransform_t *p_bone_transform);
 };
 
 #endif /* !OPENVR_DATA_H */

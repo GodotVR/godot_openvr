@@ -9,6 +9,7 @@ More frequent updates may be available on the source repository.
 - Build for Godot 3.2
 - Added support for actions
 - Added support for request play area
+- Added skeleton support (finger tracking)
 
 1.0.5 - 1 March 2019
 --------------------
