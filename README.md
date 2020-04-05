@@ -50,6 +50,9 @@ Deploying
 Note that besides compiling the GDNative module you must also include valves openvr_api.dll (windows), libopenvr_api.so (linux) or OpenVR.framework (Mac OS X). See platform notes for placement of these files.
 The godot_openvr.dll or libgodot_openvr.so file should be placed in the location the godot_openvr.gdnlib file is pointing to (at the moment bin).
 
+Also, depending on what version of Visual Studio that was used to compile the dlls, you will need to install the `Microsoft Visual C++ Redistributable for Visual Studio` on any machine that you deploy your dll on. Godot already needs one of these but if you compile with a newer version of Visual Studio you also need to install that version. It's dumb, I know.
+https://support.microsoft.com/en-au/help/2977003/the-latest-supported-visual-c-downloads
+
 Mac notes
 ---------
 Mac is currently untested, I unfortunately do not have the required hardware. If anyone wants to hold up their hands, please contact me :)
