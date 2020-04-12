@@ -7,3 +7,4 @@ Special thanks to [Benedikt](https://github.com/beniwtv) for doing all the work 
 Other people who have helped out by submitting fixes, enhancements, etc are:
 - [RMKD](https://github.com/RMKD)
 - [Bruvzg](https://github.com/bruvzg)
+- [Aaron Franke](https://github.com/aaronfranke)
