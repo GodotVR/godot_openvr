@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://Main.gd" type="Script" id=1]
 [ext_resource path="res://assets/wahooney.itch.io/green_grid.tres" type="Material" id=2]
@@ -21,6 +21,7 @@
 [ext_resource path="res://player/Guardian.tscn" type="PackedScene" id=19]
 [ext_resource path="res://addons/godot-openvr/scenes/ovr_left_hand.tscn" type="PackedScene" id=20]
 [ext_resource path="res://addons/godot-openvr/scenes/ovr_right_hand.tscn" type="PackedScene" id=21]
+[ext_resource path="res://addons/godot-openvr/scenes/ovr_shader_cache.tscn" type="PackedScene" id=22]
 
 [sub_resource type="ArrayMesh" id=1]
 
@@ -49,6 +50,8 @@ action_json_path = "res://ovr_actions/actions.json"
 [node name="ARVRCamera" type="ARVRCamera" parent="Player"]
 
 [node name="vr_common_shader_cache" parent="Player/ARVRCamera" instance=ExtResource( 3 )]
+
+[node name="ovr_shader_cache" parent="Player/ARVRCamera" instance=ExtResource( 22 )]
 
 [node name="Left_Hand" parent="Player" instance=ExtResource( 5 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0 )
