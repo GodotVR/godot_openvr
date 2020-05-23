@@ -34,7 +34,11 @@ singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
 3d_physics/layer_1="Player"
 3d_physics/layer_2="Environment"
 3d_physics/layer_3="Objects"
-3d_physics/layer_5="Picked up"
+3d_physics/layer_11="Picked up"
+
+[physics]
+
+common/physics_fps=90
 
 [rendering]
 
