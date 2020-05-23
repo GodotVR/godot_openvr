@@ -15,6 +15,9 @@ export (String) var default_action_set = "/actions/godot"
 # If we render to a custom viewport give our node path here.
 export (NodePath) var viewport = null
 
+# Convenience setting for setting physics update rate to a multiple of our HMDs frame rate (set to 0 to ignore)
+export var physics_factor = 2
+
 var arvr_interface : ARVRInterface = null
 var openvr_config = null
 
@@ -34,6 +37,10 @@ func _ready():
 	# Find the interface and initialise
 	arvr_interface = ARVRServer.find_interface("OpenVR")
 	if arvr_interface and arvr_interface.initialize():
+		# We can't query our HMDs refresh rate just yet so we hardcode this to 90
+		var refresh_rate = 90
+		
+		# check our viewport
 		var vp : Viewport = null
 		if viewport:
 			vp = get_node(viewport)
@@ -56,6 +63,7 @@ func _ready():
 		# make sure vsync is disabled or we'll be limited to 60fps
 		OS.vsync_enabled = false
 		
-		# up our physics to 90fps to get in sync with our rendering
-		Engine.iterations_per_second = 90
+		if physics_factor > 0:
+			# Set our physics to a multiple of our refresh rate to get in sync with our rendering
+			Engine.iterations_per_second = refresh_rate * physics_factor
 
