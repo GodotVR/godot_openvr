@@ -6,8 +6,8 @@
 
 #include "openvr_data.h"
 #include <ARVRServer.hpp>
-#include <Reference.hpp>
 #include <PoolArrays.hpp>
+#include <Reference.hpp>
 #include <String.hpp>
 #include <Transform.hpp>
 

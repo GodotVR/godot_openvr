@@ -1,0 +1,46 @@
+language: cpp
+
+# OS config, depends on actual 'os' in build matrix
+dist: xenial
+
+stages:
+  - check
+#  - build
+
+matrix:
+  include:
+    - name: "Clang-format"
+      stage: check
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-xenial-8
+          packages:
+            - clang-format-8
+      script:
+        - sh ./travis/clang-format.sh
+###############################################################
+# I can't get scons to work so disabled the build for now...
+#    - name: "Build windows"
+#      stage: build
+#      os: windows
+#      install:
+#        # we need to add python3 in for scons
+#        - choco install python
+#        # add our scripts folder to our path
+#        - export PATH=/c/users/travis/appdata/roaming/python/python38/Scripts/:/C/Python38/Scripts:$PATH
+#        # make sure we have the latest version of pip
+#        - py -m pip install --upgrade pip
+#        # scons we need
+#        - py -m pip install scons
+#        # just so we can verify they were installed
+#        - py -m pip list -v
+#        # and check if scons is up and running
+#        - scons --version
+#      script:
+#        # first compile godot-cpp
+#        - cd godot-cpp
+#        - scons platform=windows target=release bits=64 generate_bindings=yes
+#        - cd ..
+#        # now compile our plugin
+#        - scons platform=windows target=release
