@@ -5,6 +5,27 @@
 
 using namespace godot;
 
+static const char *kWellKnownInputSourcePaths[] = {
+	"/unrestricted", //Any
+	"/user/hand/left", // LeftHand,
+	"/user/hand/right", // RightHand,
+	"/user/knee/left", // LeftKnee,
+	"/user/knee/right", // RightKnee,
+	"/user/elbow/left", // LeftElbow,
+	"/user/elbow/right", // RightElbow,
+	"/user/foot/left", // LeftFoot,
+	"/user/foot/right", // RightFoot,
+	"/user/shoulder/left", // LeftShoulder,
+	"/user/shoulder/right", // RightShoulder,
+	"/user/waist", // Waist,
+	"/user/chest", // Chest,
+	"/user/head", // Head,
+	"/user/gamepad", // Gamepad,
+	"/user/camera", // Camera,
+	"/user/keyboard", // Keyboard,
+	"/user/treadmill"
+};
+
 openvr_data *openvr_data::singleton = NULL;
 
 openvr_data::openvr_data() {
@@ -206,11 +227,21 @@ bool openvr_data::initialise() {
 		}
 	}
 
+	size_t knowncount = (sizeof(kWellKnownInputSourcePaths) / sizeof(kWellKnownInputSourcePaths[0]));
+	handles_by_well_known_path.resize(knowncount);
+	for (size_t i = 0; i < knowncount; i++) {
+		handles_by_well_known_path[i] = vr::k_ulInvalidInputValueHandle;
+	}
+
 	if (success) {
+		for (size_t i = 0; i < knowncount; i++) {
+			vr::VRInput()->GetInputSourceHandle(kWellKnownInputSourcePaths[i], &handles_by_well_known_path[i]);
+		}
 		/* reset some stuff */
 		for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 			tracked_devices[i].tracker_id = 0;
 			tracked_devices[i].last_rumble_update = 0;
+			tracked_devices[i].well_known_device_path = "";
 		}
 
 		device_hands_are_available = false;
@@ -623,6 +654,7 @@ bool openvr_data::get_custom_pose_data(int p_action_idx, vr::InputPoseActionData
 		source_handle = tracked_devices[right_hand_device].source_handle;
 	}
 
+	//		virtual EVRInputError GetPoseActionDataForNextFrame(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, InputPoseActionData_t * pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice) = 0;
 	// let's retrieve it
 	vr::EVRInputError err = vr::VRInput()->GetPoseActionDataForNextFrame(custom_actions[p_action_idx].handle, vr::TrackingUniverseStanding, p_data, sizeof(vr::InputPoseActionData_t), source_handle);
 	if (err != vr::VRInputError_None) {
@@ -736,24 +768,23 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
 		// really?!
 	} else if (device->tracker_id == 0) {
-		char device_name[256];
-		strcpy(device_name, get_device_name(p_device_index, 255));
+		std::string device_name = get_device_name(p_device_index, 255);
 
 		vr::TrackedDeviceClass device_class = get_tracked_device_class(p_device_index);
 		if (device_class == vr::TrackedDeviceClass_TrackingReference) {
 			// ignore base stations and cameras for now
 			Godot::print(
-					godot::String("Found base station ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+					godot::String("Found base station ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name.c_str()) + godot::String(")"));
 		} else if (device_class == vr::TrackedDeviceClass_HMD) {
 			// ignore any HMD
 			Godot::print(
-					godot::String("Found HMD ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+					godot::String("Found HMD ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name.c_str()) + godot::String(")"));
 		} else {
 			godot_int hand = 0;
 
 			if (device_class == vr::TrackedDeviceClass_Controller) {
 				Godot::print(
-						godot::String("Found controller ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+						godot::String("Found controller ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name.c_str()) + godot::String(")"));
 
 				// If this is a controller than get our controller role
 				int32_t controllerRole = get_controller_role(p_device_index);
@@ -773,23 +804,36 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				}
 			} else {
 				Godot::print(
-						godot::String("Found tracker ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name) + godot::String(")"));
+						godot::String("Found tracker ") + String::num_int64(p_device_index) + godot::String("(") + godot::String(device_name.c_str()) + godot::String(")"));
 			}
-
-			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
-			device->tracker_id = godot::arvr_api->godot_arvr_add_controller(device_name, hand, true, true);
 
 			// remember our primary left and right hand devices
 			if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
 				vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
+				device->well_known_device_path = "/user/hand/left";
 				left_hand_device = p_device_index;
 			} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
 				vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
+				device->well_known_device_path = "/user/hand/right";
 				right_hand_device = p_device_index;
 			} else {
-				// other devices don't have source handles...
+				// other devices might not have source handles...
 				device->source_handle = vr::k_ulInvalidInputValueHandle;
+				device->well_known_device_path = "";
+				for (size_t i = 0; i < handles_by_well_known_path.size(); i++) {
+					vr::VRInputValueHandle_t inputHandle = handles_by_well_known_path[i];
+					vr::InputOriginInfo_t data;
+					vr::VRInput()->GetOriginTrackedDeviceInfo(inputHandle, &data, sizeof(data));
+					if (data.trackedDeviceIndex == p_device_index) {
+						device->source_handle = data.devicePath;
+						device->well_known_device_path = kWellKnownInputSourcePaths[i];
+					}
+				}
 			}
+			char buf[64];
+			snprintf(buf, sizeof(buf), "_%i", p_device_index);
+			device_name = std::string(device->well_known_device_path) + "_" + device_name + buf;
+			device->tracker_id = godot::arvr_api->godot_arvr_add_controller(const_cast<char*>(device_name.c_str()), hand, true, true);
 		}
 	}
 }
