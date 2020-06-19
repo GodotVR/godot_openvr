@@ -103,6 +103,7 @@ private:
 	struct tracked_device {
 		godot_int tracker_id;
 		uint64_t last_rumble_update;
+		const char* well_known_device_path;
 
 		/* add our controller source */
 		vr::VRInputValueHandle_t source_handle;
@@ -113,6 +114,8 @@ private:
 	uint32_t right_hand_device;
 
 	tracked_device tracked_devices[vr::k_unMaxTrackedDeviceCount];
+
+	std::vector<vr::VRInputValueHandle_t> handles_by_well_known_path;
 
 	void attach_device(uint32_t p_device_index);
 	void detach_device(uint32_t p_device_index);
