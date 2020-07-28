@@ -72,10 +72,13 @@ private:
 	struct action_set {
 		vr::VRActionSetHandle_t handle;
 		godot::String name;
+		bool is_active;
 	};
 
 	std::vector<action_set> action_sets;
-	int active_action_set;
+
+	std::vector<vr::VRActiveActionSet_t> active_action_sets;
+	int active_action_set_count = 0;
 
 	enum DeviceInputActionHandles {
 		DAH_IN_TRIGGER,
@@ -193,6 +196,9 @@ public:
 	const godot_transform *get_hmd_transform() const;
 	int register_action_set(const godot::String p_action_set);
 	void set_active_action_set(const godot::String p_action_set);
+	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);
+	bool is_action_set_active(const godot::String p_action_set) const;
+
 
 	int register_custom_action(const godot::String p_action);
 	vr::VRActionHandle_t get_custom_handle(int p_action_idx);

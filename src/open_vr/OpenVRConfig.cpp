@@ -24,6 +24,8 @@ void OpenVRConfig::_register_methods() {
 
 	register_method("register_action_set", &OpenVRConfig::register_action_set);
 	register_method("set_active_action_set", &OpenVRConfig::set_active_action_set);
+	register_method("toggle_action_set_active", &OpenVRConfig::toggle_action_set_active);
+	register_method("is_action_set_active", &OpenVRConfig::is_action_set_active);
 
 	register_method("play_area_available", &OpenVRConfig::play_area_available);
 	register_method("get_play_area", &OpenVRConfig::get_play_area);
@@ -83,6 +85,14 @@ void OpenVRConfig::register_action_set(const String p_action_set) {
 
 void OpenVRConfig::set_active_action_set(const String p_action_set) {
 	ovr->set_active_action_set(p_action_set);
+}
+
+void OpenVRConfig::toggle_action_set_active(const String p_action_set, const bool p_is_active) {
+	ovr->toggle_action_set_active(p_action_set, p_is_active);
+}
+
+bool OpenVRConfig::is_action_set_active(const String p_action_set) const {
+	return ovr->is_action_set_active(p_action_set);
 }
 
 bool OpenVRConfig::play_area_available() const {

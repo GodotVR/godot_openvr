@@ -27,7 +27,9 @@ openvr_data::openvr_data() {
 	godot::api->godot_transform_new_identity(&hmd_transform);
 
 	strcpy(actions_json_path, "res://addons/godot-openvr/actions/actions.json");
-	active_action_set = register_action_set(String("/actions/godot"));
+	int default_action_set = register_action_set(String("/actions/godot"));
+	action_sets[default_action_set].is_active = true;
+	active_action_set_count = 1;
 }
 
 openvr_data::~openvr_data() {
@@ -290,9 +292,30 @@ void openvr_data::process() {
 	update_play_area();
 
 	// Update our active action set
-	vr::VRActiveActionSet_t actionSet = { 0 };
-	actionSet.ulActionSet = action_sets[active_action_set].handle;
-	vr::VRInput()->UpdateActionState(&actionSet, sizeof(actionSet), 1);
+	if (active_action_set_count > 0) {
+		int current_index = 0;
+
+		// If the active action set count has changed, resize the array
+		if (active_action_sets.size() != active_action_set_count) {
+			active_action_sets.resize(active_action_set_count);
+		}
+
+		// Loop through all the action sets and add the ones requring update to the array
+		for (int i = 0; i < action_sets.size(); i++) {
+			if (action_sets[i].is_active) {
+				vr::VRActiveActionSet_t actionSet = { 0 };
+				actionSet.ulActionSet = action_sets[i].handle;
+
+				active_action_sets[current_index] = actionSet;
+				current_index++;
+			}
+		}
+
+		// Pass the array to OpenVR
+		if (current_index == active_action_set_count) {
+			vr::VRInput()->UpdateActionState(active_action_sets.data(), sizeof(vr::VRActiveActionSet_t), active_action_set_count);
+		}
+	}
 
 	// update our poses structure, this tracks our controllers
 	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
@@ -476,6 +499,7 @@ int openvr_data::register_action_set(const String p_action_set) {
 	action_set new_action_set;
 	new_action_set.name = p_action_set;
 	new_action_set.handle = vr::k_ulInvalidActionSetHandle;
+	new_action_set.is_active = false;
 
 	if (is_initialised()) {
 		vr::EVRInputError err = vr::VRInput()->GetActionSetHandle(new_action_set.name.utf8().get_data(), &new_action_set.handle);
@@ -492,16 +516,53 @@ int openvr_data::register_action_set(const String p_action_set) {
 ////////////////////////////////////////////////////////////////
 // Set the active action set
 void openvr_data::set_active_action_set(const String p_action_set) {
+	bool found = false;
 	for (int i = 0; i < action_sets.size(); i++) {
 		if (action_sets[i].name == p_action_set) {
 			// found it!
-			active_action_set = i;
-			return;
+			action_sets[i].is_active = true;
+			found = true;
+		} else {
+			action_sets[i].is_active = false;
 		}
 	}
 
 	// couldn't find it?? Make our default active
-	active_action_set = 0;
+	if (found == true) {
+		if (action_sets.size() > 0) {
+			action_sets[0].is_active = true;
+		}
+	}
+
+	active_action_set_count = 1;
+}
+
+void openvr_data::toggle_action_set_active(const String p_action_set, const bool p_is_active) {
+	for (int i = 0; i < action_sets.size(); i++) {
+		if (action_sets[i].name == p_action_set) {
+			// found it!
+			if (action_sets[i].is_active != p_is_active) {
+				action_sets[i].is_active = p_is_active;
+				if (p_is_active == true) {
+					active_action_set_count++;
+				} else {
+					active_action_set_count--;
+				}
+			}
+			return;
+		}
+	}
+}
+
+bool openvr_data::is_action_set_active(const String p_action_set) const {
+	for (int i = 0; i < action_sets.size(); i++) {
+		if (action_sets[i].name == p_action_set) {
+			// found it!
+			return action_sets[i].is_active;
+		}
+	}
+
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////
