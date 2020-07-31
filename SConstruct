@@ -9,7 +9,7 @@ opts = Variables(customs, ARGUMENTS)
 env = DefaultEnvironment()
 
 # Define our parameters
-opts.Add(EnumVariable('target', "Compilation target", 'release', ['d', 'debug', 'r', 'release']))
+opts.Add(EnumVariable('target', "Compilation target", 'release', ['d', 'debug', 'r', 'release', 'release_debug']))
 opts.Add(EnumVariable('platform', "Compilation platform", 'windows', ['windows', 'x11', 'linux', 'osx']))
 opts.AddVariables(
     PathVariable('openvr_path', 'The path where the OpenVR repo is located.', 'openvr/'),
@@ -52,6 +52,9 @@ if env['platform'] == 'windows':
         env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
         if env['target'] in ('debug', 'd'):
             env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd', '-Zi', '-FS'])
+            env.Append(LINKFLAGS = ['-DEBUG:FULL'])
+        elif env['target'] in ('release_debug',):
+            env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD', '-Zi', '-FS'])
             env.Append(LINKFLAGS = ['-DEBUG:FULL'])
         else:
             env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
