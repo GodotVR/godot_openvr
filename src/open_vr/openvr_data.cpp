@@ -1213,7 +1213,7 @@ void openvr_data::matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_trans
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
-			p_matrix->m[i][j] = transform->basis[i][j];
+			p_matrix->m[i][j] = transform->basis[j][i];
 		}
 	}
 }
