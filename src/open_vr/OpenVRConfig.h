@@ -42,6 +42,8 @@ public:
 
 	void register_action_set(const String p_action_set);
 	void set_active_action_set(const String p_action_set);
+	void toggle_action_set_active(const String p_action_set, const bool p_is_active);
+	bool is_action_set_active(const String p_action_set) const;
 
 	bool play_area_available() const;
 	PoolVector3Array get_play_area() const;
