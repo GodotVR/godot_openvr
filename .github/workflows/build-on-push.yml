@@ -1,0 +1,40 @@
+# Workflow to automatically compile a Linux/Windows/OSX library on commit/push
+
+name: Linux
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    name: Building for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        plaform: [linux, windows, osx]
+        os: [ubuntu-18.04, windows-latest, macOS-latest]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    - name: Initialize GIT subrepositories
+      run: |
+        git submodule init
+        git submodule update
+
+    - name: Run the build for godot-cpp
+      run: |
+        cd $GITHUB_WORKSPACE/godot-cpp
+        scons platform=${{ matrix.platform }} target=release generate_bindings=yes bits=64
+        
+    - name: Run the build for godot_openvr
+      run: |
+        cd $GITHUB_WORKSPACE
+        scons platform=${{ matrix.platform }} target=release bits=64
