@@ -60,7 +60,7 @@ if env['platform'] == 'windows':
     godot_cpp_library += '.windows'
     platform_dir = 'win'
     if not env['use_llvm']:
-	if host_platform == 'windows':
+        if host_platform == 'windows':
             # This makes sure to keep the session environment variables on windows,
             # that way you can run scons in a vs 2017 prompt and it will find all the required tools
             env.Append(ENV = os.environ)
