@@ -2,11 +2,11 @@ extends ARVROrigin
 
 # Add this script to your ARVROrigin node and it will initialise OpenVR for you automatically.
 
-# Our default action bindings can be found at: res://addons/godot-openvr/actions/actions.json
-# You can specify your own custom action file here.
-# Note that you can take out all default actions if you wish to use your own but
-# features such as ARVRController.get_joystick_axis and ARVRController.is_button_pressed won't work.
-export (String) var action_json_path = "res://addons/godot-openvr/actions/actions.json"
+# Our plugin will now use the first actions.json found in the following locations
+# 1) in the actions folder alongside the executable
+# 2) in the actions folder within your project folder (i.e. "res://actions/actions.json")
+# 3) in the actions folder within the plugin (i.e. "res://addons/godot-openvr/actions/actions.json")
+# OpenVR can't read actions files within the exported datapack.
 
 # The plugin always registers atleast one action set.
 # If you have renamed this action set you can specify the name here
@@ -31,7 +31,6 @@ func _ready():
 		print("Setup configuration")
 		openvr_config = openvr_config.new()
 		
-		openvr_config.action_json_path = action_json_path
 		openvr_config.default_action_set = default_action_set
 
 	# Find the interface and initialise

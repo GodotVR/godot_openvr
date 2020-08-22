@@ -26,7 +26,6 @@ openvr_data::openvr_data() {
 
 	godot::api->godot_transform_new_identity(&hmd_transform);
 
-	strcpy(actions_json_path, "res://addons/godot-openvr/actions/actions.json");
 	int default_action_set = register_action_set(String("/actions/godot"));
 	action_sets[default_action_set].is_active = true;
 	active_action_set_count = 1;
@@ -175,14 +174,46 @@ bool openvr_data::initialise() {
 	}
 
 	if (success) {
-		godot::String parsed_path = godot::ProjectSettings::get_singleton()->globalize_path(actions_json_path);
-		vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(parsed_path.utf8().get_data());
-		if (err == vr::VRInputError_None) {
-			Godot::print(godot::String("Loaded action json from: ") + parsed_path);
+		godot::OS *os = godot::OS::get_singleton();
+		godot::Directory *directory = godot::Directory::_new();
+		godot::String exec_path = os->get_executable_path().get_base_dir().replace("\\","/");
+		godot::String manifest_path;
+
+		Godot::print(godot::String("Exec path: ") + exec_path);
+
+		// check 3 locations in order
+		// 1) check if we have an action folder alongside our executable (runtime deployed actions)
+		if (directory->file_exists(exec_path + "/actions/actions.json")) {
+			manifest_path = exec_path + "/actions/actions.json";
+		} else {
+			godot::String project_path = godot::ProjectSettings::get_singleton()->globalize_path("res://");
+			if (project_path != "") {
+				Godot::print(godot::String("Project path: ") + project_path);
+
+				// 2) else check if we have an action folder in our project folder (custom user actions in development)
+				if (directory->file_exists(project_path + "actions/actions.json")) {
+					manifest_path = project_path + "actions/actions.json";
+				} else if (directory->file_exists(project_path + "addons/godot-openvr/actions/actions.json")) {
+					// 3) else check if we have an action folder in our plugin (if no user overrule)
+					manifest_path = project_path + "addons/godot-openvr/actions/actions.json";
+				}
+			}
+		}
+
+		if (manifest_path != "") {
+			vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(manifest_path.utf8().get_data());
+			if (err == vr::VRInputError_None) {
+				Godot::print(godot::String("Loaded action json from: ") + manifest_path);
+			} else {
+				success = false;
+				Godot::print(godot::String("Failed to load action json from: ") + manifest_path);
+			}
 		} else {
 			success = false;
-			Godot::print(godot::String("Failed to load action json from: ") + parsed_path);
+			Godot::print(godot::String("Failed to find action file"));
 		}
+
+		directory->free();
 	}
 
 	if (success) {
@@ -931,22 +962,6 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 			vr::VRInput()->TriggerHapticVibrationAction(output_action_handles[DAH_OUT_HAPTIC], 0, 0.1f, 4.f, rumble, p_device->source_handle);
 			p_device->last_rumble_update = p_msec;
 		}
-	}
-}
-
-////////////////////////////////////////////////////////////////
-// Get the path where we find our actions.json file
-const char *openvr_data::get_action_json_path() const {
-	return actions_json_path;
-}
-
-////////////////////////////////////////////////////////////////
-// Set the path where we find our actions.json file
-void openvr_data::set_action_json_path(const char *p_path) {
-	if (is_initialised()) {
-		Godot::print("OpenVR has already been initialised");
-	} else {
-		strcpy(actions_json_path, p_path);
 	}
 }
 
