@@ -5,6 +5,7 @@
 #define OPENVR_POSE_H
 
 #include "openvr_data.h"
+#include <ARVRServer.hpp>
 #include <Spatial.hpp>
 #include <String.hpp>
 
@@ -15,6 +16,7 @@ class OpenVRPose : public Spatial {
 
 private:
 	openvr_data *ovr;
+	ARVRServer *server;
 
 	String action;
 	int action_idx;
