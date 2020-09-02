@@ -34,9 +34,6 @@ public:
 	int get_tracking_universe() const;
 	void set_tracking_universe(int p_universe);
 
-	String get_action_json_path() const;
-	void set_action_json_path(const String p_path);
-
 	String get_default_action_set() const;
 	void set_default_action_set(const String p_name);
 

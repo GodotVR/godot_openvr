@@ -7,6 +7,7 @@
 #include <openvr.h>
 
 #include <ArrayMesh.hpp>
+#include <Directory.hpp>
 #include <Godot.hpp>
 #include <Image.hpp>
 #include <ImageTexture.hpp>
@@ -67,8 +68,6 @@ private:
 	vr::TrackedDeviceClass get_tracked_device_class(vr::TrackedDeviceIndex_t p_tracked_device_index);
 
 	// actions
-	char actions_json_path[2048];
-
 	struct action_set {
 		vr::VRActionSetHandle_t handle;
 		godot::String name;
@@ -189,8 +188,6 @@ public:
 	void get_eye_to_head_transform(godot_transform *p_transform, int p_eye, float p_world_scale = 1.0);
 
 	// interact with tracking info
-	const char *get_action_json_path() const;
-	void set_action_json_path(const char *p_path);
 	godot::String get_default_action_set() const;
 	void set_default_action_set(const godot::String p_name);
 	const godot_transform *get_hmd_transform() const;

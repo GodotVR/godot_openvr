@@ -25,6 +25,10 @@ window/size/width=800
 window/size/height=500
 window/vsync/use_vsync=false
 
+[editor_plugins]
+
+enabled=PoolStringArray( "godot-openvr" )
+
 [gdnative]
 
 singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
