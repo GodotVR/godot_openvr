@@ -127,6 +127,9 @@ jobs:
           cp -r build-files-macos/openvr/bin/osx64/OpenVR.framework addons/godot-openvr/bin/osx/OpenVR.framework
           cp build-files-windows/demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll addons/godot-openvr/bin/win64/libgodot_openvr.dll
           cp build-files-windows/openvr/bin/win64/openvr_api.dll addons/godot-openvr/bin/win64/openvr_api.dll
+      - name: Calculate GIT short ref
+        run: |
+          echo "GITHUB_SHA_SHORT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
       - name: Clean up extracted files
         run: |
           rm -rf build-files-linux
@@ -139,9 +142,6 @@ jobs:
       - name: Zip asset
         run: |
           zip -qq -r godot-openvr.zip .
-      - name: Calculate GIT short ref
-        run: |
-          echo "GITHUB_SHA_SHORT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
       - name: Create release for asset
         id: create_release
         uses: actions/create-release@v1
