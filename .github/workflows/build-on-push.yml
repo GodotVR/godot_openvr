@@ -133,6 +133,9 @@ jobs:
           rm -rf build-files-macos
           rm -rf build-files-windows
           rm -rf godot_openvr
+          rm .gitignore
+          rm .gitattributes
+          rm -rf .git
       - name: Zip asset
         run: |
           zip -qq -r godot-openvr.zip .
