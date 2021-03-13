@@ -315,14 +315,6 @@ void openvr_data::process() {
 			case vr::VREvent_ChaperoneDataHasChanged: {
 				play_area_is_dirty = true;
 			}; break;
-			case vr::VREvent_InputFocusChanged: {
-				Godot::print(String("Input Focus Changed"));
-				//if (event.data.process.oldPid == 0) {
-					//char str[10];
-					Godot::print(String(event.data.process.oldPid));
-					Godot::print(String(event.data.process.pid));
-				//}
-			}; break;
 			case vr::VREvent_DashboardActivated: {
 				Godot::print(String("Steam VR Dashboard Opened"));
 				dashboard_open = true;
