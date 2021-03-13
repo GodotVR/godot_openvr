@@ -9,8 +9,8 @@ void OpenVRFocus::_register_methods() {
 
 	register_property<OpenVRFocus, bool>("use_auto_pause", &OpenVRFocus::set_auto_pause_on_dashboard, &OpenVRFocus::get_auto_pause_on_dashboard, bool);
 	
-	register_signal<OpenVRFocus>(String("dashboard_opened"));
-	register_signal<OpenVRFocus>(String("dashboard_closed"));
+	register_signal<OpenVRFocus>(String("dashboard_opened"), Dictionary());
+	register_signal<OpenVRFocus>(String("dashboard_closed"), Dictionary());
 }
 
 void OpenVRFocus::_init() {
@@ -18,7 +18,7 @@ void OpenVRFocus::_init() {
 
 void OpenVRFocus::_process(float delta) {
     if (ovr != NULL) {
-        bool is_dashboard_active_current = ovr->is_dashboard_active
+        bool is_dashboard_active_current = ovr->is_dashboard_active;
         if (is_dashboard_active != is_dashboard_active_current) {
             is_dashboard_active = is_dashboard_active_current;
             if (is_action_set_active) {
@@ -28,6 +28,7 @@ void OpenVRFocus::_process(float delta) {
 				}
             } else {
 				emit_signal("dashboard_closed");
+				// Never auto un-pause as the player will want to confirm game status themselves first
             }
         }
     }
