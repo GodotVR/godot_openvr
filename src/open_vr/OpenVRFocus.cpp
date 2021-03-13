@@ -25,7 +25,7 @@ void OpenVRFocus::_process(float delta) {
             if (is_dashboard_active) {
                 emit_signal("dashboard_opened");
 				if (dashboard_triggers_pause) {
-					get_tree().set_pause(true);
+					get_tree()->set_pause(true);
 				}
             } else {
 				emit_signal("dashboard_closed");
