@@ -184,7 +184,7 @@ public:
 	void set_tracking_universe(OpenVRTrackingUniverse p_new_value);
 	bool play_area_available() const;
 	const godot::Vector3 *get_play_area() const;
-	bool is_dashboard_active():
+	bool is_dashboard_active();
 
 	// interact with openvr
 	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);
