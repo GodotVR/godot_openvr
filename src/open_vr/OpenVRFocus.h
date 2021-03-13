@@ -8,6 +8,7 @@
 
 #include "openvr_data.h"
 #include <Node.hpp>
+#include <SceneTree.hpp>
 
 namespace godot {
 
