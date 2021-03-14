@@ -16,3 +16,16 @@ func _ready():
 	get_tree().get_root().connect("size_changed", self, "on_window_size_change")
 	on_window_size_change();
 
+
+# Manually toggle pause
+func _on_Pause_released():
+	get_tree().paused = !get_tree().paused
+
+# If the dashboard is open, hide the player to avoid depth confusion
+# The dashboard renders its own models for the controllers
+func _on_PauseOnDashboard_dashboard_opened():
+	$Viewport/Main/Player.visible = false
+
+# Restore our player when the dashboard closes
+func _on_PauseOnDashboard_dashboard_closed():
+	$Viewport/Main/Player.visible = true

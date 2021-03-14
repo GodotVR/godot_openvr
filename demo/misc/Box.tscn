@@ -10,6 +10,7 @@ size = Vector3( 1, 1, 1 )
 extents = Vector3( 0.5, 0.5, 0.5 )
 
 [node name="Box" type="RigidBody"]
+pause_mode = 1
 collision_layer = 2
 collision_mask = 2
 
