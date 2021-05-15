@@ -330,6 +330,21 @@ void godot_arvr_notification(void *p_data, int p_what) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Return the camera feed that should be used for our background
+// when we're dealing with AR.
+int godot_arvr_get_camera_feed_id(void *) {
+
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////
+// Return a texture ID for the eye if we manage the depth buffer
+int godot_arvr_get_external_depth_for_eye(void *p_data, int p_eye) {
+
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////
 // Structure to provide pointers to our interface functions.
 const godot_arvr_interface_gdnative interface_struct = {
 	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
@@ -350,5 +365,8 @@ const godot_arvr_interface_gdnative interface_struct = {
 	godot_arvr_process,
 	// only available in Godot 3.2+
 	godot_arvr_get_external_texture_for_eye,
-	godot_arvr_notification
+	godot_arvr_notification,
+	godot_arvr_get_camera_feed_id,
+	// only available in Godot 3.3+
+	godot_arvr_get_external_depth_for_eye
 };
