@@ -140,6 +140,7 @@ bool OpenVROverlay::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_
 
 		return true;
 	}
+	return false;
 }
 
 bool OpenVROverlay::overlay_position_absolute(Transform p_transform) {
@@ -168,4 +169,5 @@ bool OpenVROverlay::overlay_position_absolute(Transform p_transform) {
 
 		return true;
 	}
+	return false;
 }
