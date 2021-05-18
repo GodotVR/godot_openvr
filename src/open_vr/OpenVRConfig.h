@@ -46,6 +46,7 @@ public:
 	PoolVector3Array get_play_area() const;
 
 	float get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index);
+	bool is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index);
 };
 
 } // namespace godot
