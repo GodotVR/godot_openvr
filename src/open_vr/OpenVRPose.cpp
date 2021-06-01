@@ -30,9 +30,8 @@ void OpenVRPose::_process(float delta) {
 		if (is_active) {
 			// printf("Pose is active\n");
 
-			float world_scale = godot::arvr_api->godot_arvr_get_worldscale();
-			Transform transform;
-			ovr->transform_from_matrix((godot_transform *)&transform, &pose_data.pose.mDeviceToAbsoluteTracking, world_scale);
+			float world_scale = godot::XRServer::get_singleton()->get_world_scale();
+			Transform3D transform = ovr->transform_from_matrix(&pose_data.pose.mDeviceToAbsoluteTracking, world_scale);
 			set_transform(server->get_reference_frame() * transform);
 		} else {
 			// printf("Pose is inactive\n");
@@ -42,7 +41,7 @@ void OpenVRPose::_process(float delta) {
 
 OpenVRPose::OpenVRPose() {
 	ovr = openvr_data::retain_singleton();
-	server = ARVRServer::get_singleton();
+	server = XRServer::get_singleton();
 	action_idx = -1;
 	is_active = false;
 	on_hand = 0;

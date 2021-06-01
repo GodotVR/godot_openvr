@@ -5,19 +5,19 @@
 #define OPENVR_CONFIG_H
 
 #include "openvr_data.h"
-#include <ARVRServer.hpp>
-#include <PoolArrays.hpp>
-#include <Reference.hpp>
+#include <PackedVector3Array.hpp>
+#include <RefCounted.hpp>
 #include <String.hpp>
-#include <Transform.hpp>
+#include <Transform3D.hpp>
+#include <XRServer.hpp>
 
 namespace godot {
-class OpenVRConfig : public Reference {
-	GODOT_CLASS(OpenVRConfig, Reference)
+class OpenVRConfig : public RefCounted {
+	GODOT_CLASS(OpenVRConfig, RefCounted)
 
 private:
 	openvr_data *ovr;
-	ARVRServer *server;
+	XRServer *server;
 
 public:
 	static void _register_methods();
@@ -42,7 +42,7 @@ public:
 	bool is_action_set_active(const String p_action_set) const;
 
 	bool play_area_available() const;
-	PoolVector3Array get_play_area() const;
+	PackedVector3Array get_play_area() const;
 
 	float get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index);
 	bool is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index);

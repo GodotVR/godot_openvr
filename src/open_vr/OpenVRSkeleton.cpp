@@ -1,4 +1,5 @@
 #include "OpenVRSkeleton.h"
+#include "Utilities.hpp"
 
 using namespace godot;
 
@@ -48,7 +49,7 @@ void OpenVRSkeleton::_process(float delta) {
 		// no data yet, just exit
 		return;
 	} else if (err != vr::VRInputError_None) {
-		Godot::print(String("Couldn't retrieve skeletal action data, err: ") + String::num_int64(err));
+		Utilities::print(String("Couldn't retrieve skeletal action data, err: {0}").format(Array::make(Variant((int64_t)err))));
 		return;
 	}
 	if (!data.bActive) {
@@ -70,12 +71,12 @@ void OpenVRSkeleton::_process(float delta) {
 		err = vr::VRInput()->GetBoneCount(handle, &new_bone_count);
 		if (err != vr::VRInputError_None) {
 			bone_count = -1; // prevent doing this again...
-			Godot::print(String("Couldn't retrieve bone count, err: ") + String::num_int64(err));
+			Utilities::print(String("Couldn't retrieve bone count, err: {0}").format(Array::make(Variant((int64_t)err))));
 			return;
 		} else if (new_bone_count > 255) {
 			// I'm a lazy son of a b****, can't be bothered to allocate buffers, we won't have more then 255 bones right?
 			bone_count = -1; // prevent doing this again...
-			Godot::print(String("Too many bones: ") + String::num_int64(new_bone_count));
+			Utilities::print(String("Too many bones: {0}").format(Array::make(Variant((int64_t)new_bone_count))));
 			return;
 		}
 
@@ -84,7 +85,7 @@ void OpenVRSkeleton::_process(float delta) {
 			bones = (bone *)malloc(sizeof(bone) * new_bone_count);
 			if (bones == NULL) {
 				bone_count = -1; // prevent doing this again...
-				Godot::print(String("Couldn't allocate memory"));
+				Utilities::print(String("Couldn't allocate memory"));
 				return;
 			}
 			bone_count = new_bone_count;
@@ -100,7 +101,7 @@ void OpenVRSkeleton::_process(float delta) {
 			err = vr::VRInput()->GetBoneHierarchy(handle, parent_indices, 256);
 			if (err != vr::VRInputError_None) {
 				bone_count = -1; // prevent doing this again...
-				Godot::print(String("Couldn't retrieve parent indices, err: ") + String::num_int64(err));
+				Utilities::print(String("Couldn't retrieve parent indices, err: {0}").format(Array::make(Variant((int64_t)err))));
 				return;
 			}
 
@@ -108,7 +109,7 @@ void OpenVRSkeleton::_process(float delta) {
 			err = vr::VRInput()->GetSkeletalReferenceTransforms(handle, transform_space, reference_pose, reference_transforms, 256);
 			if (err != vr::VRInputError_None) {
 				bone_count = -1; // prevent doing this again...
-				Godot::print(String("Couldn't retrieve reference poses, err: ") + String::num_int64(err));
+				Utilities::print(String("Couldn't retrieve reference poses, err: {0}").format(Array::make(Variant((int64_t)err))));
 				return;
 			}
 
@@ -116,7 +117,7 @@ void OpenVRSkeleton::_process(float delta) {
 			bones = (bone *)malloc(sizeof(bone) * new_bone_count);
 			if (bones == NULL) {
 				bone_count = -1; // prevent doing this again...
-				Godot::print(String("Couldn't allocate memory"));
+				Utilities::print(String("Couldn't allocate memory"));
 				return;
 			}
 			bone_count = new_bone_count;
@@ -132,7 +133,7 @@ void OpenVRSkeleton::_process(float delta) {
 				err = vr::VRInput()->GetBoneName(handle, i, bones[i].name, 256);
 				if (err != vr::VRInputError_None) {
 					strcpy(bones[i].name, "Error");
-					Godot::print(String("Couldn't retrieve bone name, err: ") + String::num_int64(err));
+					Utilities::print(String("Couldn't retrieve bone name, err: {0}").format(Variant((int64_t)err)));
 				}
 
 				// add our bone in Godot, note that for some reason our root node is named Root which it doesn't really like...
@@ -147,7 +148,7 @@ void OpenVRSkeleton::_process(float delta) {
 
 				// now we need the difference...
 				set_bone_rest(i, bones[i].rest_transform);
-				set_bone_pose(i, Transform());
+				set_bone_pose(i, Transform3D());
 			}
 		}
 	}
@@ -156,7 +157,7 @@ void OpenVRSkeleton::_process(float delta) {
 	vr::VRBoneTransform_t bone_transforms[256];
 	err = vr::VRInput()->GetSkeletalBoneData(handle, transform_space, motion_range, bone_transforms, bone_count);
 	if (err != vr::VRInputError_None) {
-		Godot::print(String("Couldn't retrieve skeletal bone transform data, err: ") + String::num_int64(err));
+		Utilities::print(String("Couldn't retrieve skeletal bone transform data, err: {0}") + Variant((int64_t)err));
 		return;
 	}
 
@@ -164,7 +165,7 @@ void OpenVRSkeleton::_process(float delta) {
 		// convert to godot transforms, might need to inverse with parent or rest.. dunne know yet
 		ovr->transform_from_bone(bones[i].pose_transform, &bone_transforms[i]);
 
-		Transform pose_transform = bones[i].pose_transform;
+		Transform3D pose_transform = bones[i].pose_transform;
 		pose_transform = bones[i].rest_transform.inverse() * pose_transform;
 		set_bone_pose(i, pose_transform);
 	}

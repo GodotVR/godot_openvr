@@ -6,12 +6,12 @@
 
 #include "openvr_data.h"
 #include <Dictionary.hpp>
-#include <Spatial.hpp>
+#include <Node3D.hpp>
 #include <String.hpp>
 
 namespace godot {
-class OpenVRAction : public Spatial {
-	GODOT_CLASS(OpenVRAction, Spatial)
+class OpenVRAction : public Node3D {
+	GODOT_CLASS(OpenVRAction, Node3D)
 
 private:
 	openvr_data *ovr;

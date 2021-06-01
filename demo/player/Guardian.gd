@@ -1,9 +1,9 @@
-extends MeshInstance
+extends MeshInstance3D
 
-export (float) var height = 2.0
+@export var height: float = 2.0
 
-var ws : float = 0.0
-var reference : Transform = Transform()
+var ws: float = 0.0
+var reference: Transform3D = Transform3D()
 
 func _ready():
 	# todo subscribe to our play area changed signal
@@ -11,8 +11,8 @@ func _ready():
 
 func _process(delta):
 	# if either of these change, our play area needs to be adjusted.
-	var new_ws = ARVRServer.world_scale
-	var new_reference = ARVRServer.get_reference_frame()
+	var new_ws = XRServer.world_scale
+	var new_reference = XRServer.get_reference_frame()
 	
 	if ws!=new_ws or reference!=new_reference:
 		var openvr_config = get_parent().get_openvr_config()

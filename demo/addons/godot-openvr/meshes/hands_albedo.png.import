@@ -1,9 +1,9 @@
 [remap]
 
 importer="texture"
-type="StreamTexture"
-path.s3tc="res://.import/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.s3tc.stex"
-path.etc2="res://.import/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.etc2.stex"
+type="StreamTexture2D"
+path.s3tc="res://.godot/imported/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.s3tc.stex"
+path.etc2="res://.godot/imported/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.etc2.stex"
 metadata={
 "imported_formats": [ "s3tc", "etc2" ],
 "vram_texture": true
@@ -12,25 +12,25 @@ metadata={
 [deps]
 
 source_file="res://addons/godot-openvr/meshes/hands_albedo.png"
-dest_files=[ "res://.import/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.s3tc.stex", "res://.import/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.etc2.stex" ]
+dest_files=[ "res://.godot/imported/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.s3tc.stex", "res://.godot/imported/hands_albedo.png-149a10baba7906560a9f9eab8fadf1d8.etc2.stex" ]
 
 [params]
 
 compress/mode=2
 compress/lossy_quality=0.7
-compress/hdr_mode=0
+compress/hdr_compression=1
 compress/bptc_ldr=0
 compress/normal_map=0
-flags/repeat=true
-flags/filter=true
-flags/mipmaps=true
-flags/anisotropic=false
-flags/srgb=1
+compress/channel_pack=0
+compress/streamed=false
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
 process/fix_alpha_border=true
 process/premult_alpha=false
-process/HDR_as_SRGB=false
 process/invert_color=false
-stream=false
-size_limit=0
-detect_3d=false
+process/HDR_as_SRGB=false
+process/size_limit=0
+detect_3d/compress_to=0
 svg/scale=1.0

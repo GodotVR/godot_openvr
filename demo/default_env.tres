@@ -1,16 +1,14 @@
 [gd_resource type="Environment" load_steps=3 format=2]
 
-[ext_resource path="res://assets/hdrihaven.com/wasteland_clouds/wasteland_clouds_2k.hdr" type="Texture" id=1]
+[sub_resource type="PhysicalSkyMaterial" id=1]
 
-[sub_resource type="PanoramaSky" id=1]
-panorama = ExtResource( 1 )
+[sub_resource type="Sky" id=2]
+sky_material = SubResource( 1 )
 
 [resource]
 background_mode = 2
-background_sky = SubResource( 1 )
-ambient_light_color = Color( 0.145098, 0.145098, 0.145098, 1 )
-ambient_light_sky_contribution = 0.4
+sky = SubResource( 2 )
+ambient_light_color = Color(0.145098, 0.145098, 0.145098, 1)
 tonemap_mode = 2
 tonemap_exposure = 0.4
 tonemap_white = 16.0
-ssao_blur = 1

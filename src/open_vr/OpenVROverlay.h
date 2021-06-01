@@ -36,8 +36,8 @@ public:
 	bool is_overlay_visible() const;
 	void set_overlay_visible(bool p_visible);
 
-	bool track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform p_transform);
-	bool overlay_position_absolute(Transform p_transform);
+	bool track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform3D p_transform);
+	bool overlay_position_absolute(Transform3D p_transform);
 };
 } // namespace godot
 

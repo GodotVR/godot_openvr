@@ -1,23 +1,23 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////
-// Our main ARVRInterface code for our OpenVR GDNative module
+// Our main XRInterface code for our OpenVR GDNative module
 
 // Note, even though this is pure C code, we're using the C++ compiler as
 // Microsoft never updated their C compiler to understand more modern dialects
 // and openvr uses pesky things such as namespaces
 
 #include "ARVRInterface.h"
-#include "VisualServer.hpp"
+#include "String.hpp"
+#include "Transform3D.hpp"
+#include "Vector2.hpp"
+#include "XRServer.hpp"
+// #include "VisualServer.hpp"
 
 ////////////////////////////////////////////////////////////////
 // Returns the name of this interface
-godot_string godot_arvr_get_name(const void *p_data) {
-	godot_string ret;
+void godot_arvr_get_name(const void *p_data, godot_string *p_name) {
+	godot::String *name = (godot::String *)p_name;
 
-	char name[] = "OpenVR";
-	godot::api->godot_string_new(&ret);
-	godot::api->godot_string_parse_utf8(&ret, name);
-
-	return ret;
+	*name = godot::String("OpenVR");
 }
 
 ////////////////////////////////////////////////////////////////
@@ -47,11 +47,11 @@ void godot_arvr_set_anchor_detection_is_enabled(void *p_data, bool p_enable) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Informs Godot stereoscopic rendering is required
-godot_bool godot_arvr_is_stereo(const void *p_data) {
-	godot_bool ret;
+// Informs Godot how many views are required
+godot_int godot_arvr_get_view_count(const void *p_data) {
+	godot_int ret;
 
-	ret = true;
+	ret = 2;
 
 	return ret;
 }
@@ -80,8 +80,9 @@ godot_bool godot_arvr_is_initialized(const void *p_data) {
 godot_bool godot_arvr_initialize(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
-	// this should be static once Godot runs but obtain whether we're running GLES2, GLES3 or Vulkan
-	arvr_data->video_driver = godot::OS::get_singleton()->get_current_video_driver();
+	// This seems to have been removed for now, we only support Vulkan ATM anyway
+	// arvr_data->video_driver = godot::OS::get_singleton()->get_current_video_driver();
+	arvr_data->video_driver = godot::OS::VIDEO_DRIVER_VULKAN;
 
 	if (arvr_data->ovr->initialise()) {
 		// go and get our recommended target size
@@ -112,54 +113,68 @@ void godot_arvr_uninitialize(void *p_data) {
 godot_vector2 godot_arvr_get_render_targetsize(const void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 	godot_vector2 size;
+	godot::Vector2 *sizep = (godot::Vector2 *)&size;
 
 	if (arvr_data->ovr->is_initialised()) {
 		// TODO: we should periodically check if the recommended size has changed (the user can adjust this) and if so update our width/height
 		// and reset our render texture (RID)
 
-		godot::api->godot_vector2_new(&size, (real_t)arvr_data->width, (real_t)arvr_data->height);
+		sizep->x = (real_t)arvr_data->width;
+		sizep->y = (real_t)arvr_data->height;
 	} else {
-		godot::api->godot_vector2_new(&size, 500.0f, 500.0f);
+		sizep->x = 500.0f;
+		sizep->y = 500.0f;
 	}
 
 	return size;
 }
 
 ////////////////////////////////////////////////////////////////
-// This is called while rendering to get each eyes view matrix
-godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, godot_transform *p_cam_transform) {
+// This is called to get our center transform
+godot_transform3d godot_arvr_get_camera_transform(void *p_data) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
-	// todo - rewrite this to use Transform object
+	godot::XRServer *xr_server = godot::XRServer::get_singleton();
 
-	godot_transform transform_for_eye;
-	godot_transform reference_frame = godot::arvr_api->godot_arvr_get_reference_frame();
-	godot_transform ret;
-	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
+	godot_transform3d ret;
+	godot::Transform3D *retp = (godot::Transform3D *)&ret;
+	godot::Transform3D reference_frame = xr_server->get_reference_frame(); // godot::xr_api->godot_arvr_get_reference_frame();
 
-	if (p_eye == 0) {
-		// we want a monoscopic transform.. shouldn't really apply here
-		godot::api->godot_transform_new_identity(&transform_for_eye);
-	} else if (arvr_data->ovr != NULL) {
-		arvr_data->ovr->get_eye_to_head_transform(&transform_for_eye, p_eye, world_scale);
+	*retp = reference_frame * arvr_data->ovr->get_hmd_transform();
+
+	return ret;
+}
+
+////////////////////////////////////////////////////////////////
+// This is called while rendering to get each view matrix
+godot_transform3d godot_arvr_get_transform_for_view(void *p_data, godot_int p_view, const godot_transform3d *p_cam_transform) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+
+	godot::XRServer *xr_server = godot::XRServer::get_singleton();
+
+	godot_transform3d ret;
+	godot::Transform3D *retp = (godot::Transform3D *)&ret;
+
+	godot::Transform3D *cam_transform = (godot::Transform3D *)p_cam_transform;
+	godot::Transform3D transform_for_view;
+	godot::Transform3D reference_frame = xr_server->get_reference_frame(); // godot::xr_api->godot_arvr_get_reference_frame();
+
+	double world_scale = xr_server->get_world_scale(); // godot::xr_api->godot_arvr_get_worldscale();
+
+	if (arvr_data->ovr != NULL) {
+		transform_for_view = arvr_data->ovr->get_eye_to_head_transform(p_view, world_scale);
 	} else {
 		// really not needed, just being paranoid..
-		godot_vector3 offset;
-		godot::api->godot_transform_new_identity(&transform_for_eye);
-		if (p_eye == 1) {
-			godot::api->godot_vector3_new(&offset, -0.035f * world_scale, 0.0f, 0.0f);
+		if (p_view == 0) {
+			transform_for_view.origin.x = -0.035f * world_scale;
 		} else {
-			godot::api->godot_vector3_new(&offset, 0.035f * world_scale, 0.0f, 0.0f);
+			transform_for_view.origin.x = 0.035f * world_scale;
 		};
-		godot::api->godot_transform_translated(&transform_for_eye, &offset);
+		transform_for_view.origin.y = 0.0f;
+		transform_for_view.origin.z = 0.0f;
 	};
 
-	// Now construct our full transform, the order may be in reverse, have to test
-	// :)
-	ret = *p_cam_transform;
-	ret = godot::api->godot_transform_operator_multiply(&ret, &reference_frame);
-	ret = godot::api->godot_transform_operator_multiply(&ret, arvr_data->ovr->get_hmd_transform());
-	ret = godot::api->godot_transform_operator_multiply(&ret, &transform_for_eye);
+	*retp = ((godot::Transform3D)*p_cam_transform) * reference_frame * arvr_data->ovr->get_hmd_transform() * transform_for_view;
 
 	return ret;
 }
@@ -167,12 +182,12 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes projection
 // matrix
-void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, godot_int p_eye, godot_real p_aspect, godot_real p_z_near, godot_real p_z_far) {
+void godot_arvr_fill_projection_for_view(void *p_data, godot_real_t *p_projection, godot_int p_view, godot_real_t p_aspect, godot_real_t p_z_near, godot_real_t p_z_far) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	if (arvr_data->ovr->is_initialised()) {
 		vr::HmdMatrix44_t matrix = arvr_data->ovr->hmd->GetProjectionMatrix(
-				p_eye == 1 ? vr::Eye_Left : vr::Eye_Right, p_z_near, p_z_far);
+				p_view == 0 ? vr::Eye_Left : vr::Eye_Right, (float)p_z_near, (float)p_z_far);
 
 		int k = 0;
 		for (int i = 0; i < 4; i++) {
@@ -186,9 +201,89 @@ void godot_arvr_fill_projection_for_eye(void *p_data, godot_real *p_projection, 
 }
 
 ////////////////////////////////////////////////////////////////
+// This is called after we render a frame so we can send the render output to OpenVR
+void godot_arvr_commit_views(void *p_data, void *p_blit_to_screen, const godot_rid *p_render_target, godot_rect2 *p_screen_rect) {
+	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
+
+	// just blit left eye out to screen
+	godot::Rect2 src_rect;
+	const godot::Rect2 *dst_rect = (const godot::Rect2 *)p_screen_rect;
+	if (dst_rect->size.x > 0.0 && dst_rect->size.y > 0.0) {
+		float height = arvr_data->width * (dst_rect->size.y / dst_rect->size.x); // height of our screen mapped to source space
+		if (height < arvr_data->height) {
+			height /= arvr_data->height;
+			src_rect.position = godot::Vector2(0.0, 0.5 * (1.0 - height));
+			src_rect.size = godot::Vector2(1.0, height);
+		} else {
+			float width = arvr_data->height * (dst_rect->size.x / dst_rect->size.y); // width of our screen mapped to source space
+			width /= arvr_data->width;
+			src_rect.position = godot::Vector2(0.5 * (1.0 - width), 0.0);
+			src_rect.size = godot::Vector2(width, 1.0);
+		}
+
+		godot::xr_api->godot_xr_blit_layer(p_blit_to_screen, p_render_target, (const godot_rect2 *)&src_rect, p_screen_rect, 0);
+	}
+
+	// Get some data from godot
+	godot_xr_vulkan_data godot_vulkan_data;
+	bool has_data = godot::xr_api->godot_xr_get_vulkan_data(&godot_vulkan_data);
+
+	uint64_t image = 0;
+	uint32_t format = 0;
+	bool has_image = godot::xr_api->godot_xr_get_image_data(p_render_target, &image, &format);
+
+	// and now sent to OpenVR...
+	if (has_data && has_image && arvr_data->ovr->is_initialised()) {
+		// Submit to SteamVR
+		vr::VRTextureBounds_t bounds;
+		bounds.uMin = 0.0f;
+		bounds.uMax = 1.0f;
+		bounds.vMin = 0.0f;
+		bounds.vMax = 1.0f;
+
+		vr::VRVulkanTextureArrayData_t vulkan_data_left;
+		vulkan_data_left.m_pDevice = (VkDevice_T *)godot_vulkan_data.device;
+		vulkan_data_left.m_pPhysicalDevice = (VkPhysicalDevice_T *)godot_vulkan_data.physical_device;
+		vulkan_data_left.m_pInstance = (VkInstance_T *)godot_vulkan_data.instance;
+		vulkan_data_left.m_pQueue = (VkQueue_T *)godot_vulkan_data.queue;
+		vulkan_data_left.m_nQueueFamilyIndex = godot_vulkan_data.queue_family_index;
+
+		vulkan_data_left.m_nImage = image;
+		vulkan_data_left.m_nFormat = format;
+		vulkan_data_left.m_nWidth = arvr_data->width;
+		vulkan_data_left.m_nHeight = arvr_data->height;
+		vulkan_data_left.m_nSampleCount = 0;
+		vulkan_data_left.m_unArraySize = 2;
+		vulkan_data_left.m_unArrayIndex = 0;
+
+		vr::Texture_t texture_left = { &vulkan_data_left, vr::TextureType_Vulkan, vr::ColorSpace_Auto };
+		vr::VRCompositor()->Submit(vr::Eye_Left, &texture_left, &bounds, vr::Submit_VulkanTextureWithArrayData);
+
+		vr::VRVulkanTextureArrayData_t vulkan_data_right;
+		vulkan_data_right.m_pDevice = (VkDevice_T *)godot_vulkan_data.device;
+		vulkan_data_right.m_pPhysicalDevice = (VkPhysicalDevice_T *)godot_vulkan_data.physical_device;
+		vulkan_data_right.m_pInstance = (VkInstance_T *)godot_vulkan_data.instance;
+		vulkan_data_right.m_pQueue = (VkQueue_T *)godot_vulkan_data.queue;
+		vulkan_data_right.m_nQueueFamilyIndex = godot_vulkan_data.queue_family_index;
+
+		vulkan_data_right.m_nImage = image;
+		vulkan_data_right.m_nFormat = format;
+		vulkan_data_right.m_nWidth = arvr_data->width;
+		vulkan_data_right.m_nHeight = arvr_data->height;
+		vulkan_data_right.m_nSampleCount = 0;
+		vulkan_data_right.m_unArraySize = 2;
+		vulkan_data_right.m_unArrayIndex = 1;
+
+		vr::Texture_t texture_right = { &vulkan_data_right, vr::TextureType_Vulkan, vr::ColorSpace_Auto };
+		vr::VRCompositor()->Submit(vr::Eye_Right, &texture_right, &bounds, vr::Submit_VulkanTextureWithArrayData);
+	}
+}
+
+////////////////////////////////////////////////////////////////
 // This is called after we render a frame for each eye so we
 // can send the render output to OpenVR
 void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_render_target, godot_rect2 *p_screen_rect) {
+	/*	old logic
 	arvr_data_struct *arvr_data = (arvr_data_struct *)p_data;
 
 	// This function is responsible for outputting the final render buffer for
@@ -222,7 +317,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 
 		// printf("Blit: %0.2f, %0.2f - %0.2f, %0.2f\n",screen_rect.position.x,screen_rect.position.y,screen_rect.size.x,screen_rect.size.y);
 
-		godot::arvr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
+		godot::xr_api->godot_arvr_blit(0, p_render_target, (godot_rect2 *)&screen_rect);
 	}
 
 	if (arvr_data->ovr->is_initialised()) {
@@ -232,7 +327,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 		bounds.vMin = 0.0;
 		bounds.vMax = 1.0;
 
-		uint32_t texid = godot::arvr_api->godot_arvr_get_texid(p_render_target);
+		uint32_t texid = godot::xr_api->godot_arvr_get_texid(p_render_target);
 
 		vr::Texture_t eyeTexture = { (void *)(uintptr_t)texid, vr::TextureType_OpenGL, vr::ColorSpace_Auto };
 
@@ -248,13 +343,13 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 						vrerr = vr::VROverlay()->SetOverlayTexture(arvr_data->ovr->get_overlay(i).handle, &eyeTexture);
 
 						if (vrerr != vr::VROverlayError_None) {
-							godot::Godot::print(godot::String("OpenVR could not set texture for overlay: ") + godot::String::num_int64(vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+							godot::Utilities::print(godot::String("OpenVR could not set texture for overlay: ") + godot::String((int64_t) vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
 						}
 
 						vrerr = vr::VROverlay()->SetOverlayTextureBounds(arvr_data->ovr->get_overlay(i).handle, &bounds);
 
 						if (vrerr != vr::VROverlayError_None) {
-							godot::Godot::print(godot::String("OpenVR could not set textute bounds for overlay: ") + godot::String::num_int64(vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+							godot::Utilities::print(godot::String("OpenVR could not set textute bounds for overlay: ") + godot::String((int64_t) vrerr) + godot::String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
 						}
 					}
 				}
@@ -266,6 +361,7 @@ void godot_arvr_commit_for_eye(void *p_data, godot_int p_eye, godot_rid *p_rende
 			}
 		}
 	}
+*/
 }
 
 ////////////////////////////////////////////////////////////////
@@ -293,7 +389,7 @@ void *godot_arvr_constructor(godot_object *p_instance) {
 	arvr_data_struct *arvr_data = (arvr_data_struct *)godot::api->godot_alloc(sizeof(arvr_data_struct));
 
 	arvr_data->ovr = openvr_data::retain_singleton();
-	arvr_data->video_driver = 0;
+	arvr_data->video_driver = godot::OS::VIDEO_DRIVER_VULKAN;
 
 	return arvr_data;
 }
@@ -316,34 +412,34 @@ void godot_arvr_destructor(void *p_data) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Return a texture ID for the eye if we manage the final
-// output buffer.
-int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////
 // Receive notifications sent to our ARVROrigin node.
-void godot_arvr_notification(void *p_data, int p_what) {
+void godot_arvr_notification(void *p_data, godot_int p_what) {
 	// nothing to do here for now but we should implement this.
 }
 
 ////////////////////////////////////////////////////////////////
 // Return the camera feed that should be used for our background
 // when we're dealing with AR.
-int godot_arvr_get_camera_feed_id(void *) {
+godot_int godot_arvr_get_camera_feed_id(void *p_data) {
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////
+// Return a texture ID for the eye if we manage the final
+// output buffer.
+godot_int godot_arvr_get_external_texture_for_eye(void *p_data, godot_int p_eye) {
 	return 0;
 }
 
 ////////////////////////////////////////////////////////////////
 // Return a texture ID for the eye if we manage the depth buffer
-int godot_arvr_get_external_depth_for_eye(void *p_data, int p_eye) {
+godot_int godot_arvr_get_external_depth_for_eye(void *p_data, godot_int p_eye) {
 	return 0;
 }
 
 ////////////////////////////////////////////////////////////////
 // Structure to provide pointers to our interface functions.
-const godot_arvr_interface_gdnative interface_struct = {
+const godot_xr_interface_gdnative interface_struct = {
 	GODOTVR_API_MAJOR, GODOTVR_API_MINOR,
 	godot_arvr_constructor,
 	godot_arvr_destructor,
@@ -351,19 +447,22 @@ const godot_arvr_interface_gdnative interface_struct = {
 	godot_arvr_get_capabilities,
 	godot_arvr_get_anchor_detection_is_enabled,
 	godot_arvr_set_anchor_detection_is_enabled,
-	godot_arvr_is_stereo,
+	godot_arvr_get_view_count,
 	godot_arvr_is_initialized,
 	godot_arvr_initialize,
 	godot_arvr_uninitialize,
 	godot_arvr_get_render_targetsize,
-	godot_arvr_get_transform_for_eye,
-	godot_arvr_fill_projection_for_eye,
-	godot_arvr_commit_for_eye,
+	godot_arvr_get_camera_transform,
+	godot_arvr_get_transform_for_view,
+	godot_arvr_fill_projection_for_view,
+	godot_arvr_commit_views,
+
 	godot_arvr_process,
-	// only available in Godot 3.2+
-	godot_arvr_get_external_texture_for_eye,
 	godot_arvr_notification,
 	godot_arvr_get_camera_feed_id,
-	// only available in Godot 3.3+
+
+	// possibly depricate but adding/keeping as a reminder these are in Godot 3
+	godot_arvr_commit_for_eye,
+	godot_arvr_get_external_texture_for_eye,
 	godot_arvr_get_external_depth_for_eye
 };

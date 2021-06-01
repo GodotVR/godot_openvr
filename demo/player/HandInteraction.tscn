@@ -1,36 +1,34 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://player/HandInteraction.gd" type="Script" id=1]
 [ext_resource path="res://addons/godot-openvr/OpenVRHaptics.gdns" type="Script" id=2]
 
-[sub_resource type="SphereShape" id=1]
+[sub_resource type="SphereShape3D" id=1]
 radius = 0.1
 
 [sub_resource type="SphereMesh" id=2]
 radius = 0.1
 height = 0.2
 
-[sub_resource type="SpatialMaterial" id=3]
-render_priority = 1
-flags_transparent = true
-albedo_color = Color( 0.101961, 0.858824, 0.917647, 0.407843 )
-
 [node name="Hand_Interaction" type="Node"]
 script = ExtResource( 1 )
 
-[node name="KinematicBody" type="KinematicBody" parent="."]
+[node name="KinematicBody" type="KinematicBody3D" parent="."]
 collision_layer = 0
 collision_mask = 6
+script = null
 
-[node name="CollisionShape" type="CollisionShape" parent="KinematicBody"]
+[node name="CollisionShape" type="CollisionShape3D" parent="KinematicBody"]
 shape = SubResource( 1 )
+script = null
 
-[node name="Test" type="MeshInstance" parent="KinematicBody"]
+[node name="Test" type="MeshInstance3D" parent="KinematicBody"]
 visible = false
 mesh = SubResource( 2 )
-material/0 = SubResource( 3 )
+surface_material_override/0 = null
+script = null
 
-[node name="Haptic" type="Spatial" parent="."]
+[node name="Haptic" type="Node3D" parent="."]
 script = ExtResource( 2 )
 action = "/actions/godot/out/haptic"
 on_hand = 1

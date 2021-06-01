@@ -15,7 +15,6 @@ void fragment() {
 	
 	COLOR = color;
 }"
-custom_defines = ""
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = SubResource( 1 )
@@ -25,23 +24,21 @@ script = ExtResource( 2 )
 
 [node name="TextureRect" type="TextureRect" parent="."]
 material = SubResource( 2 )
-margin_right = 794.0
-margin_bottom = 496.0
 expand = true
 stretch_mode = 7
 flip_v = true
+script = null
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Viewport" type="Viewport" parent="."]
-arvr = true
-size = Vector2( 100, 100 )
+[node name="Viewport" type="SubViewport" parent="."]
 msaa = 1
-keep_3d_linear = true
-render_target_update_mode = 3
 audio_listener_enable_3d = true
 shadow_atlas_size = 4096
+size = Vector2i( 100, 100 )
+render_target_update_mode = 3
+script = null
 
 [node name="Main" parent="Viewport" instance=ExtResource( 1 )]
 
@@ -49,9 +46,9 @@ shadow_atlas_size = 4096
 viewport = NodePath("../..")
 
 [node name="ovr_left_hand" parent="Viewport/Main/Player" index="6"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0 )
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0 )
 
 [node name="ovr_right_hand" parent="Viewport/Main/Player" index="7"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0 )
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0 )
 
 [editable path="Viewport/Main"]

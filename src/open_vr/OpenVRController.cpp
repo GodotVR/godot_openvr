@@ -7,7 +7,7 @@ void OpenVRController::_register_methods() {
 
 	register_method("get_button_actions", &OpenVRController::get_button_actions);
 	register_method("set_button_actions", &OpenVRController::set_button_actions);
-	register_property<OpenVRController, PoolStringArray>("button_actions", &OpenVRController::set_button_actions, &OpenVRController::get_button_actions, PoolStringArray());
+	register_property<OpenVRController, PackedStringArray>("button_actions", &OpenVRController::set_button_actions, &OpenVRController::get_button_actions, PackedStringArray());
 
 	register_method("get_analog", &OpenVRController::get_analog);
 	register_method("trigger_haptic", &OpenVRController::trigger_haptic);
@@ -60,8 +60,8 @@ OpenVRController::~OpenVRController() {
 	}
 }
 
-PoolStringArray OpenVRController::get_button_actions() {
-	PoolStringArray actions;
+PackedStringArray OpenVRController::get_button_actions() {
+	PackedStringArray actions;
 
 	for (std::vector<input_action>::iterator it = button_actions.begin(); it != button_actions.end(); ++it) {
 		actions.push_back(it->name);
@@ -70,7 +70,7 @@ PoolStringArray OpenVRController::get_button_actions() {
 	return actions;
 }
 
-void OpenVRController::set_button_actions(PoolStringArray p_actions) {
+void OpenVRController::set_button_actions(PackedStringArray p_actions) {
 	// we're assuming this only gets set once so we can be a little careless and start anew
 	button_actions.clear();
 
