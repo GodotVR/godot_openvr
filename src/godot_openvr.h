@@ -18,6 +18,7 @@
 #include "OpenVRPose.h"
 #include "OpenVRRenderModel.h"
 #include "OpenVRSkeleton.h"
+#include "OpenVRFocus.h"
 
 #ifdef __cplusplus
 extern "C" {

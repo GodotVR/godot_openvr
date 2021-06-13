@@ -157,6 +157,8 @@ private:
 	void load_texture(TextureType p_type, vr::TextureID_t p_texture_id, godot::Ref<godot::SpatialMaterial> p_material);
 	bool _load_texture(texture_material *p_texture);
 
+	bool dashboard_open;
+
 public:
 	vr::IVRSystem *hmd; // make this private?
 
@@ -182,6 +184,7 @@ public:
 	void set_tracking_universe(OpenVRTrackingUniverse p_new_value);
 	bool play_area_available() const;
 	const godot::Vector3 *get_play_area() const;
+	bool is_dashboard_active();
 
 	// interact with openvr
 	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);

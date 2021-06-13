@@ -29,6 +29,8 @@ openvr_data::openvr_data() {
 	int default_action_set = register_action_set(String("/actions/godot"));
 	action_sets[default_action_set].is_active = true;
 	active_action_set_count = 1;
+
+	dashboard_open = false;
 }
 
 openvr_data::~openvr_data() {
@@ -313,6 +315,14 @@ void openvr_data::process() {
 			case vr::VREvent_ChaperoneDataHasChanged: {
 				play_area_is_dirty = true;
 			}; break;
+			case vr::VREvent_DashboardActivated: {
+				Godot::print(String("Steam VR Dashboard Opened"));
+				dashboard_open = true;
+			}; break;
+			case vr::VREvent_DashboardDeactivated: {
+				Godot::print(String("Steam VR Dashboard Closed"));
+				dashboard_open = false;
+			}; break;
 			default: {
 				// ignored for now...
 			}; break;
@@ -434,6 +444,10 @@ bool openvr_data::play_area_available() const {
 
 const godot::Vector3 *openvr_data::get_play_area() const {
 	return play_area;
+}
+
+bool openvr_data::is_dashboard_active() {
+	return dashboard_open;
 }
 
 ////////////////////////////////////////////////////////////////

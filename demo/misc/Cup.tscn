@@ -9,6 +9,7 @@ radius = 0.06
 height = 0.109788
 
 [node name="Cup" instance=ExtResource( 1 )]
+pause_mode = 1
 collision_layer = 4
 reset_transform_on_pickup = false
 highlight_mesh_instance = NodePath("MeshInstance")
