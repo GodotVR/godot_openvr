@@ -57,7 +57,7 @@ jobs:
         cd $GITHUB_WORKSPACE
         scons platform=${{ matrix.platform }} -j2 target=release bits=64
       if: matrix.os != 'windows-latest'
-    
+      
     - name: Run the build for godot-cpp (Windows)
       run: |
         cd ${env:GITHUB_WORKSPACE}/godot-cpp
@@ -101,7 +101,7 @@ jobs:
     name: Assembling the asset (artifact)
     runs-on: ubuntu-18.04
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -130,6 +130,11 @@ jobs:
       - name: Calculate GIT short ref
         run: |
           echo "GITHUB_SHA_SHORT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+        if: github.ref == 'refs/heads/master'
+      - name: Get tag name
+        run: |
+          echo "GITHUB_SHA_SHORT=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+        if: startsWith(github.ref, 'refs/tags')
       - name: Clean up extracted files
         run: |
           rm -rf build-files-linux
@@ -142,6 +147,15 @@ jobs:
       - name: Zip asset
         run: |
           zip -qq -r godot-openvr.zip .
+      - name: Create and upload asset
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "godot-openvr.zip"
+          body: "A new release!"
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+        if: startsWith(github.ref, 'refs/tags')
       - name: Create release for asset
         id: create_release
         uses: actions/create-release@v1
@@ -154,6 +168,7 @@ jobs:
             This is an automated build for changeset ${{ env.GITHUB_SHA_SHORT }}
           draft: false
           prerelease: true
+        if: github.ref == 'refs/heads/master'
       - name: Upload asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
@@ -164,3 +179,4 @@ jobs:
           asset_path: ./godot-openvr.zip
           asset_name: godot-openvr.zip
           asset_content_type: application/zip
+        if: github.ref == 'refs/heads/master'
