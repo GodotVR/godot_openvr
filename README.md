@@ -55,7 +55,8 @@ https://support.microsoft.com/en-au/help/2977003/the-latest-supported-visual-c-d
 
 Mac notes
 ---------
-Mac is currently untested, I unfortunately do not have the required hardware. If anyone wants to hold up their hands, please contact me :)
+Valve has dropped support for MacOS in the latest version of OpenVR/SteamVR. While a 32bit binary is still included we have not been able to get this to work.
+If you have a Mac and are willing to investigate this issue we would welcome a PR with the required fixes but otherwise support of MacOS has been dropped.
 
 Linux notes
 -----------

@@ -6,7 +6,8 @@ More frequent updates may be available on the source repository.
 
 1.1.0 - In progress
 -------------------
-- Build for Godot 3.2
+- Build for Godot 3.3
+- Now using OpenVR 1.16.8 (drops MacOS support)
 - Added support for actions
 - Added support for request play area
 - Added skeleton support (finger tracking)

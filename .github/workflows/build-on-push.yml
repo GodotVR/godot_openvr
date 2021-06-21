@@ -21,8 +21,8 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: windows
-          - os: macOS-latest
-            platform: osx
+          # - os: macOS-latest
+          #   platform: osx
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -41,10 +41,10 @@ jobs:
         pip install scons
       if: matrix.os == 'windows-latest'
 
-    - name: Install scons (macOS)
-      run: |
-        brew install scons
-      if: matrix.os == 'macos-latest'
+    # - name: Install scons (macOS)
+    #   run: |
+    #     brew install scons
+    #   if: matrix.os == 'macos-latest'
 
     - name: Run the build for godot-cpp
       run: |
@@ -79,14 +79,14 @@ jobs:
           openvr/bin/linux64/libopenvr_api.so
       if: matrix.os == 'ubuntu-18.04'
 
-    - name: Upload build files (artifacts) (macOS)    
-      uses: actions/upload-artifact@v2
-      with:
-        name: build-files-macos
-        path: |
-          demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib
-          openvr/bin/osx64/OpenVR.framework
-      if: matrix.os == 'macos-latest'
+    # - name: Upload build files (artifacts) (macOS)    
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: build-files-macos
+    #     path: |
+    #       demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib
+    #       openvr/bin/osx32/OpenVR.framework
+    #   if: matrix.os == 'macos-latest'
 
     - name: Upload build files (artifacts) (Windows)    
       uses: actions/upload-artifact@v2
@@ -123,8 +123,8 @@ jobs:
           cp -r godot_openvr/demo/addons/godot-openvr addons/godot-openvr
           cp build-files-linux/demo/addons/godot-openvr/bin/x11/libgodot_openvr.so addons/godot-openvr/bin/x11/libgodot_openvr.so
           cp build-files-linux/openvr/bin/linux64/libopenvr_api.so addons/godot-openvr/bin/x11/libopenvr_api.so
-          cp build-files-macos/demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib addons/godot-openvr/bin/osx/libgodot_openvr.dylib
-          cp -r build-files-macos/openvr/bin/osx64/OpenVR.framework addons/godot-openvr/bin/osx/OpenVR.framework
+          # cp build-files-macos/demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib addons/godot-openvr/bin/osx/libgodot_openvr.dylib
+          # cp -r build-files-macos/openvr/bin/osx32/OpenVR.framework addons/godot-openvr/bin/osx/OpenVR.framework
           cp build-files-windows/demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll addons/godot-openvr/bin/win64/libgodot_openvr.dll
           cp build-files-windows/openvr/bin/win64/openvr_api.dll addons/godot-openvr/bin/win64/openvr_api.dll
       - name: Calculate GIT short ref
