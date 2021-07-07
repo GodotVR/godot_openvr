@@ -39,6 +39,10 @@ def rpath_fix(target, source, env):
 # platform dir for openvr libraries
 platform_dir = ''
 
+# openvr support dll
+openvr_dll_source = '';
+openvr_dll_target = '';
+
 # Setup everything for our platform
 if env['platform'] == 'windows':
     env['target_path'] += 'win' + env['bits'] + '/'
@@ -61,18 +65,24 @@ if env['platform'] == 'windows':
             env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         else:
             env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
+    
+    openvr_dll_target = env['target_path'] + "openvr_api.dll"
+    openvr_dll_source = env['openvr_path'] + "bin/win" + str(env['bits']) + "/openvr_api.dll"
 
-# untested
-elif env['platform'] == 'osx':
-    env['target_path'] += 'osx/'
-    godot_cpp_library += '.osx'
-    platform_dir = 'osx32' # on OSX this is a universal binary
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64'])
-    else:
-        env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
-    env.Append(CXXFLAGS='-std=c++11')
-    env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+# no longer supported by OpenVR
+#elif env['platform'] == 'osx':
+#    env['target_path'] += 'osx/'
+#    godot_cpp_library += '.osx'
+#    platform_dir = 'osx32' # on OSX this is a universal binary
+#    if env['target'] in ('debug', 'd'):
+#        env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64'])
+#    else:
+#        env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64'])
+#    env.Append(CXXFLAGS='-std=c++11')
+#    env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+#
+#    openvr_dll_target = env['target_path'] + "???"
+#    openvr_dll_source = env['openvr_path'] + "bin/osx" + str(env['bits']) + "/???"
 
 elif env['platform'] in ('x11', 'linux'):
     env['target_path'] += 'x11/'
@@ -84,6 +94,9 @@ elif env['platform'] in ('x11', 'linux'):
         env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
     env.Append(CXXFLAGS='-std=c++0x')
     env.Append(LINKFLAGS = ['-Wl,-R,\'$$ORIGIN\''])
+
+    openvr_dll_target = env['target_path'] + "libopenvr_api.so"
+    openvr_dll_source = env['openvr_path'] + "bin/linux" + str(env['bits']) + "/libopenvr_api.so"
 
 # Complete godot-cpp library path
 if env['target'] in ('debug', 'd'):
@@ -127,6 +140,12 @@ sources += Glob('src/*/*.cpp')
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'], source=sources)
 if env['platform'] == "osx":
     env.AddPostAction(library, rpath_fix)
+
+if openvr_dll_target != '':
+    env.AddPostAction(library, Copy(
+        openvr_dll_target,
+        openvr_dll_source
+    ))
 
 Default(library)
 
