@@ -107,43 +107,38 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          repository: 'GodotVR/godot-openvr-asset'
-      - uses: actions/checkout@v2
-        with:
           repository: 'GodotVR/godot_openvr'
           path: godot_openvr
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
-      - name: Check
-        run: ls -la addons/godot-openvr/bin/osx/
       - name: Copy files to destination
         run: |
-          rm -rf addons/godot-openvr
-          rm -rf addons/godot-openvr/bin/osx/OpenVR.framework
-          cp -r godot_openvr/demo/addons/godot-openvr addons/godot-openvr
-          cp build-files-linux/demo/addons/godot-openvr/bin/x11/libgodot_openvr.so addons/godot-openvr/bin/x11/libgodot_openvr.so
-          cp build-files-linux/openvr/bin/linux64/libopenvr_api.so addons/godot-openvr/bin/x11/libopenvr_api.so
-          # cp build-files-macos/demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib addons/godot-openvr/bin/osx/libgodot_openvr.dylib
-          # cp -r build-files-macos/openvr/bin/osx32/OpenVR.framework addons/godot-openvr/bin/osx/OpenVR.framework
-          cp build-files-windows/demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll addons/godot-openvr/bin/win64/libgodot_openvr.dll
-          cp build-files-windows/openvr/bin/win64/openvr_api.dll addons/godot-openvr/bin/win64/openvr_api.dll
+          mkdir godot_openvr_plugin
+          mkdir godot_openvr_plugin/addons
+          cp -r godot_openvr/demo/addons/godot-openvr godot_openvr_plugin/addons
+          cp build-files-linux/demo/addons/godot-openvr/bin/x11/libgodot_openvr.so godot_openvr_plugin/addons/godot-openvr/bin/x11/libgodot_openvr.so
+          cp build-files-linux/openvr/bin/linux64/libopenvr_api.so godot_openvr_plugin/addons/godot-openvr/bin/x11/libopenvr_api.so
+          # cp build-files-macos/demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib godot_openvr_plugin/addons/godot-openvr/bin/osx/libgodot_openvr.dylib
+          # cp -r build-files-macos/openvr/bin/osx32/OpenVR.framework godot_openvr_plugin/addons/godot-openvr/bin/osx/OpenVR.framework
+          cp build-files-windows/demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll godot_openvr_plugin/addons/godot-openvr/bin/win64/libgodot_openvr.dll
+          cp build-files-windows/openvr/bin/win64/openvr_api.dll godot_openvr_plugin/addons/godot-openvr/bin/win64/openvr_api.dll
       - name: Calculate GIT short ref
         run: |
+          cd godot_openvr
           echo "GITHUB_SHA_SHORT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
         if: github.ref == 'refs/heads/master'
       - name: Get tag name
         run: |
+          cd godot_openvr
           echo "GITHUB_SHA_SHORT=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         if: startsWith(github.ref, 'refs/tags')
       - name: Clean up extracted files
         run: |
           rm -rf build-files-linux
-          rm -rf build-files-macos
+          #rm -rf build-files-macos
           rm -rf build-files-windows
           rm -rf godot_openvr
-          rm .gitignore
-          rm .gitattributes
-          rm -rf .git
+          mv godot_openvr_plugin godot_openvr_${{ env.GITHUB_SHA_SHORT }}
       - name: Zip asset
         run: |
           zip -qq -r godot-openvr.zip .
