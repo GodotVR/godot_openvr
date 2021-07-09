@@ -6,6 +6,9 @@
 *.lib
 *.obj
 *.TMP
+*.dll
+*.so
+*.dylib
 .DS_Store
 logs
 Thumbs.db
