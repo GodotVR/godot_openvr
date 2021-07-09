@@ -6,13 +6,12 @@
 
 #include "openvr_data.h"
 #include <ARVRServer.hpp>
-#include <Reference.hpp>
 #include <PoolArrays.hpp>
+#include <Reference.hpp>
 #include <String.hpp>
 #include <Transform.hpp>
 
 namespace godot {
-
 class OpenVRConfig : public Reference {
 	GODOT_CLASS(OpenVRConfig, Reference)
 
@@ -48,7 +47,6 @@ public:
 	float get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index);
 	bool is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index);
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_CONFIG_H */

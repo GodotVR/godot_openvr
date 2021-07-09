@@ -65,7 +65,7 @@ if env['platform'] == 'windows':
             env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         else:
             env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
-    
+
     openvr_dll_target = env['target_path'] + "openvr_api.dll"
     openvr_dll_source = env['openvr_path'] + "bin/win" + str(env['bits']) + "/openvr_api.dll"
 
@@ -106,11 +106,11 @@ else:
 
 godot_cpp_library += '.' + str(env['bits'])
 
-# Update our include search path 
+# Update our include search path
 env.Append(CPPPATH=[
-    '.', 
-    'src/', 
-    'src/open_vr/', 
+    '.',
+    'src/',
+    'src/open_vr/',
     godot_headers_path,
     godot_cpp_path + 'include/',
     godot_cpp_path + 'include/core/',

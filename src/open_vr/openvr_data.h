@@ -196,7 +196,6 @@ public:
 	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);
 	bool is_action_set_active(const godot::String p_action_set) const;
 
-
 	int register_custom_action(const godot::String p_action);
 	vr::VRActionHandle_t get_custom_handle(int p_action_idx);
 	bool get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand = 0);

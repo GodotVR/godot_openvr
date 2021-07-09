@@ -10,7 +10,6 @@
 #include <String.hpp>
 
 namespace godot {
-
 class OpenVRPose : public Spatial {
 	GODOT_CLASS(OpenVRPose, Spatial)
 
@@ -40,7 +39,6 @@ public:
 	int get_on_hand() const;
 	void set_on_hand(int p_hand);
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_POSE_H */

@@ -9,7 +9,6 @@
 #include <String.hpp>
 
 namespace godot {
-
 class OpenVRHaptics : public Spatial {
 	GODOT_CLASS(OpenVRHaptics, Spatial)
 
@@ -41,7 +40,6 @@ public:
 
 	void trigger_pulse();
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_HAPTICS_H */

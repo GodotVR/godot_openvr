@@ -96,14 +96,14 @@ OpenVR from version 1.6 onwards is able to support the HDR render buffers Godot 
 
 OpenVR however expects the color buffer to contain color values in linear color space, its build in sRGB support only works for 8bit color buffers. Godot performs all 3D color calculations in linear color space but will do a final conversion to sRGB during post processing. The result is that everything inside of the headset will look far too bright.
 
-You can work around this by turning `keep_3d_linear` on for our viewport, this will skip the sRGB conversion and result the display inside of the headset to be correct however the output to screen will be too dark. We'll be looking at an interim solution for this soon however a full solution will likely not become available until after Godots rewrite to Vulkan. 
+You can work around this by turning `keep_3d_linear` on for our viewport, this will skip the sRGB conversion and result the display inside of the headset to be correct however the output to screen will be too dark. We'll be looking at an interim solution for this soon however a full solution will likely not become available until after Godots rewrite to Vulkan.
 
 ```
 func _ready():
-    var interface = ARVRServer.find_interface("OpenVR")
-    if interface and interface.initialize():
-        get_viewport().arvr = true
-        get_viewport().keep_3d_linear = true
+	var interface = ARVRServer.find_interface("OpenVR")
+	if interface and interface.initialize():
+		get_viewport().arvr = true
+		get_viewport().keep_3d_linear = true
 ```
 
 Shader hickup
@@ -112,7 +112,7 @@ There are a few moment where OpenVR has a hickup.
 
 One is around the teleporter function which can be solved by adding the `VR_Common_Shader_Cache.tscn` as a child scene to our ARVRCamera. `ovr_first_person.tscn` does this.
 
-For the controllers they use a standard material. Adding a mesh instance with a standard material will ensure the shader is pre-compiled. Again we do this in `ovr_first_person.tscn`. 
+For the controllers they use a standard material. Adding a mesh instance with a standard material will ensure the shader is pre-compiled. Again we do this in `ovr_first_person.tscn`.
 
 However there is still an issue with loading the texture. We need to redo loading of the controller mesh by handing it off to a separate thread.
 
@@ -137,7 +137,7 @@ if interface and interface.initialize():
 
 	# make sure vsync is disabled or we'll be limited to 60fps
 	OS.vsync_enabled = false
-	
+
 	# up our physics to 90fps to get in sync with our rendering
 	Engine.iterations_per_second = 90
 ```
@@ -160,7 +160,7 @@ if interface:
 
 	# make sure vsync is disabled or we'll be limited to 60fps
 	OS.vsync_enabled = false
-	
+
 	# up our physics to 90fps to get in sync with our rendering
 	Engine.iterations_per_second = 90
 ```
@@ -168,7 +168,7 @@ if interface:
 License
 -------
 Note that the source in this repository is licensed by the MIT license model.
-This covers only the source code in this repository. 
+This covers only the source code in this repository.
 
 Both Godot and OpenVR have their own license requirements.
 See their respective git repositories for more details.
