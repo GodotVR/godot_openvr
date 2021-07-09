@@ -319,7 +319,6 @@ void godot_arvr_destructor(void *p_data) {
 // Return a texture ID for the eye if we manage the final
 // output buffer.
 int godot_arvr_get_external_texture_for_eye(void *p_data, int p_eye) {
-
 	return 0;
 }
 
@@ -333,14 +332,12 @@ void godot_arvr_notification(void *p_data, int p_what) {
 // Return the camera feed that should be used for our background
 // when we're dealing with AR.
 int godot_arvr_get_camera_feed_id(void *) {
-
 	return 0;
 }
 
 ////////////////////////////////////////////////////////////////
 // Return a texture ID for the eye if we manage the depth buffer
 int godot_arvr_get_external_depth_for_eye(void *p_data, int p_eye) {
-
 	return 0;
 }
 

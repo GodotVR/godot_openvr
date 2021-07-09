@@ -12,7 +12,6 @@
 #include <stdlib.h>
 
 namespace godot {
-
 class OpenVRSkeleton : public Skeleton {
 	GODOT_CLASS(OpenVRSkeleton, Skeleton)
 
@@ -61,7 +60,6 @@ public:
 
 	bool get_is_active() const;
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_SKELETON_H */

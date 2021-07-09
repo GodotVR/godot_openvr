@@ -176,7 +176,7 @@ bool openvr_data::initialise() {
 	if (success) {
 		godot::OS *os = godot::OS::get_singleton();
 		godot::Directory *directory = godot::Directory::_new();
-		godot::String exec_path = os->get_executable_path().get_base_dir().replace("\\","/");
+		godot::String exec_path = os->get_executable_path().get_base_dir().replace("\\", "/");
 		godot::String manifest_path;
 
 		Godot::print(godot::String("Exec path: ") + exec_path);
@@ -559,7 +559,7 @@ void openvr_data::set_active_action_set(const String p_action_set) {
 	}
 
 	// couldn't find it?? Make our default active
-	if (found == true) {
+	if (found) {
 		if (action_sets.size() > 0) {
 			action_sets[0].is_active = true;
 		}
@@ -574,7 +574,7 @@ void openvr_data::toggle_action_set_active(const String p_action_set, const bool
 			// found it!
 			if (action_sets[i].is_active != p_is_active) {
 				action_sets[i].is_active = p_is_active;
-				if (p_is_active == true) {
+				if (p_is_active) {
 					active_action_set_count++;
 				} else {
 					active_action_set_count--;

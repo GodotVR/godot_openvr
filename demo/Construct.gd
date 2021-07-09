@@ -4,7 +4,7 @@ extends Node2D
 # OpenVR wants a buffer without this conversion applied and leave the color in linear color space.
 # As a result we've turned off our sRGB conversion on our viewport.
 # To output with the correct colors to screen we output our VR preview using a TextureRect
-# with a linear to sRGB conversion shader. 
+# with a linear to sRGB conversion shader.
 
 func on_window_size_change():
 	$TextureRect.rect_size = OS.window_size
@@ -12,7 +12,7 @@ func on_window_size_change():
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	$TextureRect.texture = $Viewport.get_texture()
-	
+
 	get_tree().get_root().connect("size_changed", self, "on_window_size_change")
 	on_window_size_change();
 

@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace godot {
-
 class OpenVRController : public ARVRController {
 	GODOT_CLASS(OpenVRController, ARVRController)
 
@@ -43,7 +42,6 @@ public:
 	Vector2 get_analog(String p_action);
 	void trigger_haptic(String p_action, float p_duration, float p_frequency, float p_amplitude);
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_CONTROLLER_H */

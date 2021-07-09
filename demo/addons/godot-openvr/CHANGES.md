@@ -4,15 +4,16 @@ Changes to the Godot OpenVR asset
 Note, version numbers listed here are the version number assigned to the asset. Each time a new version is uploaded to the asset store we will increase the version number.
 More frequent updates may be available on the source repository.
 
-1.1.0 - In progress
+1.1.0 - 9 July 2021
 -------------------
 - Build for Godot 3.3
 - Now using OpenVR 1.16.8 (drops MacOS support)
 - Added support for actions
 - Added support for request play area
 - Added skeleton support (finger tracking)
+- Added support for querying battery state of devices
 
-1.0.5 - 1 March 2019
+1.0.5 - 1 March 2020
 --------------------
 - Now using OpenVR 1.9.16
 - Added support for overlays

@@ -9,7 +9,6 @@
 #include <Godot.hpp>
 
 namespace godot {
-
 class OpenVRRenderModel : public ArrayMesh {
 	GODOT_CLASS(OpenVRRenderModel, ArrayMesh)
 
@@ -27,7 +26,6 @@ public:
 	Array model_names();
 	bool load_model(String p_model_name);
 };
-
 } // namespace godot
 
 #endif /* !OPENVR_RENDER_MODEL_H */
