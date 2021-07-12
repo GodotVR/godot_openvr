@@ -8,15 +8,10 @@
 
 config_version=4
 
-_global_script_classes=[  ]
-_global_script_class_icons={
-
-}
-
 [application]
 
 config/name="OpenVR demo"
-run/main_scene="res://Construct.tscn"
+run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
 [display]
@@ -27,18 +22,19 @@ window/vsync/use_vsync=false
 
 [editor_plugins]
 
-enabled=PoolStringArray( "godot-openvr" )
+enabled=PackedStringArray()
 
 [gdnative]
 
-singletons=[ "res://addons/godot-openvr/godot_openvr.gdnlib" ]
+singletons=["res://addons/godot-openvr/godot_openvr.gdnlib"]
 
 [layer_names]
 
-3d_physics/layer_1="Player"
-3d_physics/layer_2="Environment"
-3d_physics/layer_3="Objects"
-3d_physics/layer_11="Picked up"
+3d_physics/layer_0="Player"
+3d_physics/layer_1="Environment"
+3d_physics/layer_2="Objects"
+3d_physics/layer_10="Picked up"
+3d_physics/layer_11="Pointer"
 
 [physics]
 
@@ -46,5 +42,7 @@ common/physics_fps=90
 
 [rendering]
 
+vulkan/rendering/back_end=1
+xr/enabled=true
 quality/filters/msaa=1
 environment/default_environment="res://default_env.tres"

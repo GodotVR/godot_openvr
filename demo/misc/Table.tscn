@@ -3,49 +3,56 @@
 [ext_resource path="res://assets/texturehaven.com/green_metal_rust/green_metal_rust.tres" type="Material" id=1]
 [ext_resource path="res://assets/texturehaven.com/brown_planks_03/brown_planks_03.tres" type="Material" id=2]
 
-[sub_resource type="CubeMesh" id=1]
+[sub_resource type="BoxMesh" id=1]
 resource_name = "Leg"
 material = ExtResource( 2 )
-size = Vector3( 0.2, 1, 0.2 )
+size = Vector3(0.2, 0.5, 0.2)
 
-[sub_resource type="CubeMesh" id=2]
+[sub_resource type="BoxMesh" id=2]
 material = ExtResource( 1 )
-size = Vector3( 2.2, 0.1, 1.2 )
+size = Vector3(1.8, 0.1, 0.6)
 
-[sub_resource type="BoxShape" id=3]
+[sub_resource type="BoxShape3D" id=3]
 margin = 0.01
-extents = Vector3( 1.10056, 0.0498772, 0.598527 )
+size = Vector3(1.8, 0.1, 0.6)
 
-[node name="Table" type="StaticBody"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6 )
+[node name="Table" type="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -6)
 collision_layer = 2
 collision_mask = 0
+script = null
 
-[node name="Leg1" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.5, 0.5 )
+[node name="Leg1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.25, 0.2)
 mesh = SubResource( 1 )
-material/0 = null
+surface_material_override/0 = null
+script = null
 
-[node name="Leg2" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.5, 0.5 )
+[node name="Leg2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.25, 0.2)
 mesh = SubResource( 1 )
-material/0 = null
+surface_material_override/0 = null
+script = null
 
-[node name="Leg3" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0.5, -0.5 )
+[node name="Leg3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 0.25, -0.2)
 mesh = SubResource( 1 )
-material/0 = null
+surface_material_override/0 = null
+script = null
 
-[node name="Leg4" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.5, -0.5 )
+[node name="Leg4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 0.25, -0.2)
 mesh = SubResource( 1 )
-material/0 = null
+surface_material_override/0 = null
+script = null
 
-[node name="Surface" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0 )
+[node name="Surface" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 mesh = SubResource( 2 )
-material/0 = null
+surface_material_override/0 = null
+script = null
 
-[node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.04947, 0 )
+[node name="CollisionShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 shape = SubResource( 3 )
+script = null

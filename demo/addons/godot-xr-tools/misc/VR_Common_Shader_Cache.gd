@@ -1,4 +1,6 @@
-extends Spatial
+extends Node3D
+
+signal cooldown_finished
 
 var countdown = 2
 
@@ -8,3 +10,4 @@ func _process(delta):
 	if countdown == 0:
 		visible = false
 		set_process(false)
+		emit_signal("cooldown_finished")

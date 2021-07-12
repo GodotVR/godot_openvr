@@ -5,12 +5,12 @@
 #define OPENVR_HAPTICS_H
 
 #include "openvr_data.h"
-#include <Spatial.hpp>
+#include <Node3D.hpp>
 #include <String.hpp>
 
 namespace godot {
-class OpenVRHaptics : public Spatial {
-	GODOT_CLASS(OpenVRHaptics, Spatial)
+class OpenVRHaptics : public Node3D {
+	GODOT_CLASS(OpenVRHaptics, Node3D)
 
 private:
 	openvr_data *ovr;

@@ -2,6 +2,7 @@
 // GDNative module that exposes some OpenVR module options to Godot
 
 #include "OpenVRConfig.h"
+#include "Utilities.hpp"
 
 using namespace godot;
 
@@ -36,7 +37,7 @@ void OpenVRConfig::_init() {
 
 OpenVRConfig::OpenVRConfig() {
 	ovr = openvr_data::retain_singleton();
-	server = ARVRServer::get_singleton();
+	server = XRServer::get_singleton();
 }
 
 OpenVRConfig::~OpenVRConfig() {
@@ -90,20 +91,16 @@ bool OpenVRConfig::play_area_available() const {
 	return ovr->play_area_available();
 }
 
-PoolVector3Array OpenVRConfig::get_play_area() const {
+PackedVector3Array OpenVRConfig::get_play_area() const {
 	const Vector3 *play_area = ovr->get_play_area();
-	Transform reference = server->get_reference_frame();
+	Transform3D reference = server->get_reference_frame();
 	float ws = server->get_world_scale();
 
-	PoolVector3Array arr;
+	PackedVector3Array arr;
 	arr.resize(4);
 
-	{
-		PoolVector3Array::Write w = arr.write();
-
-		for (int i = 0; i < 4; i++) {
-			w[i] = reference.xform_inv(play_area[i]) * ws;
-		}
+	for (int i = 0; i < 4; i++) {
+		arr[i] = reference.xform_inv(play_area[i]) * ws;
 	}
 
 	return arr;
@@ -114,7 +111,7 @@ float OpenVRConfig::get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tra
 	float battery_percentage = ovr->hmd->GetFloatTrackedDeviceProperty(p_tracked_device_index, vr::Prop_DeviceBatteryPercentage_Float, &pError);
 
 	if (pError != vr::TrackedProp_Success) {
-		Godot::print(String("Could not get battery percentage, OpenVR error: ") + String::num_int64(pError) + ", " + String(ovr->hmd->GetPropErrorNameFromEnum(pError)));
+		Utilities::print(String("Could not get battery percentage, OpenVR error: {0}, {1} ").format(Array::make(Variant(pError), String(ovr->hmd->GetPropErrorNameFromEnum(pError)))));
 	}
 
 	return battery_percentage;
@@ -125,7 +122,7 @@ bool OpenVRConfig::is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_
 	bool is_charging = ovr->hmd->GetBoolTrackedDeviceProperty(p_tracked_device_index, vr::Prop_DeviceIsCharging_Bool, &pError);
 
 	if (pError != vr::TrackedProp_Success) {
-		Godot::print(String("Could not get charging state, OpenVR error: ") + String::num_int64(pError) + ", " + String(ovr->hmd->GetPropErrorNameFromEnum(pError)));
+		Utilities::print(String("Could not get charging state, OpenVR error: {0}, {1} ").format(Array::make(Variant(pError), String(ovr->hmd->GetPropErrorNameFromEnum(pError)))));
 	}
 
 	return is_charging;

@@ -13,11 +13,12 @@
 #include <ImageTexture.hpp>
 #include <OS.hpp>
 #include <ProjectSettings.hpp>
-#include <Quat.hpp>
+#include <Quaternion.hpp>
 #include <Rect2.hpp>
 #include <Ref.hpp>
-#include <SpatialMaterial.hpp>
+#include <StandardMaterial3D.hpp>
 #include <String.hpp>
+#include <Transform3D.hpp>
 #include <Vector2.hpp>
 #include <Vector3.hpp>
 
@@ -120,7 +121,7 @@ private:
 	void detach_device(uint32_t p_device_index);
 	void process_device_actions(tracked_device *p_device, uint64_t p_msec);
 
-	godot_transform hmd_transform;
+	godot::Transform3D hmd_transform;
 
 	// custom actions
 	struct custom_action {
@@ -149,12 +150,12 @@ private:
 	struct texture_material {
 		TextureType type;
 		vr::TextureID_t texture_id;
-		godot::Ref<godot::SpatialMaterial> material;
+		godot::Ref<godot::StandardMaterial3D> material;
 	};
 
 	std::vector<texture_material> load_textures;
 
-	void load_texture(TextureType p_type, vr::TextureID_t p_texture_id, godot::Ref<godot::SpatialMaterial> p_material);
+	void load_texture(TextureType p_type, vr::TextureID_t p_texture_id, godot::Ref<godot::StandardMaterial3D> p_material);
 	bool _load_texture(texture_material *p_texture);
 
 public:
@@ -185,12 +186,12 @@ public:
 
 	// interact with openvr
 	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);
-	void get_eye_to_head_transform(godot_transform *p_transform, int p_eye, float p_world_scale = 1.0);
+	godot::Transform3D get_eye_to_head_transform(int p_eye, float p_world_scale = 1.0);
 
 	// interact with tracking info
 	godot::String get_default_action_set() const;
 	void set_default_action_set(const godot::String p_name);
-	const godot_transform *get_hmd_transform() const;
+	const godot::Transform3D get_hmd_transform() const;
 	int register_action_set(const godot::String p_action_set);
 	void set_active_action_set(const godot::String p_action_set);
 	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);
@@ -212,9 +213,10 @@ public:
 	void remove_mesh(godot::ArrayMesh *p_mesh);
 
 	// helper functions
-	void transform_from_matrix(godot_transform *p_dest, vr::HmdMatrix34_t *p_matrix, godot_real p_world_scale);
-	void matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_transform *p_transform, godot_real p_world_scale);
-	void transform_from_bone(godot::Transform &p_transform, const vr::VRBoneTransform_t *p_bone_transform);
+	godot::Transform3D transform_from_matrix(vr::HmdMatrix34_t *p_matrix, godot_float p_world_scale);
+	void transform_from_matrix(godot_transform3d *p_dest, vr::HmdMatrix34_t *p_matrix, godot_float p_world_scale);
+	void matrix_from_transform(vr::HmdMatrix34_t *p_matrix, godot_transform3d *p_transform, godot_float p_world_scale);
+	void transform_from_bone(godot::Transform3D &p_transform, const vr::VRBoneTransform_t *p_bone_transform);
 };
 
 #endif /* !OPENVR_DATA_H */

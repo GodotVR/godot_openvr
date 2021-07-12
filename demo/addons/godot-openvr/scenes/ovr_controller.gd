@@ -1,16 +1,14 @@
-extends ARVRController
+extends XRController3D
 
 signal controller_activated(controller)
 
-export var show_controller_mesh = true setget set_show_controller_mesh, get_show_controller_mesh
-
-func set_show_controller_mesh(p_show):
-	show_controller_mesh = p_show
-	if $OVRRenderModel:
-		$OVRRenderModel.visible = p_show
-
-func get_show_controller_mesh():
-	return show_controller_mesh
+@export var show_controller_mesh = true:
+	set(p_show):
+		show_controller_mesh = p_show
+		if $OVRRenderModel:
+			$OVRRenderModel.visible = p_show
+	get:
+		return show_controller_mesh
 
 func _ready():
 	# set our starting vaule

@@ -17,7 +17,7 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             platform: linux
           - os: windows-latest
             platform: windows
@@ -34,7 +34,7 @@ jobs:
     - name: Install scons (Ubuntu)
       run: |
         sudo apt install scons
-      if: matrix.os == 'ubuntu-18.04'
+      if: matrix.os == 'ubuntu-20.04'
 
     - name: Install scons (Windows)
       run: |
@@ -77,7 +77,7 @@ jobs:
         path: |
           demo/addons/godot-openvr/bin/x11/libgodot_openvr.so
           openvr/bin/linux64/libopenvr_api.so
-      if: matrix.os == 'ubuntu-18.04'
+      if: matrix.os == 'ubuntu-20.04'
 
     # - name: Upload build files (artifacts) (macOS)    
     #   uses: actions/upload-artifact@v2
@@ -99,7 +99,7 @@ jobs:
   # This job collects the build output and assembles the final asset (artifact)
   asset:
     name: Assembling the asset (artifact)
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
 

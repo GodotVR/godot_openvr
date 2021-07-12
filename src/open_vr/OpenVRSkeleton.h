@@ -5,15 +5,15 @@
 #define OPENVR_SKELETON_H
 
 #include "openvr_data.h"
-#include <Skeleton.hpp>
+#include <Skeleton3D.hpp>
 #include <String.hpp>
-#include <Transform.hpp>
+#include <Transform3D.hpp>
 
 #include <stdlib.h>
 
 namespace godot {
-class OpenVRSkeleton : public Skeleton {
-	GODOT_CLASS(OpenVRSkeleton, Skeleton)
+class OpenVRSkeleton : public Skeleton3D {
+	GODOT_CLASS(OpenVRSkeleton, Skeleton3D)
 
 private:
 	openvr_data *ovr;
@@ -28,8 +28,8 @@ private:
 	struct bone {
 		vr::BoneIndex_t parent;
 		char name[256];
-		Transform rest_transform;
-		Transform pose_transform;
+		Transform3D rest_transform;
+		Transform3D pose_transform;
 	};
 
 	vr::EVRSkeletalTransformSpace transform_space;

@@ -1,11 +1,11 @@
-extends MeshInstance
+extends MeshInstance3D
 
 var ovr_render_model
 var ws = 0
 var controller_is_loaded = false
 
 func apply_world_scale():
-	var new_ws = ARVRServer.world_scale
+	var new_ws = XRServer.world_scale
 	if (ws != new_ws):
 		ws = new_ws
 		scale = Vector3(ws, ws, ws)
@@ -28,8 +28,8 @@ func _ready():
 	controller_is_loaded = false
 
 func _process(delta):
-	var controller = get_parent();
-	if !controller is ARVRController:
+	var controller : XRController3D = get_parent();
+	if !controller:
 		return
 	
 	if !controller.get_is_active():

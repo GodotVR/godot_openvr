@@ -1,27 +1,32 @@
 extends Node
 
-export var is_active = true
-export var haptic_action = "/actions/godot/out/haptic" setget set_haptic
-export (int, "any", "left", "right") var on_hand = 0 setget set_on_hand
+@export var is_active: bool = true
+@export var haptic_action: String = "/actions/godot/out/haptic":
+	set(new_value):
+		haptic_action = new_value
+		_update_haptic()
+
+@export_enum("any", "left", "right") var on_hand : int = 0:
+	set(new_value):
+		on_hand = new_value
+		_update_on_hand()
 
 var was_active = false
 var was_colliding = false
 
-func set_haptic(new_action):
-	haptic_action = new_action
+func _update_haptic():
 	if $Haptic:
 		$Haptic.action = haptic_action
 
-func set_on_hand(new_on_hand):
-	on_hand = new_on_hand
+func _update_on_hand():
 	if $Haptic:
 		$Haptic.on_hand = on_hand
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# When this is called with our default value our haptic node wasn't ready yet so we set it to itself
-	set_haptic(haptic_action)
-	set_on_hand(on_hand)
+	_update_haptic()
+	_update_on_hand()
 
 func _process(delta):
 	var parent = get_parent()

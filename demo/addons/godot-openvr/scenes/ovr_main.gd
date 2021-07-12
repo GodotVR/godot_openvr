@@ -1,6 +1,6 @@
-extends ARVROrigin
+extends XROrigin3D
 
-# Add this script to your ARVROrigin node and it will initialise OpenVR for you automatically.
+# Add this script to your XROrigin3D node and it will initialise OpenVR for you automatically.
 
 # Our plugin will now use the first actions.json found in the following locations
 # 1) in the actions folder alongside the executable
@@ -10,15 +10,15 @@ extends ARVROrigin
 
 # The plugin always registers atleast one action set.
 # If you have renamed this action set you can specify the name here
-export (String) var default_action_set = "/actions/godot"
+@export var default_action_set : String = "/actions/godot"
 
 # If we render to a custom viewport give our node path here.
-export (NodePath) var viewport = null
+@export var viewport : NodePath
 
 # Convenience setting for setting physics update rate to a multiple of our HMDs frame rate (set to 0 to ignore)
-export var physics_factor = 2
+@export var physics_factor : float = 2
 
-var arvr_interface : ARVRInterface = null
+var arvr_interface : XRInterface = null
 var openvr_config = null
 
 func get_openvr_config():
@@ -34,7 +34,7 @@ func _ready():
 		openvr_config.default_action_set = default_action_set
 
 	# Find the interface and initialise
-	arvr_interface = ARVRServer.find_interface("OpenVR")
+	arvr_interface = XRServer.find_interface("OpenVR")
 	if arvr_interface and arvr_interface.initialize():
 		# We can't query our HMDs refresh rate just yet so we hardcode this to 90
 		var refresh_rate = 90
@@ -54,13 +54,10 @@ func _ready():
 			vp = get_viewport()
 		
 		# switch to ARVR mode
-		vp.arvr = true
-		
-		# keep linear color space, not needed and thus ignored with the GLES2 renderer
-		vp.keep_3d_linear = true
+		vp.use_xr = true
 		
 		# make sure vsync is disabled or we'll be limited to 60fps
-		OS.vsync_enabled = false
+		# OS.vsync_enabled = false
 		
 		if physics_factor > 0:
 			# Set our physics to a multiple of our refresh rate to get in sync with our rendering
