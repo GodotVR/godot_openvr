@@ -1,5 +1,7 @@
 extends Node3D
 
+class_name OVRShaderCache
+
 var countdown = 2
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

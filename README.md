@@ -1,6 +1,6 @@
-# GDNative based OpenVR plugin for Godot
+# GDExtension based OpenVR plugin for Godot
 
-This is a GDNative based plugin that adds OpenVR support to Godot.
+This is a GDExtension based plugin that adds OpenVR support to Godot.
 
 The leading version of this repository now lives at:
 https://github.com/GodotVR/godot_openvr
@@ -36,6 +36,13 @@ OpenVR is a git repository maintained by Valve that contains the OpenVR SDK used
 
 Alternatively you can use the switch openvr to the location where you have downloaded a copy of this SDK by adding `openvr_path=<path>` when running scons.
 
+Updating extensions
+-------------------
+
+As extensions are still being worked on you may need to run the following command on your build of Godot:
+`godot --dump-extension-api extension_api.json`
+And then copy the extension_api.json file into `godot-cpp/godot-headers` before compiling godot-cpp.
+
 Compiling
 ---------
 Scons is used for compiling this module. I made the assumption that scons is installed as it is also used as the build mechanism for Godot and if you are building from source you will likely need to build Godot as well.
@@ -53,6 +60,8 @@ scons platform=windows target=release
 ```
 
 Platform can be windows, linux or osx. OSX is untested.
+
+Note that for extensions the dll needs to be compiled with `target=release_debug` when used with the editor.
 
 Deploying
 ---------

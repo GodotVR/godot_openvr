@@ -1,0 +1,15 @@
+[configuration]
+
+entry_symbol = "openvr_library_init"
+
+[libraries]
+
+x11.64="res://addons/godot-openvr/bin/x11/libgodot_openvr.so"
+windows.64="res://addons/godot-openvr/bin/win64/libgodot_openvr.dll"
+osx.64="res://addons/godot-openvr/bin/osx/libgodot_openvr.dylib"
+
+[dependencies]
+
+x11.64=[ "res://addons/godot-openvr/bin/x11/libopenvr_api.so" ]
+windows.64=[ "res://addons/godot-openvr/bin/win64/openvr_api.dll" ]
+osx.64=[ "res://addons/godot-openvr/bin/osx/OpenVR.framework" ]

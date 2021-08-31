@@ -5,12 +5,12 @@
 #define OPENVR_HAPTICS_H
 
 #include "openvr_data.h"
-#include <Node3D.hpp>
-#include <String.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 namespace godot {
 class OpenVRHaptics : public Node3D {
-	GODOT_CLASS(OpenVRHaptics, Node3D)
+	GDCLASS(OpenVRHaptics, Node3D)
 
 private:
 	openvr_data *ovr;
@@ -24,11 +24,10 @@ private:
 	float frequency;
 	float amplitude;
 
+protected:
+	static void _bind_methods();
+
 public:
-	static void _register_methods();
-
-	void _init();
-
 	OpenVRHaptics();
 	~OpenVRHaptics();
 
@@ -37,6 +36,15 @@ public:
 
 	int get_on_hand() const;
 	void set_on_hand(int p_hand);
+
+	float get_duration() const;
+	void set_duration(const float p_duration);
+
+	float get_frequency() const;
+	void set_frequency(const float p_frequency);
+
+	float get_amplitude() const;
+	void set_amplitude(const float p_amplitude);
 
 	void trigger_pulse();
 };

@@ -5,15 +5,15 @@
 #define OPENVR_CONTROLLER_H
 
 #include "openvr_data.h"
-#include <PackedStringArray.hpp>
-#include <String.hpp>
-#include <XRController3D.hpp>
+#include <godot_cpp/classes/xr_controller3d.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 #include <vector>
 
 namespace godot {
 class OpenVRController : public XRController3D {
-	GODOT_CLASS(OpenVRController, XRController3D)
+	GDCLASS(OpenVRController, XRController3D)
 
 private:
 	openvr_data *ovr;
@@ -27,11 +27,10 @@ private:
 	std::vector<input_action> button_actions;
 
 protected:
-public:
-	static void _register_methods();
+	static void _bind_methods();
 
-	void _init();
-	void _process(float delta);
+public:
+	virtual void _process(double delta) override;
 
 	OpenVRController();
 	~OpenVRController();

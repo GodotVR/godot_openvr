@@ -2,6 +2,7 @@
 
 importer="texture"
 type="StreamTexture2D"
+uid="uid://qg5scypev53b"
 path.s3tc="res://.godot/imported/green_grid.png-e9d81b3d42c428786d9997769a6729a2.s3tc.stex"
 path.etc2="res://.godot/imported/green_grid.png-e9d81b3d42c428786d9997769a6729a2.etc2.stex"
 metadata={

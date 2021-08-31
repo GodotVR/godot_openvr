@@ -5,13 +5,13 @@
 #define OPENVR_ACTION_H
 
 #include "openvr_data.h"
-#include <Dictionary.hpp>
-#include <Node3D.hpp>
-#include <String.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 namespace godot {
 class OpenVRAction : public Node3D {
-	GODOT_CLASS(OpenVRAction, Node3D)
+	GDCLASS(OpenVRAction, Node3D)
 
 private:
 	openvr_data *ovr;
@@ -24,13 +24,13 @@ private:
 	int analog_action_idx;
 	Vector2 analog;
 
-	int on_hand;
+	GDNativeInt on_hand;
+
+protected:
+	static void _bind_methods();
 
 public:
-	static void _register_methods();
-
-	void _init();
-	void _process(float delta);
+	virtual void _process(double delta) override;
 
 	OpenVRAction();
 	~OpenVRAction();
@@ -43,8 +43,8 @@ public:
 	void set_analog_action(const String p_action);
 	Vector2 get_analog() const;
 
-	int get_on_hand() const;
-	void set_on_hand(int p_hand);
+	GDNativeInt get_on_hand() const;
+	void set_on_hand(const GDNativeInt p_hand);
 };
 } // namespace godot
 

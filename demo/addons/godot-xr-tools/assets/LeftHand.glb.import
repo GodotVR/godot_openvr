@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
+uid="uid://cg3px7tvpwehi"
 path="res://.godot/imported/LeftHand.glb-7a289350d7a0389e0068af98c6813b91.scn"
 
 [deps]
 
 source_file="res://addons/godot-xr-tools/assets/LeftHand.glb"
-dest_files=[ "res://.godot/imported/LeftHand.glb-7a289350d7a0389e0068af98c6813b91.scn" ]
+dest_files=["res://.godot/imported/LeftHand.glb-7a289350d7a0389e0068af98c6813b91.scn"]
 
 [params]
 
@@ -22,6 +23,7 @@ meshes/light_baking=0
 meshes/lightmap_texel_size=0.1
 skins/use_named_skins=true
 animation/import=true
+animation/bake_reset_animation=true
 animation/fps=15
 import_script/path=""
 _subresources={

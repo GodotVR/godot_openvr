@@ -53,18 +53,24 @@ if env['platform'] == 'windows':
         # that way you can run scons in a vs 2017 prompt and it will find all the required tools
         env.Append(ENV = os.environ)
 
-        env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
+        env.Append(CPPDEFINES=["WIN32", "_WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS", "TYPED_METHOD_BIND"])
+        env.Append(CCFLAGS=["-W3", "-GR"])
+        env.Append(CXXFLAGS=["-std:c++17"])
         if env['target'] in ('debug', 'd'):
-            env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd', '-Zi', '-FS'])
-            env.Append(LINKFLAGS = ['-DEBUG:FULL'])
+            env.Append(CPPDEFINES=["_DEBUG"])
+            env.Append(CCFLAGS = ['-EHsc', '-MDd', '-ZI', '-FS'])
+            env.Append(LINKFLAGS = ['-DEBUG'])
         else:
             env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
-    # untested
     else:
+        # untested
+        env.Append(CPPDEFINES=["WIN32", "_WIN32", "_WINDOWS", "_CRT_SECURE_NO_WARNINGS"])
+        env.Append(CCFLAGS=["-W3", "-GR"])
+        env.Append(CXXFLAGS=["-std:c++17"])
         if env['target'] in ('debug', 'd'):
-            env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
+            env.Append(CCFLAGS = ['-fPIC', '-g3','-Og'])
         else:
-            env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
+            env.Append(CCFLAGS = ['-fPIC', '-g','-O3'])
 
     openvr_dll_target = env['target_path'] + "openvr_api.dll"
     openvr_dll_source = env['openvr_path'] + "bin/win" + str(env['bits']) + "/openvr_api.dll"
@@ -101,6 +107,7 @@ elif env['platform'] in ('x11', 'linux'):
 # Complete godot-cpp library path
 if env['target'] in ('debug', 'd'):
     godot_cpp_library += '.debug'
+    env.Append(CPPDEFINES=["DEBUG_ENABLED", "DEBUG_METHODS_ENABLED"])
 else:
     godot_cpp_library += '.release'
 
@@ -113,8 +120,7 @@ env.Append(CPPPATH=[
     'src/open_vr/',
     godot_headers_path,
     godot_cpp_path + 'include/',
-    godot_cpp_path + 'include/core/',
-    godot_cpp_path + 'include/gen/',
+    godot_cpp_path + 'gen/include/',
     env['openvr_path'] + 'headers/'])
 
 # Add our godot-cpp library

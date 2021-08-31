@@ -1,4 +1,4 @@
-tool
+@tool
 extends EditorPlugin
 
 var export_plugin

@@ -2,17 +2,18 @@
 
 importer="texture"
 type="StreamTexture2D"
+uid="uid://csp6exku2abeh"
 path.s3tc="res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.s3tc.stex"
 path.etc2="res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.etc2.stex"
 metadata={
-"imported_formats": [ "s3tc", "etc2" ],
+"imported_formats": ["s3tc", "etc2"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://addons/godot-openvr/meshes/hands_normal.png"
-dest_files=[ "res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.s3tc.stex", "res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.etc2.stex" ]
+dest_files=["res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.s3tc.stex", "res://.godot/imported/hands_normal.png-eab7a86e959f13e1294e8f67904a8873.etc2.stex"]
 
 [params]
 
@@ -29,7 +30,7 @@ roughness/mode=0
 roughness/src_normal=""
 process/fix_alpha_border=true
 process/premult_alpha=false
-process/invert_color=false
+process/normal_map_invert_y=false
 process/HDR_as_SRGB=false
 process/size_limit=0
 detect_3d/compress_to=0

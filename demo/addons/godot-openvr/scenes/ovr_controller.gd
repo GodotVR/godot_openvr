@@ -1,5 +1,7 @@
 extends XRController3D
 
+class_name OVRController3D
+
 signal controller_activated(controller)
 
 @export var show_controller_mesh = true:

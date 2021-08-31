@@ -15,17 +15,17 @@ func _process(delta):
 	var new_reference = XRServer.get_reference_frame()
 	
 	if ws!=new_ws or reference!=new_reference:
-		var openvr_config = get_parent().get_openvr_config()
-		if !openvr_config:
+		var xr_interface = get_parent().get_xr_interface()
+		if !xr_interface:
 			# can't update this yet
 			return
 		
-		if !openvr_config.play_area_available():
+		if !xr_interface.play_area_available():
 			# can't update this yet
 			return
 		
 		# get our play area, ws and our reference frame have already been applied
-		var play_area = openvr_config.get_play_area()
+		var play_area = xr_interface.get_play_area()
 		var h = Vector3(0.0, height, 0.0)
 		
 		var st = SurfaceTool.new()

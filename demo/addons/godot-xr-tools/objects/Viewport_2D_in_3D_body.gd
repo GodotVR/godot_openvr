@@ -3,7 +3,7 @@ extends StaticBody3D
 @export var screen_size = Vector2(3.0, 2.0)
 @export var viewport_size = Vector2(100.0, 100.0)
 
-var vp = null
+var vp : Viewport
 var mouse_mask = 0
 
 # Called when the node enters the scene tree for the first time.

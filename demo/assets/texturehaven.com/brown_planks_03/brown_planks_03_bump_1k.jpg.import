@@ -2,6 +2,7 @@
 
 importer="texture"
 type="StreamTexture2D"
+uid="uid://r18v08n5idv2"
 path="res://.godot/imported/brown_planks_03_bump_1k.jpg-58da068964191f849af36cde0bdd167f.stex"
 metadata={
 "vram_texture": false
@@ -10,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/texturehaven.com/brown_planks_03/brown_planks_03_bump_1k.jpg"
-dest_files=[ "res://.godot/imported/brown_planks_03_bump_1k.jpg-58da068964191f849af36cde0bdd167f.stex" ]
+dest_files=["res://.godot/imported/brown_planks_03_bump_1k.jpg-58da068964191f849af36cde0bdd167f.stex"]
 
 [params]
 
@@ -27,7 +28,7 @@ roughness/mode=0
 roughness/src_normal=""
 process/fix_alpha_border=true
 process/premult_alpha=false
-process/invert_color=false
+process/normal_map_invert_y=false
 process/HDR_as_SRGB=false
 process/size_limit=0
 detect_3d/compress_to=1

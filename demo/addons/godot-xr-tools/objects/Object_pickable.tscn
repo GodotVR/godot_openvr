@@ -2,7 +2,7 @@
 
 [ext_resource path="res://addons/godot-xr-tools/objects/Object_pickable.gd" type="Script" id=1]
 
-[node name="PickableObject" type="RigidBody3D"]
+[node name="PickableObject" type="RigidDynamicBody3D"]
 collision_layer = 4
 collision_mask = 6
 script = ExtResource( 1 )

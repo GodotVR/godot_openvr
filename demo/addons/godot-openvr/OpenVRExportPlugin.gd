@@ -1,7 +1,7 @@
-tool
+@tool
 extends EditorExportPlugin
 
-func _export_begin(features: PoolStringArray, is_debug: bool, path: String, flags: int ):
+func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int ):
 	var dir = Directory.new()
 	
 	# we just want the path

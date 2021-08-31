@@ -5,25 +5,25 @@
 #define OPENVR_SKELETON_H
 
 #include "openvr_data.h"
-#include <Skeleton3D.hpp>
-#include <String.hpp>
-#include <Transform3D.hpp>
+#include <godot_cpp/classes/skeleton3d.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/transform3d.hpp>
 
 #include <stdlib.h>
 
 namespace godot {
 class OpenVRSkeleton : public Skeleton3D {
-	GODOT_CLASS(OpenVRSkeleton, Skeleton3D)
+	GDCLASS(OpenVRSkeleton, Skeleton3D)
 
 private:
-	openvr_data *ovr;
+	openvr_data *ovr = nullptr;
 
 	String action;
-	int action_idx;
+	int action_idx = -1;
 	int on_hand;
 
-	bool is_active;
-	bool keep_bones;
+	bool is_active = false;
+	bool keep_bones = true;
 
 	struct bone {
 		vr::BoneIndex_t parent;
@@ -32,19 +32,19 @@ private:
 		Transform3D pose_transform;
 	};
 
-	vr::EVRSkeletalTransformSpace transform_space;
-	vr::EVRSkeletalMotionRange motion_range;
-	vr::EVRSkeletalReferencePose reference_pose;
+	vr::EVRSkeletalTransformSpace transform_space = vr::VRSkeletalTransformSpace_Parent;
+	vr::EVRSkeletalMotionRange motion_range = vr::VRSkeletalMotionRange_WithController;
+	vr::EVRSkeletalReferencePose reference_pose = vr::VRSkeletalReferencePose_BindPose;
 
-	uint32_t bone_count;
-	bone *bones;
+	uint32_t bone_count = 0;
+	bone *bones = nullptr;
 	void cleanup_bones();
 
-public:
-	static void _register_methods();
+protected:
+	static void _bind_methods();
 
-	void _init();
-	void _process(float delta);
+public:
+	virtual void _process(double delta) override;
 
 	OpenVRSkeleton();
 	~OpenVRSkeleton();

@@ -1,5 +1,7 @@
 extends MeshInstance3D
 
+class_name OVRRenderModel3D
+
 var ovr_render_model
 var ws = 0
 var controller_is_loaded = false
@@ -22,7 +24,7 @@ func _load_controller_mesh(controller_name):
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# instance our render model object
-	ovr_render_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
+	ovr_render_model = OpenVRRenderModel.new() 
 	
 	# we haven't loaded it
 	controller_is_loaded = false

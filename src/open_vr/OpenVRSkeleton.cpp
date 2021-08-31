@@ -1,39 +1,39 @@
 #include "OpenVRSkeleton.h"
-#include "Utilities.hpp"
+
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
+
+#include <string.h>
 
 using namespace godot;
 
-void OpenVRSkeleton::_register_methods() {
-	register_method("_process", &OpenVRSkeleton::_process);
+void OpenVRSkeleton::_bind_methods() {
+	// ClassDB::bind_method(D_METHOD("_process"), &OpenVRSkeleton::_process);
 
-	register_method("get_action", &OpenVRSkeleton::get_action);
-	register_method("set_action", &OpenVRSkeleton::set_action);
-	register_property<OpenVRSkeleton, String>("action", &OpenVRSkeleton::set_action, &OpenVRSkeleton::get_action, String());
+	ClassDB::bind_method(D_METHOD("get_action"), &OpenVRSkeleton::get_action);
+	ClassDB::bind_method(D_METHOD("set_action", "action"), &OpenVRSkeleton::set_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "action"), "set_action", "get_action");
 
-	register_method("get_keep_bones", &OpenVRSkeleton::get_keep_bones);
-	register_method("set_keep_bones", &OpenVRSkeleton::set_keep_bones);
-	register_property<OpenVRSkeleton, bool>("keep_bones", &OpenVRSkeleton::set_keep_bones, &OpenVRSkeleton::get_keep_bones, true);
+	ClassDB::bind_method(D_METHOD("get_keep_bones"), &OpenVRSkeleton::get_keep_bones);
+	ClassDB::bind_method(D_METHOD("set_keep_bones", "keep_bones"), &OpenVRSkeleton::set_keep_bones);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "keep_bones"), "set_keep_bones", "get_keep_bones");
 
-	register_method("get_motion_range", &OpenVRSkeleton::get_motion_range);
-	register_method("set_motion_range", &OpenVRSkeleton::set_motion_range);
-	register_property<OpenVRSkeleton, int>("motion_range", &OpenVRSkeleton::set_motion_range, &OpenVRSkeleton::get_motion_range, 0, GODOT_METHOD_RPC_MODE_DISABLED, GODOT_PROPERTY_USAGE_DEFAULT, GODOT_PROPERTY_HINT_ENUM, "With controller,Without controller");
+	ClassDB::bind_method(D_METHOD("get_motion_range"), &OpenVRSkeleton::get_motion_range);
+	ClassDB::bind_method(D_METHOD("set_motion_range", "motion_range"), &OpenVRSkeleton::set_motion_range);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "motion_range", PROPERTY_HINT_ENUM, "With controller,Without controller"), "set_motion_range", "get_motion_range");
 
-	register_method("is_active", &OpenVRSkeleton::get_is_active);
+	ClassDB::bind_method(D_METHOD("is_active"), &OpenVRSkeleton::get_is_active);
 }
 
 void OpenVRSkeleton::cleanup_bones() {
 	bone_count = 0;
-	if (bones != NULL) {
+	if (bones != nullptr) {
 		::free(bones);
-		bones = NULL;
+		bones = nullptr;
 	}
 }
 
-void OpenVRSkeleton::_init() {
-	// nothing to do here
-}
-
-void OpenVRSkeleton::_process(float delta) {
+void OpenVRSkeleton::_process(double delta) {
 	vr::EVRInputError err;
 	is_active = false;
 
@@ -49,7 +49,9 @@ void OpenVRSkeleton::_process(float delta) {
 		// no data yet, just exit
 		return;
 	} else if (err != vr::VRInputError_None) {
-		Utilities::print(String("Couldn't retrieve skeletal action data, err: {0}").format(Array::make(Variant((int64_t)err))));
+		Array arr;
+		arr.push_back(Variant((int64_t)err));
+		UtilityFunctions::print(String("Couldn't retrieve skeletal action data, err: {0}").format(arr));
 		return;
 	}
 	if (!data.bActive) {
@@ -71,21 +73,25 @@ void OpenVRSkeleton::_process(float delta) {
 		err = vr::VRInput()->GetBoneCount(handle, &new_bone_count);
 		if (err != vr::VRInputError_None) {
 			bone_count = -1; // prevent doing this again...
-			Utilities::print(String("Couldn't retrieve bone count, err: {0}").format(Array::make(Variant((int64_t)err))));
+			Array arr;
+			arr.push_back(Variant((int64_t)err));
+			UtilityFunctions::print(String("Couldn't retrieve bone count, err: {0}").format(arr));
 			return;
 		} else if (new_bone_count > 255) {
 			// I'm a lazy son of a b****, can't be bothered to allocate buffers, we won't have more then 255 bones right?
 			bone_count = -1; // prevent doing this again...
-			Utilities::print(String("Too many bones: {0}").format(Array::make(Variant((int64_t)new_bone_count))));
+			Array arr;
+			arr.push_back(Variant((int64_t)new_bone_count));
+			UtilityFunctions::print(String("Too many bones: {0}").format(arr));
 			return;
 		}
 
 		if (keep_bones && (new_bone_count == curr_bone_count)) {
 			// get our bone information that was preconfigured
 			bones = (bone *)malloc(sizeof(bone) * new_bone_count);
-			if (bones == NULL) {
+			if (bones == nullptr) {
 				bone_count = -1; // prevent doing this again...
-				Utilities::print(String("Couldn't allocate memory"));
+				UtilityFunctions::print(String("Couldn't allocate memory"));
 				return;
 			}
 			bone_count = new_bone_count;
@@ -101,7 +107,9 @@ void OpenVRSkeleton::_process(float delta) {
 			err = vr::VRInput()->GetBoneHierarchy(handle, parent_indices, 256);
 			if (err != vr::VRInputError_None) {
 				bone_count = -1; // prevent doing this again...
-				Utilities::print(String("Couldn't retrieve parent indices, err: {0}").format(Array::make(Variant((int64_t)err))));
+				Array arr;
+				arr.push_back(Variant((int64_t)err));
+				UtilityFunctions::print(String("Couldn't retrieve parent indices, err: {0}").format(arr));
 				return;
 			}
 
@@ -109,15 +117,17 @@ void OpenVRSkeleton::_process(float delta) {
 			err = vr::VRInput()->GetSkeletalReferenceTransforms(handle, transform_space, reference_pose, reference_transforms, 256);
 			if (err != vr::VRInputError_None) {
 				bone_count = -1; // prevent doing this again...
-				Utilities::print(String("Couldn't retrieve reference poses, err: {0}").format(Array::make(Variant((int64_t)err))));
+				Array arr;
+				arr.push_back(Variant((int64_t)err));
+				UtilityFunctions::print(String("Couldn't retrieve reference poses, err: {0}").format(arr));
 				return;
 			}
 
 			// lets build our bone structure
 			bones = (bone *)malloc(sizeof(bone) * new_bone_count);
-			if (bones == NULL) {
+			if (bones == nullptr) {
 				bone_count = -1; // prevent doing this again...
-				Utilities::print(String("Couldn't allocate memory"));
+				UtilityFunctions::print(String("Couldn't allocate memory"));
 				return;
 			}
 			bone_count = new_bone_count;
@@ -133,7 +143,9 @@ void OpenVRSkeleton::_process(float delta) {
 				err = vr::VRInput()->GetBoneName(handle, i, bones[i].name, 256);
 				if (err != vr::VRInputError_None) {
 					strcpy(bones[i].name, "Error");
-					Utilities::print(String("Couldn't retrieve bone name, err: {0}").format(Variant((int64_t)err)));
+					Array arr;
+					arr.push_back(Variant((int64_t)err));
+					UtilityFunctions::print(String("Couldn't retrieve bone name, err: {0}").format(arr));
 				}
 
 				// add our bone in Godot, note that for some reason our root node is named Root which it doesn't really like...
@@ -157,7 +169,9 @@ void OpenVRSkeleton::_process(float delta) {
 	vr::VRBoneTransform_t bone_transforms[256];
 	err = vr::VRInput()->GetSkeletalBoneData(handle, transform_space, motion_range, bone_transforms, bone_count);
 	if (err != vr::VRInputError_None) {
-		Utilities::print(String("Couldn't retrieve skeletal bone transform data, err: {0}") + Variant((int64_t)err));
+		Array arr;
+		arr.push_back(Variant((int64_t)err));
+		UtilityFunctions::print(String("Couldn't retrieve skeletal bone transform data, err: {0}").format(arr));
 		return;
 	}
 
@@ -180,7 +194,7 @@ OpenVRSkeleton::OpenVRSkeleton() {
 	is_active = false;
 	keep_bones = true;
 	bone_count = 0;
-	bones = NULL;
+	bones = nullptr;
 	//	transform_space = vr::VRSkeletalTransformSpace_Model;
 	transform_space = vr::VRSkeletalTransformSpace_Parent;
 	motion_range = vr::VRSkeletalMotionRange_WithController;
@@ -190,9 +204,9 @@ OpenVRSkeleton::OpenVRSkeleton() {
 OpenVRSkeleton::~OpenVRSkeleton() {
 	cleanup_bones();
 
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 

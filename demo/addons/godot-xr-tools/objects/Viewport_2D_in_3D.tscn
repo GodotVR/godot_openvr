@@ -1,26 +1,27 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=7 format=3 uid="uid://dhcsolk3uwmy6"]
 
-[ext_resource path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D_body.gd" type="Script" id=2]
+[ext_resource type="Script" path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D.gd" id="1"]
+[ext_resource type="Script" path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D_body.gd" id="2"]
 
-[sub_resource type="QuadMesh" id=1]
+[sub_resource type="QuadMesh" id="1"]
 resource_local_to_scene = true
 size = Vector2(3, 2)
 
-[sub_resource type="ViewportTexture" id=4]
+[sub_resource type="ViewportTexture" id="ViewportTexture_371og"]
+viewport_path = NodePath("Viewport")
 
-[sub_resource type="StandardMaterial3D" id=3]
+[sub_resource type="StandardMaterial3D" id="3"]
 resource_local_to_scene = true
 transparency = 1
 shading_mode = 0
-albedo_texture = SubResource( 4 )
+albedo_texture = SubResource( "ViewportTexture_371og" )
 
-[sub_resource type="BoxShape3D" id=2]
+[sub_resource type="BoxShape3D" id="2"]
 resource_local_to_scene = true
 size = Vector3(3, 2, 0.02)
 
 [node name="Viewport2Din3D" type="Node3D"]
-script = ExtResource( 1 )
+script = ExtResource( "1" )
 
 [node name="Viewport" type="SubViewport" parent="."]
 transparent_bg = true
@@ -29,16 +30,16 @@ render_target_update_mode = 3
 script = null
 
 [node name="Screen" type="MeshInstance3D" parent="."]
-mesh = SubResource( 1 )
-surface_material_override/0 = SubResource( 3 )
+mesh = SubResource( "1" )
+surface_material_override/0 = SubResource( "3" )
 script = null
 
 [node name="StaticBody" type="StaticBody3D" parent="."]
 collision_layer = 15
 collision_mask = 0
-script = ExtResource( 2 )
+script = ExtResource( "2" )
 viewport_size = Vector2(300, 200)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody"]
-shape = SubResource( 2 )
+shape = SubResource( "2" )
 script = null

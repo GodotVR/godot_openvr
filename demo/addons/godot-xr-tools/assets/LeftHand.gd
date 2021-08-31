@@ -4,8 +4,8 @@ extends Node3D
 func _process(delta):
 	var controller : XRController3D = get_parent()
 	if controller:
-		var grip = controller.get_joystick_axis(JOY_VR_ANALOG_GRIP) * 2.5
-		var trigger = controller.get_joystick_axis(JOY_VR_ANALOG_TRIGGER) * 2.5
+		var grip = controller.get_joystick_axis(4) * 2.5
+		var trigger = controller.get_joystick_axis(2) * 2.5
 		
 		# print("Grip: " + str(grip) + " Trigger: " + str(trigger))
 		

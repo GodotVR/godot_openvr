@@ -1,40 +1,34 @@
-[gd_resource type="ShaderMaterial" load_steps=7 format=2]
+[gd_resource type="ShaderMaterial" load_steps=7 format=3 uid="uid://q6q5vm017qlo"]
 
-[sub_resource type="VisualShaderNodeColorUniform" id=1]
+[sub_resource type="VisualShaderNodeColorUniform" id="1"]
 default_input_values = []
 expanded_output_ports = []
 uniform_name = "Color"
 
-[sub_resource type="VisualShaderNodeVectorOp" id=2]
+[sub_resource type="VisualShaderNodeVectorOp" id="2"]
 default_input_values = [0, Vector3(0, 0, 0), 1, Vector3(0.5, 0.5, 0.5)]
 expanded_output_ports = []
 operator = 2
 
-[sub_resource type="VisualShaderNodeFloatConstant" id=3]
+[sub_resource type="VisualShaderNodeFloatConstant" id="3"]
 default_input_values = []
 expanded_output_ports = []
 constant = 0.1
 
-[sub_resource type="VisualShaderNodeFresnel" id=4]
+[sub_resource type="VisualShaderNodeFresnel" id="4"]
 default_input_values = [2, false, 3, 1.0]
 expanded_output_ports = []
 
-[sub_resource type="VisualShaderNodeVectorOp" id=5]
+[sub_resource type="VisualShaderNodeVectorOp" id="5"]
 default_input_values = [0, Vector3(0, 0, 0), 1, Vector3(0, 0, 0)]
 expanded_output_ports = []
 operator = 2
 
-[sub_resource type="VisualShader" id=6]
+[sub_resource type="VisualShader" id="6"]
 code = "shader_type spatial;
-render_mode specular_schlick_ggx;
-
 uniform vec4 Color : hint_color;
 
 
-
-void vertex() {
-
-}
 
 void fragment() {
 // ColorUniform:2
@@ -42,7 +36,7 @@ void fragment() {
 	float n_out2p1 = Color.a;
 
 
-// ScalarFloat:4
+// FloatConstant:4
 	float n_out4p0 = 0.100000;
 
 
@@ -65,24 +59,24 @@ void fragment() {
 
 
 }
-
-void light() {
-
-}
 "
+engine_version = {
+"major": 4,
+"minor": 0
+}
 nodes/fragment/0/position = Vector2(660, 60)
-nodes/fragment/2/node = SubResource( 1 )
+nodes/fragment/2/node = SubResource( "1" )
 nodes/fragment/2/position = Vector2(40, 40)
-nodes/fragment/3/node = SubResource( 2 )
-nodes/fragment/3/position = Vector2(360, 60)
-nodes/fragment/4/node = SubResource( 3 )
-nodes/fragment/4/position = Vector2(20, 180)
-nodes/fragment/5/node = SubResource( 4 )
-nodes/fragment/5/position = Vector2(40, 340)
-nodes/fragment/6/node = SubResource( 5 )
-nodes/fragment/6/position = Vector2(360, 220)
+nodes/fragment/3/node = SubResource( "2" )
+nodes/fragment/3/position = Vector2(400, 60)
+nodes/fragment/4/node = SubResource( "3" )
+nodes/fragment/4/position = Vector2(40, 260)
+nodes/fragment/5/node = SubResource( "4" )
+nodes/fragment/5/position = Vector2(40, 400)
+nodes/fragment/6/node = SubResource( "5" )
+nodes/fragment/6/position = Vector2(400, 260)
 nodes/fragment/connections = PackedInt32Array(2, 0, 3, 0, 3, 0, 0, 0, 4, 0, 3, 1, 2, 0, 6, 0, 5, 0, 6, 1, 6, 0, 0, 5)
 
 [resource]
-shader = SubResource( 6 )
+shader = SubResource( "6" )
 shader_param/Color = Color(0.301961, 0.392157, 0.988235, 1)

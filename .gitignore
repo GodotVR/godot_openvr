@@ -15,5 +15,6 @@ logs
 Thumbs.db
 .vscode
 *.pdb
+*.idb
 *.ilk
 *.dll

@@ -77,19 +77,19 @@ var step_size = 0.5
 
 func _update_player_height():
 	if collision_shape:
-		collision_shape.height = player_height - (2.0 * player_radius)
+		collision_shape.height = player_height # - (2.0 * player_radius)
 
 	if capsule:
-		capsule.mesh.mid_height = player_height - (2.0 * player_radius)
+		capsule.mesh.height = player_height
 		capsule.position = Vector3(0.0, player_height/2.0, 0.0)
 
 func _update_player_radius():
 	if collision_shape:
-		collision_shape.height = player_height - (2.0 * player_radius)
+		# collision_shape.height = player_height # - (2.0 * player_radius)
 		collision_shape.radius = player_radius
 
 	if capsule:
-		capsule.mesh.mid_height = player_height - (2.0 * player_radius)
+		# capsule.mesh.height = player_height
 		capsule.mesh.radius = player_radius
 
 func _get_configuration_warning():
@@ -99,7 +99,7 @@ func _get_configuration_warning():
 	return ""
 
 func _ready():
-	if !Engine.editor_hint:
+	if !Engine.is_editor_hint():
 		# We should be a child of an XRController3D and it should be a child or our XROrigin3D
 		origin_node = get_node("../..")
 		
@@ -133,7 +133,7 @@ func _ready():
 	_update_player_radius()
 
 func _physics_process(delta):
-	if !Engine.editor_hint:
+	if !Engine.is_editor_hint():
 		# We should be the child or the controller on which the teleport is implemented
 		var controller = get_parent()
 		

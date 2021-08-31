@@ -3,12 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
+uid="uid://bkua2jf2tgtfc"
 path="res://.godot/imported/vr_glove_left_model_slim.glb-8eb4d606fd297e3eb0e89b81fe711f50.scn"
 
 [deps]
 
 source_file="res://addons/godot-openvr/meshes/vr_glove_left_model_slim.glb"
-dest_files=[ "res://.godot/imported/vr_glove_left_model_slim.glb-8eb4d606fd297e3eb0e89b81fe711f50.scn" ]
+dest_files=["res://.godot/imported/vr_glove_left_model_slim.glb-8eb4d606fd297e3eb0e89b81fe711f50.scn"]
 
 [params]
 
@@ -22,6 +23,7 @@ meshes/light_baking=0
 meshes/lightmap_texel_size=0.1
 skins/use_named_skins=true
 animation/import=true
+animation/bake_reset_animation=true
 animation/fps=15
 import_script/path=""
 _subresources={

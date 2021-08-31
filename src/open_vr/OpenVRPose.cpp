@@ -1,26 +1,24 @@
 #include "OpenVRPose.h"
 
+#include <godot_cpp/core/class_db.hpp>
+
 using namespace godot;
 
-void OpenVRPose::_register_methods() {
-	register_method("_process", &OpenVRPose::_process);
+void OpenVRPose::_bind_methods() {
+	// ClassDB::bind_method(D_METHOD("_process"), &OpenVRPose::_process);
 
-	register_method("get_action", &OpenVRPose::get_action);
-	register_method("set_action", &OpenVRPose::set_action);
-	register_property<OpenVRPose, String>("action", &OpenVRPose::set_action, &OpenVRPose::get_action, String());
+	ClassDB::bind_method(D_METHOD("get_action"), &OpenVRPose::get_action);
+	ClassDB::bind_method(D_METHOD("set_action", "action"), &OpenVRPose::set_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "action"), "set_action", "get_action");
 
-	register_method("is_active", &OpenVRPose::get_is_active);
+	ClassDB::bind_method(D_METHOD("is_active"), &OpenVRPose::get_is_active);
 
-	register_method("get_on_hand", &OpenVRPose::get_on_hand);
-	register_method("set_on_hand", &OpenVRPose::set_on_hand);
-	register_property<OpenVRPose, int>("on_hand", &OpenVRPose::set_on_hand, &OpenVRPose::get_on_hand, 0, GODOT_METHOD_RPC_MODE_DISABLED, GODOT_PROPERTY_USAGE_DEFAULT, GODOT_PROPERTY_HINT_ENUM, "any,left,right");
+	ClassDB::bind_method(D_METHOD("get_on_hand"), &OpenVRPose::get_on_hand);
+	ClassDB::bind_method(D_METHOD("set_on_hand", "hand"), &OpenVRPose::set_on_hand);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "on_hand", PROPERTY_HINT_ENUM, "any,left,right"), "set_on_hand", "get_on_hand");
 }
 
-void OpenVRPose::_init() {
-	// nothing to do here
-}
-
-void OpenVRPose::_process(float delta) {
+void OpenVRPose::_process(double delta) {
 	is_active = false;
 
 	vr::InputPoseActionData_t pose_data;
@@ -48,9 +46,9 @@ OpenVRPose::OpenVRPose() {
 }
 
 OpenVRPose::~OpenVRPose() {
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 

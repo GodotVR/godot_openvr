@@ -1,7 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://player/HandInteraction.gd" type="Script" id=1]
-[ext_resource path="res://addons/godot-openvr/OpenVRHaptics.gdns" type="Script" id=2]
 
 [sub_resource type="SphereShape3D" id=1]
 radius = 0.1
@@ -28,8 +27,7 @@ mesh = SubResource( 2 )
 surface_material_override/0 = null
 script = null
 
-[node name="Haptic" type="Node3D" parent="."]
-script = ExtResource( 2 )
+[node name="Haptic" type="OpenVRHaptics" parent="."]
 action = "/actions/godot/out/haptic"
 on_hand = 1
 duration = 0.2
