@@ -1,26 +1,24 @@
 #include "OpenVRPose.h"
 
+#include <godot_cpp/core/class_db.hpp>
+
 using namespace godot;
 
-void OpenVRPose::_register_methods() {
-	register_method("_process", &OpenVRPose::_process);
+void OpenVRPose::_bind_methods() {
+	// ClassDB::bind_method(D_METHOD("_process"), &OpenVRPose::_process);
 
-	register_method("get_action", &OpenVRPose::get_action);
-	register_method("set_action", &OpenVRPose::set_action);
-	register_property<OpenVRPose, String>("action", &OpenVRPose::set_action, &OpenVRPose::get_action, String());
+	ClassDB::bind_method(D_METHOD("get_action"), &OpenVRPose::get_action);
+	ClassDB::bind_method(D_METHOD("set_action", "action"), &OpenVRPose::set_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "action"), "set_action", "get_action");
 
-	register_method("is_active", &OpenVRPose::get_is_active);
+	ClassDB::bind_method(D_METHOD("is_active"), &OpenVRPose::get_is_active);
 
-	register_method("get_on_hand", &OpenVRPose::get_on_hand);
-	register_method("set_on_hand", &OpenVRPose::set_on_hand);
-	register_property<OpenVRPose, int>("on_hand", &OpenVRPose::set_on_hand, &OpenVRPose::get_on_hand, 0, GODOT_METHOD_RPC_MODE_DISABLED, GODOT_PROPERTY_USAGE_DEFAULT, GODOT_PROPERTY_HINT_ENUM, "any,left,right");
+	ClassDB::bind_method(D_METHOD("get_on_hand"), &OpenVRPose::get_on_hand);
+	ClassDB::bind_method(D_METHOD("set_on_hand", "hand"), &OpenVRPose::set_on_hand);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "on_hand", PROPERTY_HINT_ENUM, "any,left,right"), "set_on_hand", "get_on_hand");
 }
 
-void OpenVRPose::_init() {
-	// nothing to do here
-}
-
-void OpenVRPose::_process(float delta) {
+void OpenVRPose::_process(double delta) {
 	is_active = false;
 
 	vr::InputPoseActionData_t pose_data;
@@ -30,9 +28,8 @@ void OpenVRPose::_process(float delta) {
 		if (is_active) {
 			// printf("Pose is active\n");
 
-			float world_scale = godot::arvr_api->godot_arvr_get_worldscale();
-			Transform transform;
-			ovr->transform_from_matrix((godot_transform *)&transform, &pose_data.pose.mDeviceToAbsoluteTracking, world_scale);
+			float world_scale = godot::XRServer::get_singleton()->get_world_scale();
+			Transform3D transform = ovr->transform_from_matrix(&pose_data.pose.mDeviceToAbsoluteTracking, world_scale);
 			set_transform(server->get_reference_frame() * transform);
 		} else {
 			// printf("Pose is inactive\n");
@@ -42,16 +39,16 @@ void OpenVRPose::_process(float delta) {
 
 OpenVRPose::OpenVRPose() {
 	ovr = openvr_data::retain_singleton();
-	server = ARVRServer::get_singleton();
+	server = XRServer::get_singleton();
 	action_idx = -1;
 	is_active = false;
 	on_hand = 0;
 }
 
 OpenVRPose::~OpenVRPose() {
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 

@@ -1,25 +1,31 @@
 #include "OpenVRHaptics.h"
 
+#include <godot_cpp/core/class_db.hpp>
+
 using namespace godot;
 
-void OpenVRHaptics::_register_methods() {
-	register_method("get_action", &OpenVRHaptics::get_action);
-	register_method("set_action", &OpenVRHaptics::set_action);
-	register_property<OpenVRHaptics, String>("action", &OpenVRHaptics::set_action, &OpenVRHaptics::get_action, String());
+void OpenVRHaptics::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_action"), &OpenVRHaptics::get_action);
+	ClassDB::bind_method(D_METHOD("set_action", "action"), &OpenVRHaptics::set_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "action"), "set_action", "get_action");
 
-	register_method("get_on_hand", &OpenVRHaptics::get_on_hand);
-	register_method("set_on_hand", &OpenVRHaptics::set_on_hand);
-	register_property<OpenVRHaptics, int>("on_hand", &OpenVRHaptics::set_on_hand, &OpenVRHaptics::get_on_hand, 0, GODOT_METHOD_RPC_MODE_DISABLED, GODOT_PROPERTY_USAGE_DEFAULT, GODOT_PROPERTY_HINT_ENUM, "any,left,right");
+	ClassDB::bind_method(D_METHOD("get_on_hand"), &OpenVRHaptics::get_on_hand);
+	ClassDB::bind_method(D_METHOD("set_on_hand", "hand"), &OpenVRHaptics::set_on_hand);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "on_hand", PROPERTY_HINT_ENUM, "any,left,right"), "set_on_hand", "get_on_hand");
 
-	register_property<OpenVRHaptics, float>("duration", &OpenVRHaptics::duration, 1.0);
-	register_property<OpenVRHaptics, float>("frequency", &OpenVRHaptics::frequency, 1.0);
-	register_property<OpenVRHaptics, float>("amplitude", &OpenVRHaptics::amplitude, 1.0);
+	ClassDB::bind_method(D_METHOD("get_duration"), &OpenVRHaptics::get_duration);
+	ClassDB::bind_method(D_METHOD("set_duration", "duration"), &OpenVRHaptics::set_duration);
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "duration"), "set_duration", "get_duration");
 
-	register_method("trigger_pulse", &OpenVRHaptics::trigger_pulse);
-}
+	ClassDB::bind_method(D_METHOD("get_frequency"), &OpenVRHaptics::get_frequency);
+	ClassDB::bind_method(D_METHOD("set_frequency", "frequency"), &OpenVRHaptics::set_frequency);
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "frequency"), "set_frequency", "get_frequency");
 
-void OpenVRHaptics::_init() {
-	// nothing to do here
+	ClassDB::bind_method(D_METHOD("get_amplitude"), &OpenVRHaptics::get_amplitude);
+	ClassDB::bind_method(D_METHOD("set_amplitude", "amplitude"), &OpenVRHaptics::set_amplitude);
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "amplitude"), "set_amplitude", "get_amplitude");
+
+	ClassDB::bind_method(D_METHOD("trigger_pulse"), &OpenVRHaptics::trigger_pulse);
 }
 
 OpenVRHaptics::OpenVRHaptics() {
@@ -32,9 +38,9 @@ OpenVRHaptics::OpenVRHaptics() {
 }
 
 OpenVRHaptics::~OpenVRHaptics() {
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 
@@ -57,6 +63,30 @@ void OpenVRHaptics::set_on_hand(int p_hand) {
 	}
 
 	on_hand = p_hand;
+}
+
+float OpenVRHaptics::get_duration() const {
+	return duration;
+}
+
+void OpenVRHaptics::set_duration(const float p_duration) {
+	duration = p_duration;
+}
+
+float OpenVRHaptics::get_frequency() const {
+	return frequency;
+}
+
+void OpenVRHaptics::set_frequency(const float p_frequency) {
+	frequency = p_frequency;
+}
+
+float OpenVRHaptics::get_amplitude() const {
+	return amplitude;
+}
+
+void OpenVRHaptics::set_amplitude(const float p_amplitude) {
+	amplitude = p_amplitude;
 }
 
 void OpenVRHaptics::trigger_pulse() {

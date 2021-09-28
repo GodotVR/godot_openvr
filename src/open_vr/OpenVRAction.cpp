@@ -1,35 +1,33 @@
 #include "OpenVRAction.h"
 
+#include <godot_cpp/core/class_db.hpp>
+
 using namespace godot;
 
-void OpenVRAction::_register_methods() {
-	register_method("_process", &OpenVRAction::_process);
+void OpenVRAction::_bind_methods() {
+	// ClassDB::bind_method(D_METHOD("_process", "delta"), &OpenVRAction::_process);
 
-	register_method("get_pressed_action", &OpenVRAction::get_pressed_action);
-	register_method("set_pressed_action", &OpenVRAction::set_pressed_action);
-	register_property<OpenVRAction, String>("pressed_action", &OpenVRAction::set_pressed_action, &OpenVRAction::get_pressed_action, String());
+	ClassDB::bind_method(D_METHOD("get_pressed_action"), &OpenVRAction::get_pressed_action);
+	ClassDB::bind_method(D_METHOD("set_pressed_action", "action"), &OpenVRAction::set_pressed_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "pressed_action"), "set_pressed_action", "get_pressed_action");
 
-	register_method("is_pressed", &OpenVRAction::get_is_pressed);
+	ClassDB::bind_method(D_METHOD("is_pressed"), &OpenVRAction::get_is_pressed);
 
-	register_signal<OpenVRAction>(String("pressed"), Dictionary());
-	register_signal<OpenVRAction>(String("released"), Dictionary());
+	ADD_SIGNAL(MethodInfo("pressed"));
+	ADD_SIGNAL(MethodInfo("released"));
 
-	register_method("get_analog_action", &OpenVRAction::get_analog_action);
-	register_method("set_analog_action", &OpenVRAction::set_analog_action);
-	register_property<OpenVRAction, String>("analog_action", &OpenVRAction::set_analog_action, &OpenVRAction::get_analog_action, String());
+	ClassDB::bind_method(D_METHOD("get_analog_action"), &OpenVRAction::get_analog_action);
+	ClassDB::bind_method(D_METHOD("set_analog_action", "action"), &OpenVRAction::set_analog_action);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "analog_action"), "set_analog_action", "get_analog_action");
 
-	register_method("get_analog", &OpenVRAction::get_analog);
+	ClassDB::bind_method(D_METHOD("get_analog"), &OpenVRAction::get_analog);
 
-	register_method("get_on_hand", &OpenVRAction::get_on_hand);
-	register_method("set_on_hand", &OpenVRAction::set_on_hand);
-	register_property<OpenVRAction, int>("on_hand", &OpenVRAction::set_on_hand, &OpenVRAction::get_on_hand, 0, GODOT_METHOD_RPC_MODE_DISABLED, GODOT_PROPERTY_USAGE_DEFAULT, GODOT_PROPERTY_HINT_ENUM, "any,left,right");
+	ClassDB::bind_method(D_METHOD("get_on_hand"), &OpenVRAction::get_on_hand);
+	ClassDB::bind_method(D_METHOD("set_on_hand", "hand"), &OpenVRAction::set_on_hand);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "on_hand", PROPERTY_HINT_ENUM, "any,left,right"), "set_on_hand", "get_on_hand");
 }
 
-void OpenVRAction::_init() {
-	// nothing to do here
-}
-
-void OpenVRAction::_process(float delta) {
+void OpenVRAction::_process(double delta) {
 	bool was_pressed = is_pressed;
 	is_pressed = false;
 
@@ -54,9 +52,9 @@ OpenVRAction::OpenVRAction() {
 }
 
 OpenVRAction::~OpenVRAction() {
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 
@@ -86,11 +84,11 @@ godot::Vector2 OpenVRAction::get_analog() const {
 	return analog;
 }
 
-int OpenVRAction::get_on_hand() const {
+GDNativeInt OpenVRAction::get_on_hand() const {
 	return on_hand;
 }
 
-void OpenVRAction::set_on_hand(int p_hand) {
+void OpenVRAction::set_on_hand(const GDNativeInt p_hand) {
 	if (p_hand < 0 || p_hand > 2) {
 		return;
 	}

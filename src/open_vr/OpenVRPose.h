@@ -5,17 +5,17 @@
 #define OPENVR_POSE_H
 
 #include "openvr_data.h"
-#include <ARVRServer.hpp>
-#include <Spatial.hpp>
-#include <String.hpp>
+#include <godot_cpp/classes/node3d.hpp>
+#include <godot_cpp/classes/xr_server.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 namespace godot {
-class OpenVRPose : public Spatial {
-	GODOT_CLASS(OpenVRPose, Spatial)
+class OpenVRPose : public Node3D {
+	GDCLASS(OpenVRPose, Node3D)
 
 private:
 	openvr_data *ovr;
-	ARVRServer *server;
+	XRServer *server;
 
 	String action;
 	int action_idx;
@@ -23,11 +23,11 @@ private:
 
 	bool is_active;
 
-public:
-	static void _register_methods();
+protected:
+	static void _bind_methods();
 
-	void _init();
-	void _process(float delta);
+public:
+	virtual void _process(double delta) override;
 
 	OpenVRPose();
 	~OpenVRPose();

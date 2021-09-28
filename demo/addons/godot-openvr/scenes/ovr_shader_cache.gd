@@ -1,4 +1,6 @@
-extends Spatial
+extends Node3D
+
+class_name OVRShaderCache
 
 var countdown = 2
 

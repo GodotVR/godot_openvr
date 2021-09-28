@@ -5,21 +5,20 @@
 #define OPENVR_RENDER_MODEL_H
 
 #include "openvr_data.h"
-#include <ArrayMesh.hpp>
-#include <Godot.hpp>
+#include <godot_cpp/classes/array_mesh.hpp>
+#include <godot_cpp/godot.hpp>
 
 namespace godot {
 class OpenVRRenderModel : public ArrayMesh {
-	GODOT_CLASS(OpenVRRenderModel, ArrayMesh)
+	GDCLASS(OpenVRRenderModel, ArrayMesh)
 
 private:
 	openvr_data *ovr;
 
+protected:
+	static void _bind_methods();
+
 public:
-	static void _register_methods();
-
-	void _init();
-
 	OpenVRRenderModel();
 	~OpenVRRenderModel();
 

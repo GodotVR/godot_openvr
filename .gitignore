@@ -1,6 +1,7 @@
 *.o
 *.os
 .import/
+.godot/
 *.dblite
 *.exp
 *.lib
@@ -12,3 +13,8 @@
 .DS_Store
 logs
 Thumbs.db
+.vscode
+*.pdb
+*.idb
+*.ilk
+*.dll

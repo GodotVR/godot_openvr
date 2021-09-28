@@ -1,11 +1,13 @@
-extends MeshInstance
+extends MeshInstance3D
+
+class_name OVRRenderModel3D
 
 var ovr_render_model
 var ws = 0
 var controller_is_loaded = false
 
 func apply_world_scale():
-	var new_ws = ARVRServer.world_scale
+	var new_ws = XRServer.world_scale
 	if (ws != new_ws):
 		ws = new_ws
 		scale = Vector3(ws, ws, ws)
@@ -22,14 +24,14 @@ func _load_controller_mesh(controller_name):
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# instance our render model object
-	ovr_render_model = preload("res://addons/godot-openvr/OpenVRRenderModel.gdns").new()
+	ovr_render_model = OpenVRRenderModel.new() 
 	
 	# we haven't loaded it
 	controller_is_loaded = false
 
 func _process(delta):
-	var controller = get_parent();
-	if !controller is ARVRController:
+	var controller : XRController3D = get_parent();
+	if !controller:
 		return
 	
 	if !controller.get_is_active():

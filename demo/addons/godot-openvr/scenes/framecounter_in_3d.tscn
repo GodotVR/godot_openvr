@@ -1,9 +1,6 @@
 [gd_scene load_steps=5 format=2]
 
-[sub_resource type="PlaneMesh" id=1]
-size = Vector2( 0.3, 0.15 )
-subdivide_width = 10
-subdivide_depth = 10
+[ext_resource path="res://addons/godot-openvr/scenes/framecounter_in_3d.gd" type="Script" id=1]
 
 [sub_resource type="Shader" id=2]
 code = "shader_type spatial;
@@ -11,51 +8,45 @@ render_mode unshaded;
 
 uniform sampler2D viewport_texture : hint_albedo;
 
-void vertex() {
-	VERTEX.y = 1.0 - cos(VERTEX.x) * 0.5 - cos(VERTEX.z) * 0.5;
-}
-
 void fragment() {
-	vec4 col = texture(viewport_texture, vec2(1.0 - UV.x, UV.y));
-	ALBEDO = col.rgb;
-	ALPHA = col.a;
+	vec4 color = texture(viewport_texture, UV);
+	ALBEDO = color.rgb;
+	ALPHA = color.a;
 }
 "
 
 [sub_resource type="ShaderMaterial" id=3]
 shader = SubResource( 2 )
 
-[sub_resource type="GDScript" id=4]
-script/source = "extends MeshInstance
+[sub_resource type="PlaneMesh" id=1]
+material = SubResource( 3 )
+size = Vector2(0.3, 0.15)
+subdivide_width = 10
+subdivide_depth = 10
 
-func _ready():
-	get_surface_material(0).set_shader_param(\"viewport_texture\", $Viewport.get_texture())
+[node name="FPS" type="Node3D"]
+script = ExtResource( 1 )
 
-
-func _process(delta):
-	$Viewport/Label.text = str(Engine.get_frames_per_second()) + \" FPS\"
-"
-
-[node name="FPS" type="MeshInstance"]
-transform = Transform( 1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0 )
+[node name="Display" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.991445, 0.130526, -5.70548e-09, 0, -4.37114e-08, -1, -0.130526, 0.991445, -4.33374e-08, -0.5, 0.5, -2)
 mesh = SubResource( 1 )
-material/0 = SubResource( 3 )
-script = SubResource( 4 )
+surface_material_override/0 = null
+script = null
 
-[node name="Viewport" type="Viewport" parent="."]
-size = Vector2( 200, 100 )
+[node name="Viewport" type="SubViewport" parent="."]
 transparent_bg = true
-hdr = false
-usage = 0
+size = Vector2i(200, 100)
 render_target_update_mode = 3
+script = null
 
 [node name="Label" type="Label" parent="Viewport"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-rect_scale = Vector2( 3, 3 )
-custom_colors/font_color = Color( 1, 1, 1, 1 )
-custom_colors/font_color_shadow = Color( 0, 0, 0, 1 )
+rect_scale = Vector2(3, 3)
+custom_colors/font_color = Color(1, 1, 1, 1)
 text = "FPS"
+structured_text_bidi_override_options = []
+script = null
 __meta__ = {
 "_edit_use_anchors_": false
 }

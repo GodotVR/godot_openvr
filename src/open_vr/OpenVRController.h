@@ -5,15 +5,15 @@
 #define OPENVR_CONTROLLER_H
 
 #include "openvr_data.h"
-#include <ARVRController.hpp>
-#include <PoolArrays.hpp>
-#include <String.hpp>
+#include <godot_cpp/classes/xr_controller3d.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 #include <vector>
 
 namespace godot {
-class OpenVRController : public ARVRController {
-	GODOT_CLASS(OpenVRController, ARVRController)
+class OpenVRController : public XRController3D {
+	GDCLASS(OpenVRController, XRController3D)
 
 private:
 	openvr_data *ovr;
@@ -27,17 +27,16 @@ private:
 	std::vector<input_action> button_actions;
 
 protected:
-public:
-	static void _register_methods();
+	static void _bind_methods();
 
-	void _init();
-	void _process(float delta);
+public:
+	virtual void _process(double delta) override;
 
 	OpenVRController();
 	~OpenVRController();
 
-	PoolStringArray get_button_actions();
-	void set_button_actions(PoolStringArray p_actions);
+	PackedStringArray get_button_actions();
+	void set_button_actions(PackedStringArray p_actions);
 
 	Vector2 get_analog(String p_action);
 	void trigger_haptic(String p_action, float p_duration, float p_frequency, float p_amplitude);

@@ -3,22 +3,20 @@
 
 #include "OpenVRRenderModel.h"
 
-#include <Array.hpp>
-#include <String.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
-// #include "SpatialMaterial.h"
-// #include "ImageTexture.h"
-// #include "Image.h"
+#include "godot_cpp/classes/image.hpp"
+#include "godot_cpp/classes/image_texture.hpp"
+#include "godot_cpp/classes/standard_material3d.hpp"
 
 using namespace godot;
 
-void OpenVRRenderModel::_register_methods() {
-	register_method("model_names", &OpenVRRenderModel::model_names);
-	register_method("load_model", &OpenVRRenderModel::load_model);
-}
-
-void OpenVRRenderModel::_init() {
-	// nothing to do here
+void OpenVRRenderModel::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("model_names"), &OpenVRRenderModel::model_names);
+	ClassDB::bind_method(D_METHOD("load_model"), &OpenVRRenderModel::load_model);
 }
 
 OpenVRRenderModel::OpenVRRenderModel() {
@@ -26,10 +24,10 @@ OpenVRRenderModel::OpenVRRenderModel() {
 }
 
 OpenVRRenderModel::~OpenVRRenderModel() {
-	if (ovr != NULL) {
+	if (ovr != nullptr) {
 		ovr->remove_mesh(this);
 		ovr->release();
-		ovr = NULL;
+		ovr = nullptr;
 	}
 }
 
@@ -51,13 +49,11 @@ Array OpenVRRenderModel::model_names() {
 bool OpenVRRenderModel::load_model(String p_model_name) {
 	bool success = true;
 
-	int64_t surfaces = get_surface_count();
-	for (int64_t s = 0; s < surfaces; s++) {
-		// keep removing the first surface, for all the surfaces we have
-		surface_remove(0);
-	}
+	clear_surfaces();
 
-	Godot::print("Loading: " + p_model_name);
+	Array arr;
+	arr.push_back(String(p_model_name));
+	UtilityFunctions::print(String("Loading: {0}").format(arr));
 	ovr->load_render_model(p_model_name, this);
 
 	return success;
