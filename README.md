@@ -9,6 +9,15 @@ https://github.com/GodotVR/godot_openvr
 >> While we have taken care to try and keep a measure of backwards compatibility there are structural differences in how OpenVR handles actions and once enabled the old method of button and axis handling is deactivated.
 >> Please read the [OpenVR Actions documentation](https://github.com/GodotVR/godot-openvr-asset/wiki/OpenVR-actions) for more information!
 
+Branches
+--------
+
+This repo currently maintains the following branches:
+- `master` is our main development in which we maintain our `1.x.y` version of this plugin. This version works with Godot 3.x.
+- `2.0-dev` is our 2.0 development branch, this is an unstable branch in which we're porting this plugin to work in Godot 4.x.
+- `Godot-3.0.4-plugin` is a legacy branch that worked with Godot 3.0, probably defunct
+- `Godot-3.0-plugin` is a legacy branch that worked with Godot 3.0, probably defunct
+
 Submodules
 ----------
 This project references two submodules.
