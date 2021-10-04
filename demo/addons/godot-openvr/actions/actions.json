@@ -7,6 +7,16 @@
 	],
 	"actions" : [
 		{
+			"name": "/actions/godot/in/aim_pose",
+			"requirement" : "mandatory",
+			"type": "pose"
+		},
+		{
+			"name": "/actions/godot/in/grip_pose",
+			"requirement" : "mandatory",
+			"type": "pose"
+		},
+		{
 			"name" : "/actions/godot/in/trigger",
 			"requirement" : "mandatory",
 			"type" : "boolean"
@@ -27,12 +37,22 @@
 			"type" : "vector1"
 		},
 		{
-			"name" : "/actions/godot/in/analog",
+			"name" : "/actions/godot/in/primary",
 			"requirement" : "suggested",
 			"type" : "vector2"
 		},
 		{
-			"name" : "/actions/godot/in/analog_click",
+			"name" : "/actions/godot/in/primary_click",
+			"requirement" : "suggested",
+			"type" : "boolean"
+		},
+		{
+			"name" : "/actions/godot/in/secondary",
+			"requirement" : "suggested",
+			"type" : "vector2"
+		},
+		{
+			"name" : "/actions/godot/in/secondary_click",
 			"requirement" : "suggested",
 			"type" : "boolean"
 		},
@@ -81,23 +101,23 @@
 		{
 			"binding_url" : "bindings_generic.json",
 			"controller_type" : "generic"
-		},
-		{
-			"binding_url" : "bindings_gamepad.json",
-			"controller_type" : "gamepad"
 		}
 	],
 	"localization" : [
 		{
 			"/actions/godot" : "Godot actions",
-			"/actions/godot/in/analog" : "Analog Input",
-			"/actions/godot/in/analog_click" : "Analog Click",
+			"/actions/godot/in/primary" : "Primary analog Input",
+			"/actions/godot/in/primary_click" : "Primary analog Click",
+			"/actions/godot/in/secondary" : "Secondary analog Input",
+			"/actions/godot/in/secondary_click" : "Secondary analog Click",
 			"/actions/godot/in/analog_grip" : "Analog Grip",
 			"/actions/godot/in/analog_trigger" : "Analog Trigger",
 			"/actions/godot/in/button_ax" : "A/X Button",
 			"/actions/godot/in/button_by" : "B/Y Button",
 			"/actions/godot/in/grip" : "Grip",
 			"/actions/godot/in/trigger" : "Trigger",
+			"/actions/godot/in/aim_pose" : "Aim pose",
+			"/actions/godot/in/grip_pose" : "Grip pose",
 			"/actions/godot/out/haptic" : "Haptic Feedback",
 			"/actions/godot/in/left_hand" : "Left hand",
 			"/actions/godot/in/right_hand" : "Right hand",

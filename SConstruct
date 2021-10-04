@@ -142,6 +142,11 @@ sources += Glob('src/*.cpp')
 sources += Glob('src/*/*.c')
 sources += Glob('src/*/*.cpp')
 
+if env['target'] in ('debug', 'd'):
+    env['target_name'] += "_debug"
+else:
+    env['target_name'] += "_release"
+
 # Build our library
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'], source=sources)
 if env['platform'] == "osx":

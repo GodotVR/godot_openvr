@@ -14,14 +14,14 @@
 				}
 			],
 			"skeleton" : [
-				 {
-						"output" : "/actions/godot/in/left_hand",
-						"path" : "/user/hand/left/input/skeleton/left"
-				 },
-				 {
-						"output" : "/actions/godot/in/right_hand",
-						"path" : "/user/hand/right/input/skeleton/right"
-				 }
+				{
+					"output" : "/actions/godot/in/left_hand",
+					"path" : "/user/hand/left/input/skeleton/left"
+				},
+				{
+					"output" : "/actions/godot/in/right_hand",
+					"path" : "/user/hand/right/input/skeleton/right"
+				}
 			],
 			"sources" : [
 				{
@@ -99,10 +99,10 @@
 				{
 					"inputs" : {
 						"click" : {
-							"output" : "/actions/godot/in/analog_click"
+							"output" : "/actions/godot/in/primary_click"
 						},
 						"position" : {
-							"output" : "/actions/godot/in/analog"
+							"output" : "/actions/godot/in/primary"
 						}
 					},
 					"mode" : "joystick",
@@ -111,10 +111,10 @@
 				{
 					"inputs" : {
 						"click" : {
-							"output" : "/actions/godot/in/analog_click"
+							"output" : "/actions/godot/in/primary_click"
 						},
 						"position" : {
-							"output" : "/actions/godot/in/analog"
+							"output" : "/actions/godot/in/primary"
 						}
 					},
 					"mode" : "joystick",

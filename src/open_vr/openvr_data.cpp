@@ -30,9 +30,32 @@ openvr_data::openvr_data() {
 		play_area[i].z = 0.0f;
 	}
 
+	// setting up our action set data
+	// TODO we should find a way to read this from our json
+
 	int default_action_set = register_action_set(String("/actions/godot"));
 	action_sets[default_action_set].is_active = true;
 	active_action_set_count = 1;
+
+	// Our default actions, we should be loading this from our action json
+
+	// TODO rename actions so this is 1:1
+	add_input_action("primary", "primary", IT_VECTOR2);
+	add_input_action("secondary", "secondary", IT_VECTOR2);
+	add_input_action("trigger_value", "analog_trigger", IT_FLOAT);
+	add_input_action("grip_value", "analog_grip", IT_FLOAT);
+
+	add_input_action("primary_click", "primary_click", IT_BOOL);
+	add_input_action("secondary_click", "secondary_click", IT_BOOL);
+	add_input_action("trigger_click", "trigger", IT_BOOL);
+	add_input_action("grip_click", "grip", IT_BOOL);
+	add_input_action("ax", "button_ax", IT_BOOL);
+	add_input_action("by", "button_by", IT_BOOL);
+	// add_input_action("menu", "???", IT_BOOL);
+
+	// here we remove the _pose or we'll overlap action names but we don't want the _pose in Godot
+	add_pose_action("aim", "aim_pose");
+	add_pose_action("grip", "grip_pose");
 }
 
 openvr_data::~openvr_data() {
@@ -46,16 +69,26 @@ openvr_data::~openvr_data() {
 void openvr_data::cleanup() {
 	if (hmd != nullptr) {
 		// reset our action handles
-		for (int i = 0; i < DAH_IN_MAX; i++) {
-			input_action_handles[i] = vr::k_ulInvalidActionHandle;
+		for (auto &input : inputs) {
+			input.handle = vr::k_ulInvalidActionHandle;
 		}
-		for (int i = 0; i < DAH_OUT_MAX; i++) {
-			output_action_handles[i] = vr::k_ulInvalidActionHandle;
+
+		for (auto &pose : poses) {
+			pose.handle = vr::k_ulInvalidActionHandle;
 		}
 
 		// detach all our devices
 		for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 			detach_device(i);
+		}
+
+		if (head_tracker.is_valid()) {
+			XRServer *xr_server = XRServer::get_singleton();
+			if (xr_server != nullptr) {
+				xr_server->remove_tracker(head_tracker);
+			}
+
+			head_tracker.unref();
 		}
 
 		// forget our custom actions
@@ -256,8 +289,6 @@ bool openvr_data::initialise() {
 		// TODO: Contemplate whether we should parse the JSON ourselves so we know what actions and action sets are available...
 		// we can then get action handles for all of them automatically.
 
-		bind_default_action_handles();
-
 		for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
 			vr::EVRInputError err = vr::VRInput()->GetActionSetHandle((const char *)it->name.utf8().get_data(), &it->handle);
 			if (err != vr::VRInputError_None) {
@@ -267,26 +298,56 @@ bool openvr_data::initialise() {
 			}
 		}
 
-		for (std::vector<custom_action>::iterator it = custom_actions.begin(); it != custom_actions.end(); ++it) {
-			vr::EVRInputError err = vr::VRInput()->GetActionHandle((const char *)it->name.utf8().get_data(), &it->handle);
-			if (err == vr::VRInputError_None) {
+		for (auto &input : inputs) {
+			// setup handle
+			char action_path[1024];
+			// TODO at some point support additional action sets
+			sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), input.path);
+
+			vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &input.handle);
+			if (err != vr::VRInputError_None) {
+				// maybe output something?
+				input.handle = vr::k_ulInvalidActionHandle;
+
 				Array arr;
-				arr.push_back(it->name);
-				arr.push_back(Variant((int64_t)it->handle));
-				UtilityFunctions::print(String("Bound action {0} to {1}").format(arr));
-			} else {
+				arr.push_back(String(action_path));
+				UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
+			}
+		}
+
+		for (auto &pose : poses) {
+			// setup handle
+			char action_path[1024];
+			// TODO at some point support additional action sets
+			sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), pose.path);
+
+			vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &pose.handle);
+			if (err != vr::VRInputError_None) {
+				// maybe output something?
+				pose.handle = vr::k_ulInvalidActionHandle;
+
 				Array arr;
-				arr.push_back(it->name);
+				arr.push_back(String(action_path));
 				UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
 			}
 		}
 	}
 
 	if (success) {
+		/* create our head tracker */
+		head_tracker.instantiate();
+		head_tracker->set_tracker_type(XRServer::TRACKER_HEAD);
+		head_tracker->set_tracker_name("head");
+		head_tracker->set_tracker_desc("HMD tracker");
+
+		XRServer *xr_server = XRServer::get_singleton();
+		if (xr_server != nullptr) {
+			xr_server->add_tracker(head_tracker);
+		}
+
 		/* reset some stuff */
 		for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 			tracked_devices[i].tracker = Ref<XRPositionalTracker>();
-			tracked_devices[i].last_rumble_update = 0;
 		}
 
 		device_hands_are_available = false;
@@ -326,9 +387,6 @@ void openvr_data::update_play_area() {
 void openvr_data::process() {
 	// we need timing info for one or two things..
 	uint64_t msec = Time::get_singleton()->get_ticks_msec();
-
-	// we scale all our positions by our world scale
-	double world_scale = XRServer::get_singleton()->get_world_scale();
 
 	// check our model loading in reverse
 	for (int i = (int)load_models.size() - 1; i >= 0; i--) {
@@ -404,32 +462,44 @@ void openvr_data::process() {
 			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseRawAndUncalibrated, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
 		}
 	} else {
-		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		// Get the predicted game poses for this frame when we called WaitGetPoses right before rendering
+		vr::VRCompositor()->GetLastPoses(nullptr, 0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
 	}
 
 	// update trackers and joysticks
 	for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
 		// update tracker
 		if (i == 0) {
+			// TODO make a positional tracker for this too?
 			if (tracked_device_pose[i].bPoseIsValid) {
 				// store our HMD transform
-				hmd_transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, world_scale);
+				hmd_transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
+				if (head_tracker.is_valid()) {
+					Vector3 linear_velocity(tracked_device_pose[i].vVelocity.v[0], tracked_device_pose[i].vVelocity.v[1], tracked_device_pose[i].vVelocity.v[2]);
+					Vector3 angular_velocity(tracked_device_pose[i].vAngularVelocity.v[0], tracked_device_pose[i].vAngularVelocity.v[1], tracked_device_pose[i].vAngularVelocity.v[2]);
+
+					head_tracker->set_pose("default", hmd_transform, linear_velocity, angular_velocity);
+				}
 			}
-			/* TODO re-implement
-		} else if (tracked_devices[i].tracker_id != 0) {
-			// We'll keep using our main transform we got from WaitGetPoses
-			// To obtain specific poses use OpenVRPose
+		} else if (tracked_devices[i].tracker.is_valid()) {
+			// We'll expose our main transform we got from GetLastPoses as the default pose
 			if (tracked_device_pose[i].bPoseIsValid) {
 				// update our location and orientation
-				Transform3D transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, world_scale);
-				tracked_device[i].tracker->set_transform(transform, true, true);
+				Transform3D transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
+				Vector3 linear_velocity(tracked_device_pose[i].vVelocity.v[0], tracked_device_pose[i].vVelocity.v[1], tracked_device_pose[i].vVelocity.v[2]);
+				Vector3 angular_velocity(tracked_device_pose[i].vAngularVelocity.v[0], tracked_device_pose[i].vAngularVelocity.v[1], tracked_device_pose[i].vAngularVelocity.v[2]);
+
+				tracked_devices[i].tracker->set_pose("default", transform, linear_velocity, angular_velocity);
+			} else {
+				tracked_devices[i].tracker->invalidate_pose("default");
 			}
 
 			// for our fixed actions we'll hardcode checking our state
 			process_device_actions(&tracked_devices[i], msec);
-		*/
 		}
 	}
+
+	// TODO add in updating skeleton data
 }
 
 ////////////////////////////////////////////////////////////////
@@ -557,6 +627,16 @@ Transform3D openvr_data::get_eye_to_head_transform(int p_view, double p_world_sc
 	return transform_from_matrix(&matrix, p_world_scale);
 }
 
+void openvr_data::pre_render_update() {
+	if (get_application_type() != openvr_data::OpenVRApplicationType::OVERLAY) {
+		vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
+		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+
+		// Update our hmd_transform already, we will use this when rendering but it's too late to update it in our node tree
+		hmd_transform = transform_from_matrix(&tracked_device_pose[0].mDeviceToAbsoluteTracking, 1.0);
+	}
+}
+
 ////////////////////////////////////////////////////////////////
 // Interact with tracking info
 
@@ -640,241 +720,119 @@ bool openvr_data::is_action_set_active(const String p_action_set) const {
 	return false;
 }
 
-////////////////////////////////////////////////////////////////
-// Bind our default actions, if the actions file has been edit
-// and the defaults removed they will simply be undefined
-void openvr_data::bind_default_action_handles() {
-	const char *input_actions[DAH_IN_MAX] = {
-		"trigger",
-		"analog_trigger",
-		"grip",
-		"analog_grip",
-		"analog",
-		"analog_click",
-		"button_ax",
-		"button_by"
-	};
-	const char *output_actions[DAH_OUT_MAX] = {
-		"haptic"
-	};
-
-	for (int i = 0; i < DAH_IN_MAX; i++) {
-		char action_path[1024];
-		sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), input_actions[i]);
-
-		input_action_handles[i] = vr::k_ulInvalidActionHandle;
-
-		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &input_action_handles[i]);
-		if (err == vr::VRInputError_None) {
-			Array arr;
-			arr.push_back(String(action_path));
-			arr.push_back(Variant((int64_t)input_action_handles[i]));
-			UtilityFunctions::print(String("Bound action {0} to {1}").format(arr));
-		} else {
-			Array arr;
-			arr.push_back(String(action_path));
-			arr.push_back(Variant((int64_t)err));
-			UtilityFunctions::print(String("Failed to bind action {0}, error code: {1}").format(arr));
+void openvr_data::add_input_action(const char *p_action, const char *p_path, const InputType p_type) {
+	for (int i = 0; i < inputs.size(); i++) {
+		if (inputs[i].name == p_action) {
+			// already registered
+			return;
 		}
 	}
 
-	for (int i = 0; i < DAH_OUT_MAX; i++) {
-		char action_path[1024];
-		sprintf(action_path, "%s/out/%s", (const char *)action_sets[0].name.utf8().get_data(), output_actions[i]);
-
-		output_action_handles[i] = vr::k_ulInvalidActionHandle;
-
-		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &output_action_handles[i]);
-		if (err == vr::VRInputError_None) {
-			Array arr;
-			arr.push_back(String(action_path));
-			arr.push_back(Variant((int64_t)output_action_handles[i]));
-			UtilityFunctions::print(String("Bound action {0} to {1}").format(arr));
-		} else {
-			Array arr;
-			arr.push_back(String(action_path));
-			arr.push_back(Variant((int64_t)err));
-			UtilityFunctions::print(String("Failed to bind action {0}, error code: {1}").format(arr));
-		}
-	}
+	input_action_info input;
+	input.name = p_action;
+	input.path = p_path;
+	input.type = p_type;
+	input.handle = vr::k_ulInvalidActionHandle;
+	inputs.push_back(input);
 }
 
-////////////////////////////////////////////////////////////////
-// Register a custom action
-// Note that we can't remove actions once added so our index
-// shouldn't change
-int openvr_data::register_custom_action(const String p_action) {
-	// first find if we already have this
-	// TODO: we should contemplate changing this to a dictionary, but I think this array will remain small enough
-	for (int i = 0; i < custom_actions.size(); i++) {
-		if (custom_actions[i].name == p_action) {
+void openvr_data::remove_input_action(const char *p_action) {
+	for (int i = 0; i < inputs.size(); i++) {
+		if (inputs[i].name == p_action) {
 			// found it
-			return i;
+			inputs.erase(inputs.begin() + i);
+		}
+	}
+}
+
+vr::VRActionHandle_t openvr_data::get_output_action(const char *p_action, const char *p_path) {
+	// Outputs are slightly different as we don't register these up front.
+	if (!is_initialised()) {
+		// called to early
+		return vr::k_ulInvalidActionHandle;
+	}
+
+	// Find if we have a cached one
+	for (int i = 0; i < outputs.size(); i++) {
+		if (outputs[i].name == p_action) {
+			// found it
+			return outputs[i].handle;
 		}
 	}
 
-	// ok this one is new, lets add it
-	custom_action new_action;
-	new_action.name = p_action;
-	new_action.handle = vr::k_ulInvalidActionHandle;
+	// add a new entry to our cache
+	action_info output;
+	output.name = p_action;
+	output.path = p_path;
+	output.handle = vr::k_ulInvalidActionHandle;
 
-	if (is_initialised()) {
-		vr::EVRInputError err = vr::VRInput()->GetActionHandle((const char *)new_action.name.utf8().get_data(), &new_action.handle);
-		if (err == vr::VRInputError_None) {
-			Array arr;
-			arr.push_back(new_action.name);
-			arr.push_back(Variant((int64_t)new_action.handle));
-			UtilityFunctions::print(String("Bound action {0} to {1}").format(arr));
-		} else {
-			Array arr;
-			arr.push_back(new_action.name);
-			UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
+	char action_path[1024];
+	// TODO at some point support additional action sets
+	sprintf(action_path, "%s/out/%s", (const char *)action_sets[0].name.utf8().get_data(), output.path);
+
+	vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &output.handle);
+	if (err != vr::VRInputError_None) {
+		// maybe output something?
+		output.handle = vr::k_ulInvalidActionHandle;
+
+		Array arr;
+		arr.push_back(String(action_path));
+		UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
+	}
+
+	outputs.push_back(output);
+	return output.handle;
+}
+
+void openvr_data::trigger_haptic_pulse(const char *p_action, const char *p_device_name, double p_frequency, double p_amplitude, double p_duraction_sec, double p_delay_sec) {
+	// we don't have a separate path here..
+	vr::VRActionHandle_t action_handle = get_output_action(p_action, p_action);
+	if (action_handle == vr::k_ulInvalidActionHandle) {
+		// couldn't setup this action...
+		return;
+	}
+
+	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidActionHandle;
+	if (p_device_name != "") {
+		StringName device_name(p_device_name);
+		for (int i = 0; i < vr::k_unMaxTrackedDeviceCount && source_handle == vr::k_ulInvalidActionHandle; i++) {
+			if (tracked_devices[i].tracker.is_valid() && (tracked_devices[i].tracker->get_tracker_name() == device_name)) {
+				source_handle = tracked_devices[i].source_handle;
+			}
 		}
 	}
 
-	custom_actions.push_back(new_action);
-	return (int)custom_actions.size() - 1;
-}
-
-vr::VRActionHandle_t openvr_data::get_custom_handle(int p_action_idx) {
-	if (p_action_idx < 0) {
-		// we never registered our handle
-		// printf("Index not setup: %i\n", p_action_idx);
-		return vr::k_ulInvalidActionHandle;
-	} else if (p_action_idx >= custom_actions.size()) {
-		// index out of bounds
-		// printf("Index out of bounds: %i\n", p_action_idx);
-		return vr::k_ulInvalidActionHandle;
-	} else {
-		return custom_actions[p_action_idx].handle;
-	}
-}
-
-bool openvr_data::get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand) {
-	if (p_action_idx < 0) {
-		// we never registered our handle
-		// printf("Index not setup: %i\n", p_action_idx);
-		return false;
-	} else if (p_action_idx >= custom_actions.size()) {
-		// index out of bounds
-		// printf("Index out of bounds: %i\n", p_action_idx);
-		return false;
-	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
-		// action doesn't exist
-		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
-		return false;
-	}
-
-	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
-	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[left_hand_device].source_handle;
-	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[right_hand_device].source_handle;
-	}
-
-	// let's retrieve it
-	vr::EVRInputError err = vr::VRInput()->GetPoseActionDataForNextFrame(custom_actions[p_action_idx].handle, vr::TrackingUniverseStanding, p_data, sizeof(vr::InputPoseActionData_t), source_handle);
+	vr::EVRInputError err = vr::VRInput()->TriggerHapticVibrationAction(action_handle, p_delay_sec, p_duraction_sec, p_frequency, p_amplitude, source_handle);
 	if (err != vr::VRInputError_None) {
-		// printf("Couldn't retrieve pose %i\n", err);
-		return false;
+		Array arr;
+		arr.push_back(String(p_action));
+		arr.push_back(String(p_device_name));
+		UtilityFunctions::print(String("Failed to trigger haptic pulse {0} for {1}").format(arr));
 	}
-
-	return true;
 }
 
-bool openvr_data::get_custom_digital_data(int p_action_idx, int p_on_hand) {
-	if (p_action_idx < 0) {
-		// we never registered our handle
-		// printf("Index not setup: %i\n", p_action_idx);
-		return false;
-	} else if (p_action_idx >= custom_actions.size()) {
-		// index out of bounds
-		// printf("Index out of bounds: %i\n", p_action_idx);
-		return false;
-	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
-		// action doesn't exist
-		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
-		return false;
+void openvr_data::add_pose_action(const char *p_action, const char *p_path) {
+	for (int i = 0; i < poses.size(); i++) {
+		if (poses[i].name == p_action) {
+			// already registered
+			return;
+		}
 	}
 
-	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
-	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[left_hand_device].source_handle;
-	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[right_hand_device].source_handle;
-	}
-
-	// let's retrieve it
-	vr::InputDigitalActionData_t digital_data;
-	vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(custom_actions[p_action_idx].handle, &digital_data, sizeof(digital_data), source_handle);
-	if (err != vr::VRInputError_None) {
-		// printf("Couldn't retrieve digital %i\n", err);
-		return false;
-	}
-
-	return digital_data.bActive && digital_data.bState;
+	action_info action;
+	action.name = p_action;
+	action.path = p_path;
+	action.handle = vr::k_ulInvalidActionHandle;
+	poses.push_back(action);
 }
 
-godot::Vector2 openvr_data::get_custom_analog_data(int p_action_idx, int p_on_hand) {
-	if (p_action_idx < 0) {
-		// we never registered our handle
-		// printf("Index not setup: %i\n", p_action_idx);
-		return godot::Vector2();
-	} else if (p_action_idx >= custom_actions.size()) {
-		// index out of bounds
-		// printf("Index out of bounds: %i\n", p_action_idx);
-		return godot::Vector2();
-	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
-		// action doesn't exist
-		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
-		return godot::Vector2();
+void openvr_data::remove_pose_action(const char *p_action) {
+	for (int i = 0; i < poses.size(); i++) {
+		if (poses[i].name == p_action) {
+			// found it
+			poses.erase(poses.begin() + i);
+		}
 	}
-
-	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
-	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[left_hand_device].source_handle;
-	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[right_hand_device].source_handle;
-	}
-
-	// let's retrieve it
-	vr::InputAnalogActionData_t analog_data;
-	vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(custom_actions[p_action_idx].handle, &analog_data, sizeof(analog_data), source_handle);
-	if (err != vr::VRInputError_None) {
-		// printf("Couldn't retrieve analog %i\n", err);
-		return godot::Vector2();
-	} else if (!analog_data.bActive) {
-		return godot::Vector2();
-	}
-
-	return godot::Vector2(analog_data.x, analog_data.y);
-}
-
-bool openvr_data::trigger_custom_haptic(int p_action_idx, float p_start_from_now, float p_duration, float p_frequency, float p_amplitude, int p_on_hand) {
-	if (p_action_idx < 0) {
-		// we never registered our handle
-		// printf("Index not setup: %i\n", p_action_idx);
-		return false;
-	} else if (p_action_idx >= custom_actions.size()) {
-		// index out of bounds
-		// printf("Index out of bounds: %i\n", p_action_idx);
-		return false;
-	} else if (custom_actions[p_action_idx].handle == vr::k_ulInvalidActionHandle) {
-		// action doesn't exist
-		// printf("No handle set for action: %s\n", custom_actions[p_action_idx].name);
-		return false;
-	}
-
-	vr::VRInputValueHandle_t source_handle = vr::k_ulInvalidInputValueHandle;
-	if (p_on_hand == 1 && left_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[left_hand_device].source_handle;
-	} else if (p_on_hand == 2 && right_hand_device != vr::k_unTrackedDeviceIndexInvalid) {
-		source_handle = tracked_devices[right_hand_device].source_handle;
-	}
-
-	vr::VRInput()->TriggerHapticVibrationAction(custom_actions[p_action_idx].handle, p_start_from_now, p_duration, p_frequency, p_amplitude, source_handle);
-
-	return true;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -933,22 +891,36 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				UtilityFunctions::print(String("Found tracker {0} ({1})").format(arr));
 			}
 
-			/* TODO re-implement
-			sprintf(&device_name[strlen(device_name)], "_%i", p_device_index);
-			device->tracker_id = godot::xr_api->godot_xr_add_controller(device_name, hand, true, true);
+			XRServer *xr_server = XRServer::get_singleton();
+			if (xr_server != nullptr) {
+				Ref<XRPositionalTracker> new_tracker;
+				new_tracker.instantiate();
+				new_tracker->set_tracker_type(XRServer::TRACKER_CONTROLLER);
+				new_tracker->set_tracker_desc(device_name);
+				new_tracker->set_tracker_hand(XRPositionalTracker::TrackerHand(hand));
 
-			// remember our primary left and right hand devices
-			if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
-				vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
-				left_hand_device = p_device_index;
-			} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
-				vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
-				right_hand_device = p_device_index;
-			} else {
-				// other devices don't have source handles...
-				device->source_handle = vr::k_ulInvalidInputValueHandle;
+				// remember our primary left and right hand devices
+				if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+					new_tracker->set_tracker_name("left_hand");
+
+					vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
+					left_hand_device = p_device_index;
+				} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+					new_tracker->set_tracker_name("right_hand");
+
+					vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
+					right_hand_device = p_device_index;
+				} else {
+					// other devices don't have source handles...
+					sprintf(device_name, "controller_%i", p_device_index);
+					new_tracker->set_tracker_name(device_name);
+
+					device->source_handle = vr::k_ulInvalidInputValueHandle;
+				}
+
+				device->tracker = new_tracker;
+				xr_server->add_tracker(new_tracker);
 			}
-			*/
 		}
 	}
 }
@@ -956,13 +928,16 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 ////////////////////////////////////////////////////////////////
 // Called when we loose tracked device, cleanup
 void openvr_data::detach_device(uint32_t p_device_index) {
+	tracked_device *device = &tracked_devices[p_device_index];
+
 	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
 		// really?!
-
-		/* TODO re-implement
-	} else if (tracked_devices[p_device_index].tracker_id != 0) {
-		godot::xr_api->godot_xr_remove_controller(tracked_devices[p_device_index].tracker_id);
-		tracked_devices[p_device_index].tracker_id = 0;
+	} else if (device->tracker.is_valid()) {
+		XRServer *xr_server = XRServer::get_singleton();
+		if (xr_server != nullptr) {
+			xr_server->remove_tracker(device->tracker);
+		}
+		device->tracker.unref();
 
 		// unset left/right hand devices
 		if (left_hand_device == p_device_index) {
@@ -970,72 +945,73 @@ void openvr_data::detach_device(uint32_t p_device_index) {
 		} else if (right_hand_device == p_device_index) {
 			right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
 		}
-	*/
 	}
 }
 
 ////////////////////////////////////////////////////////////////
 // Called by our process loop to handle our fixed actions
 void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_msec) {
-	const char input_types[DAH_IN_MAX] = { 'b', 'f', 'b', 'f', 'v', 'b', 'b', 'b' }; // input type (b)oolean, (f)loat, (v)ector2
-	const int godot_index[DAH_IN_MAX] = { 15, 2, 2, 4, 0, 14, 7, 1 }; // button / axis indexes
-
 	if (p_device->source_handle == vr::k_ulInvalidInputValueHandle) {
 		return;
 	}
 
-	/* TODO re-implement this..
-	// look through our inputs...
-	for (int i = 0; i < DAH_IN_MAX; i++) {
-		if (input_action_handles[i] != vr::k_ulInvalidActionHandle) {
-			switch (input_types[i]) {
-				case 'b': {
-					vr::InputDigitalActionData_t action_data;
-					vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(input_action_handles[i], &action_data, sizeof(action_data), p_device->source_handle);
-					if (err == vr::VRInputError_None) {
-						godot::xr_api->godot_xr_set_controller_button(p_device->tracker_id, godot_index[i], action_data.bActive && action_data.bState);
-					}
-				} break;
-				case 'f': { // vector1
-					vr::InputAnalogActionData_t analog_data;
-					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input_action_handles[i], &analog_data, sizeof(analog_data), p_device->source_handle);
-					if (err == vr::VRInputError_None) {
-						if (analog_data.bActive) {
-							godot::xr_api->godot_xr_set_controller_axis(
-									p_device->tracker_id, godot_index[i], analog_data.x, true);
-						}
-					}
-				} break;
-				case 'v': { // vector2
-					vr::InputAnalogActionData_t analog_data;
-					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input_action_handles[i], &analog_data, sizeof(analog_data), p_device->source_handle);
-					if (err == vr::VRInputError_None) {
-						if (analog_data.bActive) {
-							godot::xr_api->godot_xr_set_controller_axis(
-									p_device->tracker_id, godot_index[i], analog_data.x, true);
-							godot::xr_api->godot_xr_set_controller_axis(
-									p_device->tracker_id, godot_index[i] + 1, analog_data.y, true);
-						}
-					}
-				} break;
-				default: {
-					// ????
-				} break;
+	// Check our action based poses
+	for (auto pose : poses) {
+		if (pose.handle != vr::k_ulInvalidActionHandle) {
+			// TODO change vr::TrackingUniverseStanding to correct value
+			vr::InputPoseActionData_t data;
+			vr::EVRInputError err = vr::VRInput()->GetPoseActionDataForNextFrame(pose.handle, vr::TrackingUniverseStanding, &data, sizeof(vr::InputPoseActionData_t), p_device->source_handle);
+			if (err != vr::VRInputError_None) {
+				// No new status
+			} else if (!data.bActive) {
+				p_device->tracker->invalidate_pose(pose.name);
+			} else if (!data.pose.bPoseIsValid) {
+				p_device->tracker->invalidate_pose(pose.name);
+			} else {
+				Transform3D transform = transform_from_matrix(&data.pose.mDeviceToAbsoluteTracking, 1.0);
+				Vector3 linear_velocity(data.pose.vVelocity.v[0], data.pose.vVelocity.v[1], data.pose.vVelocity.v[2]);
+				Vector3 angular_velocity(data.pose.vAngularVelocity.v[0], data.pose.vAngularVelocity.v[1], data.pose.vAngularVelocity.v[2]);
+
+				p_device->tracker->set_pose(pose.name, transform, linear_velocity, angular_velocity);
 			}
+		} else {
+			p_device->tracker->invalidate_pose(pose.name);
 		}
 	}
-	*/
 
-	// and check our haptic output
-	if (output_action_handles[DAH_OUT_HAPTIC] != vr::k_ulInvalidActionHandle) {
-		/* TODO re-implement
-		float rumble = (float)godot::xr_api->godot_xr_get_controller_rumble(p_device->tracker_id);
-		if ((rumble > 0.0) && ((p_msec - p_device->last_rumble_update) > 100)) {
-			// We should only call this once ever 100ms...
-			vr::VRInput()->TriggerHapticVibrationAction(output_action_handles[DAH_OUT_HAPTIC], 0, 0.1f, 4.f, rumble, p_device->source_handle);
-			p_device->last_rumble_update = p_msec;
+	for (auto input : inputs) {
+		if (input.handle != vr::k_ulInvalidActionHandle) {
+			switch (input.type) {
+				case IT_BOOL: {
+					vr::InputDigitalActionData_t action_data;
+					vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(input.handle, &action_data, sizeof(action_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						bool pressed = action_data.bActive && action_data.bState;
+						p_device->tracker->set_input(input.name, pressed);
+					}
+				} break;
+				case IT_FLOAT: {
+					vr::InputAnalogActionData_t analog_data;
+					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input.handle, &analog_data, sizeof(analog_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						if (analog_data.bActive) {
+							p_device->tracker->set_input(input.name, analog_data.x);
+						}
+					}
+				} break;
+				case IT_VECTOR2: {
+					vr::InputAnalogActionData_t analog_data;
+					vr::EVRInputError err = vr::VRInput()->GetAnalogActionData(input.handle, &analog_data, sizeof(analog_data), p_device->source_handle);
+					if (err == vr::VRInputError_None) {
+						if (analog_data.bActive) {
+							Vector2 value(analog_data.x, analog_data.y);
+							p_device->tracker->set_input(input.name, value);
+						}
+					}
+				} break;
+				default: break;
+			}
 		}
-		*/
 	}
 }
 

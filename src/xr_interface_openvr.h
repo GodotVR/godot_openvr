@@ -58,6 +58,7 @@ public:
 	virtual void _uninitialize() override;
 
 	virtual int64_t _get_tracking_status() const override;
+	virtual void _trigger_haptic_pulse(const String &action_name, const StringName &tracker_name, double frequency, double amplitude, double duration_sec, double delay_sec) override;
 
 	virtual Vector2 _get_render_target_size() override;
 	virtual int64_t _get_view_count() override;

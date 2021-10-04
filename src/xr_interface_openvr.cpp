@@ -235,6 +235,15 @@ int64_t XRInterfaceOpenVR::_get_tracking_status() const {
 }
 
 ////////////////////////////////////////////////////////////////
+// Issue a haptic pulse
+void XRInterfaceOpenVR::_trigger_haptic_pulse(const String &action_name, const StringName &tracker_name, double frequency, double amplitude, double duration_sec, double delay_sec) {
+	if (ovr != nullptr && ovr->is_initialised()) {
+		String tname = tracker_name;
+		ovr->trigger_haptic_pulse(action_name.utf8().get_data(), tname.utf8().get_data(), frequency, amplitude, duration_sec, delay_sec);
+	}
+}
+
+////////////////////////////////////////////////////////////////
 // Returns the requested size of our render target
 // called right before rendering, if the size changes a new
 // render target will be constructed.
@@ -264,7 +273,11 @@ Transform3D XRInterfaceOpenVR::_get_camera_transform() {
 	if (ovr == nullptr || xr_server == nullptr) {
 		return Transform3D();
 	}
-	return xr_server->get_reference_frame() * ovr->get_hmd_transform();
+
+	Transform3D hmd_transform = ovr->get_hmd_transform();
+	hmd_transform.origin *= xr_server->get_world_scale();
+
+	return xr_server->get_reference_frame() * hmd_transform;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -274,11 +287,19 @@ Transform3D XRInterfaceOpenVR::_get_transform_for_view(int64_t p_view, const Tra
 		return Transform3D();
 	}
 
+	// TODO this needs to get a proper entry point, we're just cheating here...
+	if (p_view == 0) {
+		ovr->pre_render_update();
+	}
+
 	double world_scale = xr_server->get_world_scale();
 
 	Transform3D transform_for_view = ovr->get_eye_to_head_transform(p_view, world_scale);
 
-	return p_cam_transform * xr_server->get_reference_frame() * ovr->get_hmd_transform() * transform_for_view;
+	Transform3D hmd_transform = ovr->get_hmd_transform();
+	hmd_transform.origin *= world_scale;
+
+	return p_cam_transform * xr_server->get_reference_frame() * hmd_transform * transform_for_view;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -309,26 +330,25 @@ PackedFloat64Array XRInterfaceOpenVR::_get_projection_for_view(int64_t p_view, d
 ////////////////////////////////////////////////////////////////
 // This is called after we render a frame so we can send the render output to OpenVR
 void XRInterfaceOpenVR::_commit_views(const RID &p_render_target, const Rect2 &p_screen_rect) {
-	// TODO rewrite this once we have proper access to members again
-	// and implement source rect blit
+	if (!p_screen_rect.has_no_area()) {
+		// just blit left eye out to screen
+		Rect2 src_rect;
+		Rect2 dst_rect = p_screen_rect;
+		if (dst_rect.size.x > 0.0 && dst_rect.size.y > 0.0) {
+			float src_height = width * (dst_rect.size.y / dst_rect.size.x); // height of our screen mapped to source space
+			if (src_height < height) {
+				src_height /= height;
+				src_rect.position = Vector2(0.0, 0.5 * (1.0 - src_height));
+				src_rect.size = Vector2(1.0, src_height);
+			} else {
+				float src_width = height * (dst_rect.get_size().x / dst_rect.get_size().y); // width of our screen mapped to source space
+				src_width /= width;
+				src_rect.position = Vector2(0.5 * (1.0 - src_width), 0.0);
+				src_rect.size = Vector2(src_width, 1.0);
+			}
 
-	// just blit left eye out to screen
-	Rect2 src_rect;
-	Rect2 dst_rect = p_screen_rect;
-	if (dst_rect.size.x > 0.0 && dst_rect.size.y > 0.0) {
-		float src_height = width * (dst_rect.size.y / dst_rect.size.x); // height of our screen mapped to source space
-		if (src_height < height) {
-			src_height /= height;
-			src_rect.position = Vector2(0.0, 0.5 * (1.0 - src_height));
-			src_rect.size = Vector2(1.0, src_height);
-		} else {
-			float src_width = height * (dst_rect.get_size().x / dst_rect.get_size().y); // width of our screen mapped to source space
-			src_width /= width;
-			src_rect.position = Vector2(0.5 * (1.0 - src_width), 0.0);
-			src_rect.size = Vector2(src_width, 1.0);
+			add_blit(p_render_target, src_rect, dst_rect, true, 0, false, Vector2(), 0.0, 0.0, 0.0, 0.0);
 		}
-
-		add_blit(p_render_target, src_rect, dst_rect, true, 0, false, Vector2(), 0.0, 0.0, 0.0, 0.0);
 	}
 
 	RenderingServer *rendering_server = RenderingServer::get_singleton();

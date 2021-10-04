@@ -3,33 +3,14 @@ extends Area3D
 signal has_picked_up(what)
 signal has_dropped
 
-# enum our buttons, should find a way to put this more central
-enum Buttons {
-	VR_BUTTON_BY = 1,
-	VR_GRIP = 2,
-	VR_BUTTON_3 = 3,
-	VR_BUTTON_4 = 4,
-	VR_BUTTON_5 = 5,
-	VR_BUTTON_6 = 6,
-	VR_BUTTON_AX = 7,
-	VR_BUTTON_8 = 8,
-	VR_BUTTON_9 = 9,
-	VR_BUTTON_10 = 10,
-	VR_BUTTON_11 = 11,
-	VR_BUTTON_12 = 12,
-	VR_BUTTON_13 = 13,
-	VR_PAD = 14,
-	VR_TRIGGER = 15
-}
-
 @export var pickup_range = 0.5:
 	set(new_value):
 		pickup_range = new_value
 		_update_pickup_range()
 
 @export var impulse_factor = 1.0
-@export var pickup_button_id: Buttons = Buttons.VR_GRIP
-@export var action_button_id: Buttons = Buttons.VR_TRIGGER
+@export var pickup_button: String = "grip_click"
+@export var action_button: String = "trigger_click"
 @export var max_samples = 5
 
 var objects_in_area: Array
@@ -126,17 +107,17 @@ func _pick_up_object(p_object):
 		emit_signal("has_picked_up", picked_up_object)
 
 func _on_button_pressed(p_button):
-	if p_button == pickup_button_id:
+	if p_button == pickup_button:
 		if picked_up_object and !picked_up_object.press_to_hold:
 			drop_object()
 		elif closest_object:
 			_pick_up_object(closest_object)
-	elif p_button == action_button_id:
+	elif p_button == action_button:
 		if picked_up_object and picked_up_object.has_method("action"):
 			picked_up_object.action()
 
 func _on_button_released(p_button):
-	if p_button == pickup_button_id:
+	if p_button == pickup_button:
 		if picked_up_object and picked_up_object.press_to_hold:
 			drop_object()
 
@@ -149,6 +130,8 @@ func _ready():
 	_update_pickup_range()
 
 func _process(delta):
+	# TODO REWRITE THIS, we now get this info from the XRPose
+	
 	# Calculate our linear velocity
 	var linear_velocity = (global_transform.origin - last_transform.origin) / delta
 	linear_velocities.push_back(linear_velocity)

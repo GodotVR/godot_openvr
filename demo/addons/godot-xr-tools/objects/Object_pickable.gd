@@ -68,7 +68,7 @@ func pick_up(by, with_controller):
 	by_controller = with_controller
 
 	# turn off physics on our pickable object
-	mode = RigidDynamicBody3D.MODE_STATIC
+	freeze = true
 	collision_layer = picked_up_layer
 	collision_mask = 0
 
@@ -99,7 +99,7 @@ func let_go(p_linear_velocity = Vector3(0.0, 0.0, 0.0), p_angular_velocity = Vec
 
 		# reposition it and apply impulse
 		global_transform = t
-		mode = RigidDynamicBody3D.MODE_DYNAMIC
+		freeze = false
 		collision_mask = original_collision_mask
 		collision_layer = original_collision_layer
 

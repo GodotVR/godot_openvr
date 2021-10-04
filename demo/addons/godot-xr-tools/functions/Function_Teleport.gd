@@ -14,26 +14,7 @@ extends CharacterBody3D
 			# we turn this off in physics process just in case we want to do some cleanup
 			pass
 
-# enum our buttons, should find a way to put this more central
-enum Buttons {
-	VR_BUTTON_BY = 1,
-	VR_GRIP = 2,
-	VR_BUTTON_3 = 3,
-	VR_BUTTON_4 = 4,
-	VR_BUTTON_5 = 5,
-	VR_BUTTON_6 = 6,
-	VR_BUTTON_AX = 7,
-	VR_BUTTON_8 = 8,
-	VR_BUTTON_9 = 9,
-	VR_BUTTON_10 = 10,
-	VR_BUTTON_11 = 11,
-	VR_BUTTON_12 = 12,
-	VR_BUTTON_13 = 13,
-	VR_PAD = 14,
-	VR_TRIGGER = 15
-}
-
-@export var teleport_button: Buttons = Buttons.VR_TRIGGER
+@export var teleport_button: String = "trigger_click"
 @export var can_teleport_color: Color = Color(0.0, 1.0, 0.0, 1.0)
 @export var cant_teleport_color: Color = Color(1.0, 0.0, 0.0, 1.0)
 @export var no_collision_color: Color = Color(45.0 / 255.0, 80.0 / 255.0, 220.0 / 255.0, 1.0)
@@ -233,7 +214,11 @@ func _physics_process(delta):
 						var start_pos = target_global_origin + (Vector3.UP * 0.5 * player_height)
 						var end_pos = target_global_origin - (Vector3.UP * 1.1 * player_height)
 						
-						var intersects = state.intersect_ray(start_pos, end_pos, [], collision_mask)
+						var ray_query : PhysicsRayQueryParameters3D
+						ray_query.from = start_pos
+						ray_query.to = end_pos
+						ray_query.collision_mask = collision_mask
+						var intersects = state.intersect_ray(ray_query)
 						if intersects.is_empty():
 							is_on_floor = false
 						else:
@@ -276,7 +261,7 @@ func _physics_process(delta):
 					color = cant_teleport_color
 				
 				# check our axis to see if we need to rotate
-				teleport_rotation += (delta * controller.get_joystick_axis(0) * -4.0)
+				teleport_rotation += (delta * controller.get_axis("primary").x * -4.0)
 				
 				# update target and colour
 				var target_basis = Basis()
