@@ -32,33 +32,15 @@ enum MOVEMENT_TYPE { MOVE_AND_ROTATE, MOVE_AND_STRAFE }
 @export var step_turn_angle = 20.0
 
 # and movement
+@export var move_input: String = "primary"
 @export var max_speed = 10.0
 @export var drag_factor = 0.1
 
-# enum our buttons, should find a way to put this more central
-enum Buttons {
-	VR_BUTTON_BY = 1,
-	VR_GRIP = 2,
-	VR_BUTTON_3 = 3,
-	VR_BUTTON_4 = 4,
-	VR_BUTTON_5 = 5,
-	VR_BUTTON_6 = 6,
-	VR_BUTTON_AX = 7,
-	VR_BUTTON_8 = 8,
-	VR_BUTTON_9 = 9,
-	VR_BUTTON_10 = 10,
-	VR_BUTTON_11 = 11,
-	VR_BUTTON_12 = 12,
-	VR_BUTTON_13 = 13,
-	VR_PAD = 14,
-	VR_TRIGGER = 15
-}
-
 # fly mode and strafe movement management
 @export var move_type: MOVEMENT_TYPE = MOVEMENT_TYPE.MOVE_AND_ROTATE
-@export var canFly = true
-@export var fly_move_button_id: Buttons = Buttons.VR_TRIGGER
-@export var fly_activate_button_id: Buttons = Buttons.VR_GRIP
+@export var fly_enabled = true
+@export var fly_move: String = "trigger_click"
+@export var fly_activate: String = "grip_click"
 var isflying = false
 
 var turn_step = 0.0
@@ -126,30 +108,31 @@ func _physics_process(delta):
 		player_height = player_radius
 
 	collision_shape.shape.radius = player_radius
-	collision_shape.shape.height = player_height - (player_radius * 2.0)
+	collision_shape.shape.height = player_height
 	collision_shape.transform.origin.y = (player_height / 2.0)
 
 	# We should be the child or the controller on which the teleport is implemented
 	var controller = get_parent()
 	if controller.get_is_active():
-		var left_right = controller.get_joystick_axis(0)
-		var forwards_backwards = controller.get_joystick_axis(1)
+		var input = controller.get_axis(move_input)
+		var left_right = input.x
+		var forwards_backwards = input.y
 
 		# if fly_action_button_id is pressed it activates the FLY MODE
 		# if fly_action_button_id is released it deactivates the FLY MODE
-		if controller.is_button_pressed(fly_activate_button_id) && canFly:
+		if controller.is_button_pressed(fly_activate) && fly_enabled:
 			isflying =  true
 		else:
 			isflying = false
 
 		# if player is flying, he moves following the controller's orientation
 		if isflying:
-			if controller.is_button_pressed(fly_move_button_id):
+			if controller.is_button_pressed(fly_move):
 				# is flying, so we will use the controller's transform to move the VR capsule follow its orientation
 				var curr_transform = $CharacterBody3D.global_transform
-				$CharacterBody3D.linear_velocity = -controller.global_transform.basis.z.normalized() * max_speed * XRServer.world_scale
+				$CharacterBody3D.motion_velocity = -controller.global_transform.basis.z.normalized() * max_speed * XRServer.world_scale
 				$CharacterBody3D.move_and_slide()
-				velocity = $CharacterBody3D.linear_velocity
+				velocity = $CharacterBody3D.motion_velocity
 				var movement = ($CharacterBody3D.global_transform.origin - curr_transform.origin)
 				origin_node.global_transform.origin += movement
 
@@ -248,15 +231,15 @@ func _physics_process(delta):
 					velocity = (dir_forward * -forwards_backwards + dir_right * left_right).normalized() * max_speed * XRServer.world_scale
 
 			# apply move and slide to our kinematic body
-			$CharacterBody3D.linear_velocity = velocity
+			$CharacterBody3D.motion_velocity = velocity
 			$CharacterBody3D.move_and_slide()
-			velocity = $CharacterBody3D.linear_velocity
+			velocity = $CharacterBody3D.motion_velocity
 
 			# apply our gravity
 			gravity_velocity.y += 0.5 * gravity * delta
-			$CharacterBody3D.linear_velocity = gravity_velocity
+			$CharacterBody3D.motion_velocity = gravity_velocity
 			$CharacterBody3D.move_and_slide()
-			gravity_velocity = $CharacterBody3D.linear_velocity
+			gravity_velocity = $CharacterBody3D.motion_velocity
 			velocity.y = gravity_velocity.y
 
 			# now use our new position to move our origin point

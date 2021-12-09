@@ -37,7 +37,9 @@ void OpenVRSkeleton::_process(double delta) {
 	vr::EVRInputError err;
 	is_active = false;
 
-	vr::VRActionHandle_t handle = ovr->get_custom_handle(action_idx);
+	// TODO change how this works
+	// vr::VRActionHandle_t handle = ovr->get_custom_handle(action_idx);
+	vr::VRActionHandle_t handle = vr::k_ulInvalidActionHandle;
 	if (handle == vr::k_ulInvalidActionHandle) {
 		return;
 	}
@@ -160,7 +162,8 @@ void OpenVRSkeleton::_process(double delta) {
 
 				// now we need the difference...
 				set_bone_rest(i, bones[i].rest_transform);
-				set_bone_pose(i, Transform3D());
+				set_bone_pose_position(i, Vector3());
+				set_bone_pose_rotation(i, Quaternion());
 			}
 		}
 	}
@@ -181,7 +184,10 @@ void OpenVRSkeleton::_process(double delta) {
 
 		Transform3D pose_transform = bones[i].pose_transform;
 		pose_transform = bones[i].rest_transform.inverse() * pose_transform;
-		set_bone_pose(i, pose_transform);
+
+		// TODO This has to be rewritten, we should use the quarternion data as we get it.
+		set_bone_pose_position(i, pose_transform.origin);
+		set_bone_pose_rotation(i, pose_transform.basis.get_rotation_quat());
 	}
 
 	// I guess we're active...
@@ -216,7 +222,11 @@ String OpenVRSkeleton::get_action() const {
 
 void OpenVRSkeleton::set_action(String p_action) {
 	action = p_action;
-	action_idx = ovr->register_custom_action(p_action);
+
+	// TODO change how this works
+	// action_idx = ovr->register_custom_action(p_action);
+	action_idx = -1;
+
 	cleanup_bones();
 }
 

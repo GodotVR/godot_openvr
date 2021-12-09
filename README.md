@@ -40,7 +40,7 @@ Updating extensions
 -------------------
 
 As extensions are still being worked on you may need to run the following command on your build of Godot:
-`godot --dump-extension-api extension_api.json`
+`godot --dump-extension-api`
 And then copy the extension_api.json file into `godot-cpp/godot-headers` before compiling godot-cpp.
 
 Compiling

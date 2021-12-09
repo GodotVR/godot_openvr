@@ -30,6 +30,9 @@ func _ready():
 	controller_is_loaded = false
 
 func _process(delta):
+	# disabled for now
+	return;
+
 	var controller : XRController3D = get_parent();
 	if !controller:
 		return

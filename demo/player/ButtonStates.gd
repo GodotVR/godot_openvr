@@ -12,12 +12,21 @@ func _ready():
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if controller:
-		$VBoxContainer/JoyX/Value.value = 100.0 * controller.get_joystick_axis(0)
-		$VBoxContainer/JoyY/Value.value = 100.0 * controller.get_joystick_axis(1)
-		$VBoxContainer/Trigger/Value.value = 100.0 * controller.get_joystick_axis(2)
-		$VBoxContainer/Trigger/Pressed.pressed = controller.is_button_pressed(15)
-		$VBoxContainer/Grip/Value.value = 100.0 * controller.get_joystick_axis(4)
-		$VBoxContainer/Grip/Pressed.pressed = controller.is_button_pressed(2)
-		$VBoxContainer/AX/Pressed.pressed = controller.is_button_pressed(7)
-		$VBoxContainer/BY/Pressed.pressed = controller.is_button_pressed(1)
+		var primary = controller.get_axis("primary")
+		$VBoxContainer/PrimaryJoyX/Value.value = 100.0 * primary.x
+		$VBoxContainer/PrimaryJoyY/Value.value = 100.0 * primary.y
+		
+		var secondary = controller.get_axis("secondary")
+		$VBoxContainer/SecondaryJoyX/Value.value = 100.0 * secondary.x
+		$VBoxContainer/SecondaryJoyY/Value.value = 100.0 * secondary.y
+
+		var trigger = controller.get_value("trigger_value")
+		$VBoxContainer/Trigger/Value.value = 100.0 * trigger
+		$VBoxContainer/Trigger/Pressed.pressed = controller.is_button_pressed("trigger_click")
+
+		var grip = controller.get_value("grip_value")
+		$VBoxContainer/Grip/Value.value = 100.0 * grip
+		$VBoxContainer/Grip/Pressed.pressed = controller.is_button_pressed("grip_click")
+		$VBoxContainer/AX/Pressed.pressed = controller.is_button_pressed("ax")
+		$VBoxContainer/BY/Pressed.pressed = controller.is_button_pressed("by")
 		

@@ -51,8 +51,8 @@ func _ready():
 			# switch to ARVR mode
 			vp.use_xr = true
 
-			# make sure vsync is disabled or we'll be limited to 60fps
-			# OS.vsync_enabled = false
+			# make sure vsync is disabled or we'll be limited to 60fps (or whatever the limit of your monitor is)
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
 			if physics_factor > 0:
 				# Set our physics to a multiple of our refresh rate to get in sync with our rendering

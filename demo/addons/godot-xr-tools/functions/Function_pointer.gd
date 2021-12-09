@@ -7,26 +7,6 @@ signal pointer_moved(on, from, to)
 signal pointer_entered(body)
 signal pointer_exited(body)
 
-# enum our buttons, should find a way to put this more central
-enum Buttons {
-	VR_BUTTON_BY = 1,
-	VR_GRIP = 2,
-	VR_BUTTON_3 = 3,
-	VR_BUTTON_4 = 4,
-	VR_BUTTON_5 = 5,
-	VR_BUTTON_6 = 6,
-	VR_BUTTON_AX = 7,
-	VR_BUTTON_8 = 8,
-	VR_BUTTON_9 = 9,
-	VR_BUTTON_10 = 10,
-	VR_BUTTON_11 = 11,
-	VR_BUTTON_12 = 12,
-	VR_BUTTON_13 = 13,
-	VR_PAD = 14,
-	VR_TRIGGER = 15,
-	VR_ACTION = 255
-}
-
 @export var enabled = true:
 	set(new_value):
 		enabled = new_value
@@ -37,7 +17,7 @@ enum Buttons {
 		_update_show_laser()
 @export var show_target = false
 @export var ducktyped_body = true
-@export var active_button: Buttons = Buttons.VR_TRIGGER
+@export var active_button: String = "trigger_click"
 @export var action = ""
 @export var y_offset = -0.05:
 	set(new_value):
@@ -54,7 +34,7 @@ enum Buttons {
 @export var collide_with_bodies = true:
 	set(new_value):
 		collide_with_bodies = new_value
-		_update_collide_with_bodies(new_value)
+		_update_collide_with_bodies()
 @export var collide_with_areas = false:
 	set(new_value):
 		collide_with_areas = new_value
@@ -131,7 +111,7 @@ func _on_button_release(p_button):
 func _ready():
 	ws = XRServer.world_scale
 	
-	if active_button != Buttons.VR_ACTION:
+	if active_button != "trigger_action":
 		# Get button press feedback from our parent (should be an XRController3D)
 		get_parent().connect("button_pressed", _on_button_pressed)
 		get_parent().connect("button_released", _on_button_release)
@@ -149,11 +129,12 @@ func _process(delta):
 	if !is_inside_tree():
 		return
 	
-	if active_button == Buttons.VR_ACTION and action != "":
-		if Input.is_action_just_pressed(action):
-			_button_pressed()
-		elif !Input.is_action_pressed(action) and target:
-			_button_released()
+	# TODO REIMPLEMENT
+	#if active_button == "trigger_action" and action != "":
+	#	if Input.is_action_just_pressed(action):
+	#		_button_pressed()
+	#	elif !Input.is_action_pressed(action) and target:
+	#		_button_released()
 	
 	var new_ws = XRServer.world_scale
 	if (ws != new_ws):

@@ -65,7 +65,9 @@ private:
 	bool is_tracked_device_connected(vr::TrackedDeviceIndex_t p_tracked_device_index);
 	vr::TrackedDeviceClass get_tracked_device_class(vr::TrackedDeviceIndex_t p_tracked_device_index);
 
+	////////////////////////////////////////////////////////////////
 	// actions
+
 	struct action_set {
 		vr::VRActionSetHandle_t handle;
 		godot::String name;
@@ -77,34 +79,37 @@ private:
 	std::vector<vr::VRActiveActionSet_t> active_action_sets;
 	int active_action_set_count = 0;
 
-	enum DeviceInputActionHandles {
-		DAH_IN_TRIGGER,
-		DAH_IN_ANALOG_TRIGGER,
-		DAH_IN_GRIP,
-		DAH_IN_ANALOG_GRIP,
-		DAH_IN_ANALOG,
-		DAH_IN_ANALOG_CLICK,
-		DAH_IN_BUTTON_AX,
-		DAH_IN_BUTTON_BY,
-		DAH_IN_MAX
+	enum InputType {
+		IT_BOOL,
+		IT_FLOAT,
+		IT_VECTOR2
 	};
 
-	enum DeviceOutputActionHandles {
-		DAH_OUT_HAPTIC,
-		DAH_OUT_MAX
+	struct input_action_info {
+		godot::String name;
+		const char *path;
+		InputType type;
+		vr::VRActionHandle_t handle;
 	};
 
-	vr::VRActionHandle_t input_action_handles[DAH_IN_MAX];
-	vr::VRActionHandle_t output_action_handles[DAH_OUT_MAX];
+	std::vector<input_action_info> inputs;
 
-	void bind_default_action_handles();
+	struct action_info {
+		godot::String name;
+		const char *path;
+		vr::VRActionHandle_t handle;
+	};
 
+	std::vector<action_info> outputs;
+	std::vector<action_info> poses;
+
+	////////////////////////////////////////////////////////////////
 	// tracked devices
+	Ref<XRPositionalTracker> head_tracker;
+	godot::Transform3D hmd_transform;
+
 	struct tracked_device {
 		Ref<XRPositionalTracker> tracker;
-		uint64_t last_rumble_update;
-
-		/* add our controller source */
 		vr::VRInputValueHandle_t source_handle;
 	};
 
@@ -118,15 +123,8 @@ private:
 	void detach_device(uint32_t p_device_index);
 	void process_device_actions(tracked_device *p_device, uint64_t p_msec);
 
-	godot::Transform3D hmd_transform;
-
-	// custom actions
-	struct custom_action {
-		vr::VRActionHandle_t handle;
-		godot::String name;
-	};
-
-	std::vector<custom_action> custom_actions;
+	////////////////////////////////////////////////////////////////
+	// meshes (should see about moving this into a separate class)
 
 	// structure to record which model we're loading for our mesh so we can async load this.
 	struct model_mesh {
@@ -165,42 +163,59 @@ public:
 	static openvr_data *retain_singleton();
 	void release();
 
+	////////////////////////////////////////////////////////////////
+	// interact with openvr
+
 	bool is_initialised();
 	bool initialise();
 	void process();
 
-	// properties
+	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);
+	godot::Transform3D get_eye_to_head_transform(int p_eye, double p_world_scale = 1.0);
+
+	void pre_render_update();
+
+	// interact with tracking info
+	const godot::Transform3D get_hmd_transform() const;
+
+	////////////////////////////////////////////////////////////////
+	// overlay
 	int get_overlay_count();
 	overlay get_overlay(int p_overlay_id);
 	int add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid);
 	void remove_overlay(int p_overlay_id);
+
+	////////////////////////////////////////////////////////////////
+	// setup
+
 	OpenVRApplicationType get_application_type();
 	void set_application_type(OpenVRApplicationType p_new_value);
 	OpenVRTrackingUniverse get_tracking_universe();
 	void set_tracking_universe(OpenVRTrackingUniverse p_new_value);
+
 	bool play_area_available() const;
 	const godot::Vector3 *get_play_area() const;
 
-	// interact with openvr
-	void get_recommended_rendertarget_size(uint32_t *p_width, uint32_t *p_height);
-	godot::Transform3D get_eye_to_head_transform(int p_eye, double p_world_scale = 1.0);
+	////////////////////////////////////////////////////////////////
+	// action set
 
-	// interact with tracking info
 	godot::String get_default_action_set() const;
 	void set_default_action_set(const godot::String p_name);
-	const godot::Transform3D get_hmd_transform() const;
 	int register_action_set(const godot::String p_action_set);
 	void set_active_action_set(const godot::String p_action_set);
 	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);
 	bool is_action_set_active(const godot::String p_action_set) const;
 
-	int register_custom_action(const godot::String p_action);
-	vr::VRActionHandle_t get_custom_handle(int p_action_idx);
-	bool get_custom_pose_data(int p_action_idx, vr::InputPoseActionData_t *p_data, int p_on_hand = 0);
-	bool get_custom_digital_data(int p_action_idx, int p_on_hand = 0);
-	godot::Vector2 get_custom_analog_data(int p_action_idx, int p_on_hand = 0);
-	bool trigger_custom_haptic(int p_action_idx, float p_start_from_now, float p_duration, float p_frequency, float p_amplitude, int p_on_hand = 0);
+	void add_input_action(const char *p_action, const char *p_path, const InputType p_type);
+	void remove_input_action(const char *p_action);
 
+	vr::VRActionHandle_t get_output_action(const char *p_action, const char *p_path);
+	void trigger_haptic_pulse(const char *p_action, const char *p_device_name, double p_frequency, double p_amplitude, double p_duraction_sec, double p_delay_sec);
+
+	void add_pose_action(const char *p_action, const char *p_path);
+	void remove_pose_action(const char *p_action);
+
+	////////////////////////////////////////////////////////////////
 	// interact with render models
 	uint32_t get_render_model_count();
 	godot::String get_render_model_name(uint32_t p_model_index);
@@ -209,6 +224,7 @@ public:
 	// clear async data
 	void remove_mesh(godot::ArrayMesh *p_mesh);
 
+	////////////////////////////////////////////////////////////////
 	// helper functions
 	Transform3D transform_from_matrix(vr::HmdMatrix34_t *p_matrix, double p_world_scale);
 	void matrix_from_transform(vr::HmdMatrix34_t *p_matrix, Transform3D *p_transform, double p_world_scale);

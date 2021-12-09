@@ -14,11 +14,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "OpenVRAction.h"
-#include "OpenVRController.h"
-#include "OpenVRHaptics.h"
 #include "OpenVROverlay.h"
-#include "OpenVRPose.h"
 #include "OpenVRRenderModel.h"
 #include "OpenVRSkeleton.h"
 #include "xr_interface_openvr.h"
@@ -31,11 +27,7 @@ void register_types() {
 	// UtilityFunctions::print("Hello register types!");
 
 	ClassDB::register_class<XRInterfaceOpenVR>();
-	ClassDB::register_class<OpenVRAction>();
-	ClassDB::register_class<OpenVRController>();
-	ClassDB::register_class<OpenVRHaptics>();
 	ClassDB::register_class<OpenVROverlay>();
-	ClassDB::register_class<OpenVRPose>();
 	ClassDB::register_class<OpenVRRenderModel>();
 	ClassDB::register_class<OpenVRSkeleton>();
 
@@ -47,8 +39,6 @@ void register_types() {
 }
 
 void unregister_types() {
-	// this requires https://github.com/godotengine/godot/pull/53160 to work
-
 	if (xr_interface_openvr.is_valid()) {
 		if (xr_interface_openvr->is_initialized()) {
 			xr_interface_openvr->uninitialize();

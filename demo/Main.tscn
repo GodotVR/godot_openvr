@@ -2,24 +2,38 @@
 
 [ext_resource type="Script" path="res://Main.gd" id="1"]
 [ext_resource type="Material" uid="uid://cok6b068i8j3m" path="res://assets/wahooney.itch.io/green_grid.tres" id="2"]
-[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/misc/VR_Common_Shader_Cache.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://c1lwn8ckewvro" path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" id="3_0jmmx"]
 [ext_resource type="Environment" uid="uid://ba8m5tewuolm" path="res://environment.tres" id="4"]
-[ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_controller.tscn" id="5"]
-[ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/framecounter_in_3d.tscn" id="6"]
+[ext_resource type="Script" path="res://player/HUD_Anchor.gd" id="4_n1047"]
 [ext_resource type="PackedScene" path="res://misc/Table.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://misc/Box.tscn" id="8"]
+[ext_resource type="Script" path="res://player/right_controller.gd" id="8_oqay4"]
 [ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_Teleport.tscn" id="9"]
-[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_Direct_movement.tscn" id="10"]
+[ext_resource type="PackedScene" uid="uid://hkoqglc13fsw" path="res://addons/godot-xr-tools/functions/Function_Direct_movement.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://misc/Cup.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_Pickup.tscn" id="12"]
-[ext_resource type="Script" path="res://addons/godot-openvr/scenes/ovr_main.gd" id="13"]
 [ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_pointer.tscn" id="14"]
 [ext_resource type="PackedScene" uid="uid://dhcsolk3uwmy6" path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D.tscn" id="15"]
-[ext_resource type="PackedScene" path="res://player/ButtonStates.tscn" id="16"]
-[ext_resource type="Script" path="res://player/right_controller.gd" id="17"]
-[ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_left_hand.tscn" id="20"]
-[ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_right_hand.tscn" id="21"]
-[ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_shader_cache.tscn" id="22"]
+[ext_resource type="PackedScene" uid="uid://bvl8eat4blx3g" path="res://player/ButtonStates.tscn" id="16"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_2ndrj"]
+size = Vector2(0.3, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ux7rk"]
+resource_local_to_scene = true
+transparency = 1
+no_depth_test = true
+shading_mode = 0
+
+[sub_resource type="BoxMesh" id="BoxMesh_jxy6n"]
+size = Vector3(0.01, 0.01, 0.01)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8pi1c"]
+albedo_color = Color(0.109804, 0.27451, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ynikn"]
+material = SubResource( "StandardMaterial3D_8pi1c" )
+size = Vector3(0.01, 0.01, 0.01)
 
 [sub_resource type="PlaneMesh" id="1"]
 material = ExtResource( "2" )
@@ -38,76 +52,87 @@ transform = Transform3D(0.756623, -0.453791, -0.470739, 0.644498, 0.396268, 0.65
 shadow_enabled = true
 shadow_bias = 0.01
 directional_shadow_max_distance = 50.0
-script = null
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = ExtResource( "4" )
-script = null
 
-[node name="Player" type="XROrigin3D" parent="."]
-script = ExtResource( "13" )
+[node name="OVRFirstPerson" parent="." instance=ExtResource( "3_0jmmx" )]
 
-[node name="XRCamera" type="XRCamera3D" parent="Player"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
-environment = ExtResource( "4" )
-script = null
+[node name="HUD_Anchor" parent="OVRFirstPerson" index="1"]
+script = ExtResource( "4_n1047" )
 
-[node name="vr_common_shader_cache" parent="Player/XRCamera" instance=ExtResource( "3" )]
+[node name="SubViewport" type="SubViewport" parent="OVRFirstPerson/HUD_Anchor" index="0"]
+disable_3d = true
+transparent_bg = true
+size = Vector2i(300, 100)
+render_target_update_mode = 3
 
-[node name="ovr_shader_cache" parent="Player/XRCamera" instance=ExtResource( "22" )]
+[node name="FPS" type="Label" parent="OVRFirstPerson/HUD_Anchor/SubViewport"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_font_sizes/font_size = 72
+text = "FPS: 0"
 
-[node name="FPS" parent="Player/XRCamera" instance=ExtResource( "6" )]
+[node name="FPSQuad" type="MeshInstance3D" parent="OVRFirstPerson/HUD_Anchor" index="1"]
+transform = Transform3D(0.965182, 0.11344, 0.235702, -0.0501897, 0.96464, -0.258746, -0.25672, 0.237907, 0.936747, -0.32241, 0.322052, -0.966649)
+mesh = SubResource( "QuadMesh_2ndrj" )
+surface_material_override/0 = SubResource( "StandardMaterial3D_ux7rk" )
 
-[node name="Left_Hand" parent="Player" instance=ExtResource( "5" )]
+[node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/Left_Hand" index="1"]
+mesh = SubResource( "BoxMesh_jxy6n" )
+skeleton = NodePath("../../Right_Hand")
+
+[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="0" instance=ExtResource( "10" )]
+camera = NodePath("../../XRCamera3D")
+
+[node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/Right_Hand" index="2"]
+mesh = SubResource( "BoxMesh_jxy6n" )
+
+[node name="aim_left_hand" type="XRController3D" parent="OVRFirstPerson"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0)
+tracker = &"left_hand"
+pose = &"aim"
 
-[node name="Function_Teleport" parent="Player/Left_Hand" instance=ExtResource( "9" )]
+[node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/aim_left_hand"]
+mesh = SubResource( "BoxMesh_ynikn" )
+skeleton = NodePath("../../aim_right_hand")
+
+[node name="Function_Teleport" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource( "9" )]
 collision_mask = 1022
-camera = NodePath("../../XRCamera")
+camera = NodePath("../../XRCamera3D")
 
-[node name="Function_pointer" parent="Player/Left_Hand" instance=ExtResource( "14" )]
+[node name="Function_pointer" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource( "14" )]
 collision_mask = 2048
 
-[node name="Right_Hand" parent="Player" instance=ExtResource( "5" )]
+[node name="aim_right_hand" type="XRController3D" parent="OVRFirstPerson"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0)
-controller_id = 2
-script = ExtResource( "17" )
+tracker = &"right_hand"
+pose = &"aim"
+script = ExtResource( "8_oqay4" )
 
-[node name="Function_Direct_movement" parent="Player/Right_Hand" instance=ExtResource( "10" )]
-camera = NodePath("../../XRCamera")
-canFly = false
+[node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/aim_right_hand"]
+mesh = SubResource( "BoxMesh_ynikn" )
 
-[node name="Function_Pickup" parent="Player/Right_Hand" instance=ExtResource( "12" )]
-
-[node name="Viewport2Din3D" parent="Player/Right_Hand" instance=ExtResource( "15" )]
-transform = Transform3D(0.960079, 0.0535856, -0.274548, -0.109195, 0.975404, -0.191473, 0.257535, 0.213809, 0.942317, 0.1, 0.1, 0)
+[node name="Viewport2Din3D" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource( "15" )]
+transform = Transform3D(0.960079, 0.211887, -0.182625, -0.163522, 0.954819, 0.248155, 0.226955, -0.208384, 0.95135, 0.167837, 0, 0)
 screen_size = Vector2(0.3, 0.2)
 scene = ExtResource( "16" )
 collision_layer = 2048
 
-[node name="ovr_left_hand" parent="Player" instance=ExtResource( "20" )]
-transform = Transform3D(-1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, -0.5, 1.25, 0)
-
-[node name="ovr_right_hand" parent="Player" instance=ExtResource( "21" )]
-transform = Transform3D(-1, 0, -3.25841e-07, 0, 1, 0, 3.25841e-07, 0, -1, 0.5, 1.25, 0)
+[node name="Function_Pickup" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource( "12" )]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 collision_layer = 2
 collision_mask = 0
-script = null
 
 [node name="Mesh" type="MeshInstance3D" parent="Floor"]
 mesh = SubResource( "1" )
-surface_material_override/0 = null
-script = null
 
 [node name="CollisionShape" type="CollisionShape3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
 shape = SubResource( "2" )
-script = null
 
 [node name="Objects" type="Node3D" parent="."]
-script = null
 
 [node name="Table" parent="Objects" instance=ExtResource( "7" )]
 
@@ -122,3 +147,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, -1)
 
 [node name="Cup" parent="Objects" instance=ExtResource( "11" )]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.702487, -6)
+
+[connection signal="button_pressed" from="OVRFirstPerson/aim_right_hand" to="OVRFirstPerson/aim_right_hand" method="_on_aim_right_hand_button_pressed"]
+
+[editable path="OVRFirstPerson"]

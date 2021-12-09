@@ -13,7 +13,7 @@ dest_files=["res://.godot/imported/vr_glove_left_model_slim.glb-8eb4d606fd297e3e
 
 [params]
 
-nodes/root_type="Spatial"
+nodes/root_type="Node3D"
 nodes/root_name="Scene Root"
 nodes/root_scale=1.0
 meshes/ensure_tangents=true

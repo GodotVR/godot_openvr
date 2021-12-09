@@ -39,7 +39,7 @@ func pointer_moved(from, to):
 	event.set_button_mask(mouse_mask)
 	
 	if vp:
-		vp.input(event)
+		vp.push_input(event, true)
 
 func pointer_pressed(at):
 	var local_at = global_to_viewport(at)
@@ -54,7 +54,7 @@ func pointer_pressed(at):
 	event.set_button_mask(mouse_mask)
 	
 	if vp:
-		vp.input(event)
+		vp.push_input(event, true)
 
 func pointer_released(at):
 	var local_at = global_to_viewport(at)
@@ -69,4 +69,4 @@ func pointer_released(at):
 	event.set_button_mask(mouse_mask)
 	
 	if vp:
-		vp.input(event)
+		vp.push_input(event, true)
