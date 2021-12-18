@@ -22,7 +22,9 @@ func _export_begin(features: PackedStringArray, is_debug: bool, path: String, fl
 		dir.make_dir(export_to)
 	
 	if dir.open(export_from) == OK:
-		dir.list_dir_begin(true, true)
+		dir.include_hidden = false
+		dir.include_navigational = false
+		dir.list_dir_begin()
 		
 		var filename = dir.get_next()
 		while filename != "":
