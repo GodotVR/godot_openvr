@@ -329,7 +329,10 @@ PackedFloat64Array XRInterfaceOpenVR::_get_projection_for_view(int64_t p_view, d
 
 ////////////////////////////////////////////////////////////////
 // This is called after we render a frame so we can send the render output to OpenVR
-void XRInterfaceOpenVR::_commit_views(const RID &p_render_target, const Rect2 &p_screen_rect) {
+void XRInterfaceOpenVR::_post_draw_viewport(const RID &p_render_target, const Rect2 &p_screen_rect) {
+	// Note that at this point in time nothing has actually been rendered yet, this entry point gets called by Godot after
+	// all the rendering for our viewport has been prepared, but the queues have yet to be submitted to Vulkan
+
 	if (!p_screen_rect.has_no_area()) {
 		// just blit left eye out to screen
 		Rect2 src_rect;
@@ -351,18 +354,25 @@ void XRInterfaceOpenVR::_commit_views(const RID &p_render_target, const Rect2 &p
 		}
 	}
 
+	texture_rid = get_render_target_texture(p_render_target);
+};
+
+void XRInterfaceOpenVR::_end_frame() {
+	// _end_frame gets called after Godot has fully prepared its rendering pipeline and submitted its rendering queues to Vulkan
+	if (!ovr->is_initialised()) {
+		return;
+	}
+
 	RenderingServer *rendering_server = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rendering_server);
 	RenderingDevice *rendering_device = rendering_server->get_rendering_device();
 	ERR_FAIL_NULL(rendering_device);
 
-	// FIX ME - We're not getting the correct RID here
-	RID texture = get_render_target_texture(p_render_target);
-	uint64_t image = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE, texture, 0);
-	uint32_t format = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE_NATIVE_TEXTURE_FORMAT, texture, 0);
+	uint64_t image = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE, texture_rid, 0);
+	uint32_t format = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE_NATIVE_TEXTURE_FORMAT, texture_rid, 0);
 
 	// and now sent to OpenVR...
-	if (image != 0 && format != 0 && ovr->is_initialised()) {
+	if (image != 0 && format != 0) {
 		// Submit to SteamVR
 		vr::VRTextureBounds_t bounds;
 		bounds.uMin = 0.0f;

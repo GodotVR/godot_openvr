@@ -384,6 +384,18 @@ void openvr_data::update_play_area() {
 	}
 }
 
+XRPose::TrackingConfidence openvr_data::confidence_from_tracking_result(vr::ETrackingResult p_tracking_result) {
+	switch (p_tracking_result) {
+		case vr::TrackingResult_Uninitialized:
+			return XRPose::XR_TRACKING_CONFIDENCE_NONE;
+		case vr::TrackingResult_Running_OK:
+			return XRPose::XR_TRACKING_CONFIDENCE_HIGH;
+		default:
+			return XRPose::XR_TRACKING_CONFIDENCE_LOW;
+			break;
+	}
+}
+
 void openvr_data::process() {
 	// we need timing info for one or two things..
 	uint64_t msec = Time::get_singleton()->get_ticks_msec();
@@ -471,25 +483,28 @@ void openvr_data::process() {
 		// update tracker
 		if (i == 0) {
 			// TODO make a positional tracker for this too?
+			XRPose::TrackingConfidence confidence = XRPose::XR_TRACKING_CONFIDENCE_NONE;
 			if (tracked_device_pose[i].bPoseIsValid) {
-				// store our HMD transform
+				confidence = confidence_from_tracking_result(tracked_device_pose[i].eTrackingResult);
 				hmd_transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
-				if (head_tracker.is_valid()) {
-					Vector3 linear_velocity(tracked_device_pose[i].vVelocity.v[0], tracked_device_pose[i].vVelocity.v[1], tracked_device_pose[i].vVelocity.v[2]);
-					Vector3 angular_velocity(tracked_device_pose[i].vAngularVelocity.v[0], tracked_device_pose[i].vAngularVelocity.v[1], tracked_device_pose[i].vAngularVelocity.v[2]);
-
-					head_tracker->set_pose("default", hmd_transform, linear_velocity, angular_velocity);
-				}
+				hmd_linear_velocity = Vector3(tracked_device_pose[i].vVelocity.v[0], tracked_device_pose[i].vVelocity.v[1], tracked_device_pose[i].vVelocity.v[2]);
+				hmd_angular_velocity = Vector3(tracked_device_pose[i].vAngularVelocity.v[0], tracked_device_pose[i].vAngularVelocity.v[1], tracked_device_pose[i].vAngularVelocity.v[2]);
 			}
+
+			if (head_tracker.is_valid()) {
+				head_tracker->set_pose("default", hmd_transform, hmd_linear_velocity, hmd_angular_velocity, confidence);
+			}
+
 		} else if (tracked_devices[i].tracker.is_valid()) {
 			// We'll expose our main transform we got from GetLastPoses as the default pose
 			if (tracked_device_pose[i].bPoseIsValid) {
 				// update our location and orientation
+				XRPose::TrackingConfidence confidence = confidence_from_tracking_result(tracked_device_pose[i].eTrackingResult);
 				Transform3D transform = transform_from_matrix(&tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
 				Vector3 linear_velocity(tracked_device_pose[i].vVelocity.v[0], tracked_device_pose[i].vVelocity.v[1], tracked_device_pose[i].vVelocity.v[2]);
 				Vector3 angular_velocity(tracked_device_pose[i].vAngularVelocity.v[0], tracked_device_pose[i].vAngularVelocity.v[1], tracked_device_pose[i].vAngularVelocity.v[2]);
 
-				tracked_devices[i].tracker->set_pose("default", transform, linear_velocity, angular_velocity);
+				tracked_devices[i].tracker->set_pose("default", transform, linear_velocity, angular_velocity, confidence);
 			} else {
 				tracked_devices[i].tracker->invalidate_pose("default");
 			}
@@ -968,11 +983,12 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 			} else if (!data.pose.bPoseIsValid) {
 				p_device->tracker->invalidate_pose(pose.name);
 			} else {
+				XRPose::TrackingConfidence confidence = confidence_from_tracking_result(data.pose.eTrackingResult);
 				Transform3D transform = transform_from_matrix(&data.pose.mDeviceToAbsoluteTracking, 1.0);
 				Vector3 linear_velocity(data.pose.vVelocity.v[0], data.pose.vVelocity.v[1], data.pose.vVelocity.v[2]);
 				Vector3 angular_velocity(data.pose.vAngularVelocity.v[0], data.pose.vAngularVelocity.v[1], data.pose.vAngularVelocity.v[2]);
 
-				p_device->tracker->set_pose(pose.name, transform, linear_velocity, angular_velocity);
+				p_device->tracker->set_pose(pose.name, transform, linear_velocity, angular_velocity, confidence);
 			}
 		} else {
 			p_device->tracker->invalidate_pose(pose.name);

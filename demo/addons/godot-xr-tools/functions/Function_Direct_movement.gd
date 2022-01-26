@@ -37,7 +37,8 @@ enum MOVEMENT_TYPE { MOVE_AND_ROTATE, MOVE_AND_STRAFE }
 @export var drag_factor = 0.1
 
 # fly mode and strafe movement management
-@export var move_type: MOVEMENT_TYPE = MOVEMENT_TYPE.MOVE_AND_ROTATE
+# @export var move_type: MOVEMENT_TYPE = MOVEMENT_TYPE.MOVE_AND_ROTATE # temporarily disabled, enums broke
+@export var move_type: int = 0
 @export var fly_enabled = true
 @export var fly_move: String = "trigger_click"
 @export var fly_activate: String = "grip_click"
@@ -215,13 +216,13 @@ func _physics_process(delta):
 			# Apply our drag
 			velocity *= (1.0 - drag_factor)
 
-			if move_type == MOVEMENT_TYPE.MOVE_AND_ROTATE:
+			if move_type == 0: ## 0 = MOVEMENT_TYPE.MOVE_AND_ROTATE
 				if (abs(forwards_backwards) > 0.1 and tail.is_colliding()):
 					var dir = camera_transform.basis.z
 					dir.y = 0.0
 					velocity = dir.normalized() * -forwards_backwards * max_speed * XRServer.world_scale
 					#velocity = velocity.linear_interpolate(dir, delta * 100.0)
-			elif move_type == MOVEMENT_TYPE.MOVE_AND_STRAFE:
+			elif move_type == 1: ## 1 = MOVEMENT_TYPE.MOVE_AND_STRAFE
 				if ((abs(forwards_backwards) > 0.1 ||  abs(left_right) > 0.1) and tail.is_colliding()):
 					var dir_forward = camera_transform.basis.z
 					dir_forward.y = 0.0

@@ -22,11 +22,11 @@ func _process(delta):
 
 		var trigger = controller.get_value("trigger_value")
 		$VBoxContainer/Trigger/Value.value = 100.0 * trigger
-		$VBoxContainer/Trigger/Pressed.pressed = controller.is_button_pressed("trigger_click")
+		$VBoxContainer/Trigger/Pressed.button_pressed = controller.is_button_pressed("trigger_click")
 
 		var grip = controller.get_value("grip_value")
 		$VBoxContainer/Grip/Value.value = 100.0 * grip
-		$VBoxContainer/Grip/Pressed.pressed = controller.is_button_pressed("grip_click")
-		$VBoxContainer/AX/Pressed.pressed = controller.is_button_pressed("ax")
-		$VBoxContainer/BY/Pressed.pressed = controller.is_button_pressed("by")
+		$VBoxContainer/Grip/Pressed.button_pressed = controller.is_button_pressed("grip_click")
+		$VBoxContainer/AX/Pressed.button_pressed = controller.is_button_pressed("ax")
+		$VBoxContainer/BY/Pressed.button_pressed = controller.is_button_pressed("by")
 		
