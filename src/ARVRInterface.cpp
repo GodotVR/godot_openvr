@@ -138,7 +138,7 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 	godot_real world_scale = godot::arvr_api->godot_arvr_get_worldscale();
 
 	if (p_eye == 0) {
-		// we want a monoscopic transform.. shouldn't really apply here
+		// we want a monoscopic transform.. used when updating our camera node position (in this case we'll be using next frames position)
 		godot::api->godot_transform_new_identity(&transform_for_eye);
 	} else if (arvr_data->ovr != NULL) {
 		arvr_data->ovr->get_eye_to_head_transform(&transform_for_eye, p_eye, world_scale);
@@ -158,7 +158,7 @@ godot_transform godot_arvr_get_transform_for_eye(void *p_data, godot_int p_eye, 
 	// :)
 	ret = *p_cam_transform;
 	ret = godot::api->godot_transform_operator_multiply(&ret, &reference_frame);
-	ret = godot::api->godot_transform_operator_multiply(&ret, arvr_data->ovr->get_hmd_transform());
+	ret = godot::api->godot_transform_operator_multiply(&ret, arvr_data->ovr->get_hmd_transform(p_eye == 0));
 	ret = godot::api->godot_transform_operator_multiply(&ret, &transform_for_eye);
 
 	return ret;
