@@ -107,6 +107,8 @@ private:
 	// tracked devices
 	Ref<XRPositionalTracker> head_tracker;
 	godot::Transform3D hmd_transform;
+	godot::Vector3 hmd_linear_velocity;
+	godot::Vector3 hmd_angular_velocity;
 
 	struct tracked_device {
 		Ref<XRPositionalTracker> tracker;
@@ -122,6 +124,7 @@ private:
 	void attach_device(uint32_t p_device_index);
 	void detach_device(uint32_t p_device_index);
 	void process_device_actions(tracked_device *p_device, uint64_t p_msec);
+	XRPose::TrackingConfidence confidence_from_tracking_result(vr::ETrackingResult p_tracking_result);
 
 	////////////////////////////////////////////////////////////////
 	// meshes (should see about moving this into a separate class)
