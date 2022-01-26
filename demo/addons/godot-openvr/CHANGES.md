@@ -4,6 +4,11 @@ Changes to the Godot OpenVR asset
 Note, version numbers listed here are the version number assigned to the asset. Each time a new version is uploaded to the asset store we will increase the version number.
 More frequent updates may be available on the source repository.
 
+1.2.0 - unreleased
+-------------------
+- Updated godot-cpp to 3.4 59ecf3b9
+- Updated godot-xr-tools to d857eb44
+
 1.1.0 - 9 July 2021
 -------------------
 - Build for Godot 3.3
