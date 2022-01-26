@@ -121,6 +121,7 @@ private:
 	void process_device_actions(tracked_device *p_device, uint64_t p_msec);
 
 	godot_transform hmd_transform;
+	godot_transform hmd_transform_next;
 
 	// custom actions
 	struct custom_action {
@@ -190,7 +191,7 @@ public:
 	// interact with tracking info
 	godot::String get_default_action_set() const;
 	void set_default_action_set(const godot::String p_name);
-	const godot_transform *get_hmd_transform() const;
+	const godot_transform *get_hmd_transform(bool p_next_frame = false) const;
 	int register_action_set(const godot::String p_action_set);
 	void set_active_action_set(const godot::String p_action_set);
 	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);

@@ -16,7 +16,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec4 col = texture(viewport_texture, vec2(1.0 - UV.x, UV.y));
+	vec4 col = texture(viewport_texture, vec2(UV.x, 1.0 - UV.y));
 	ALBEDO = col.rgb;
 	ALPHA = col.a;
 }

@@ -350,6 +350,7 @@ void openvr_data::process() {
 
 	// update our poses structure, this tracks our controllers
 	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
+	vr::TrackedDevicePose_t tracked_device_next_pose[vr::k_unMaxTrackedDeviceCount];
 
 	if (get_application_type() == openvr_data::OpenVRApplicationType::OVERLAY) {
 		openvr_data::OpenVRTrackingUniverse tracking_universe = get_tracking_universe();
@@ -360,8 +361,11 @@ void openvr_data::process() {
 		} else {
 			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseRawAndUncalibrated, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
 		}
+		for (int i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+			tracked_device_next_pose[i] = tracked_device_pose[i];
+		}
 	} else {
-		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, tracked_device_next_pose, vr::k_unMaxTrackedDeviceCount);
 	}
 
 	// update trackers and joysticks
@@ -372,13 +376,17 @@ void openvr_data::process() {
 				// store our HMD transform
 				transform_from_matrix(&hmd_transform, &tracked_device_pose[i].mDeviceToAbsoluteTracking, world_scale);
 			}
+			if (tracked_device_next_pose[i].bPoseIsValid) {
+				// store our HMD transform
+				transform_from_matrix(&hmd_transform_next, &tracked_device_next_pose[i].mDeviceToAbsoluteTracking, world_scale);
+			}
 		} else if (tracked_devices[i].tracker_id != 0) {
 			// We'll keep using our main transform we got from WaitGetPoses
 			// To obtain specific poses use OpenVRPose
-			if (tracked_device_pose[i].bPoseIsValid) {
+			if (tracked_device_next_pose[i].bPoseIsValid) {
 				// update our location and orientation
 				godot_transform transform;
-				transform_from_matrix(&transform, &tracked_device_pose[i].mDeviceToAbsoluteTracking, 1.0);
+				transform_from_matrix(&transform, &tracked_device_next_pose[i].mDeviceToAbsoluteTracking, 1.0);
 				godot::arvr_api->godot_arvr_set_controller_transform(tracked_devices[i].tracker_id, &transform, true, true);
 			}
 
@@ -981,8 +989,12 @@ void openvr_data::set_default_action_set(const String p_name) {
 	}
 }
 
-const godot_transform *openvr_data::get_hmd_transform() const {
-	return &hmd_transform;
+const godot_transform *openvr_data::get_hmd_transform(bool p_next_frame) const {
+	if (p_next_frame) {
+		return &hmd_transform_next;
+	} else {
+		return &hmd_transform;
+	}
 }
 
 ////////////////////////////////////////////////////////////////
