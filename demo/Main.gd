@@ -1,18 +1,16 @@
 extends Node3D
 
-func _process(delta):
+func _process(_delta):
 	# Test for escape to close application, space to reset our reference frame
 	if (Input.is_key_pressed(KEY_ESCAPE)):
 		get_tree().quit()
 	elif (Input.is_key_pressed(KEY_SPACE)):
 		# Calling center_on_hmd will cause the ARVRServer to adjust all tracking data so the player is centered on the origin point looking forward
-		XRServer.center_on_hmd(true, true)
+		XRServer.center_on_hmd(XRServer.RESET_FULL_ROTATION, true)
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	# at the moment we can't seem to extend a gdnative class so we'll do this here
-	# $Player/Right_Hand/Viewport2Din3D.get_scene_instance().set_controller($Player/Right_Hand)
-	pass
+	OpenVRInterface.start_xr()
 
 func _on_Right_Hand_action_pressed(action):
 	print("Action pressed " + action)

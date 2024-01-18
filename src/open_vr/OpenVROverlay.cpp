@@ -3,6 +3,7 @@
 
 #include "OpenVROverlay.h"
 
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -39,6 +40,9 @@ OpenVROverlay::~OpenVROverlay() {
 }
 
 void OpenVROverlay::_ready() {
+	if (Engine::get_singleton()->is_editor_hint()) {
+		return;
+	}
 	String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
 	String overlay_identifier = appname + String::num(ovr->get_overlay_count() + 1);
 

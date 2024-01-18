@@ -6,11 +6,11 @@
 
 #include "openvr_data.h"
 #include <godot_cpp/classes/project_settings.hpp>
-#include <godot_cpp/classes/viewport.hpp>
+#include <godot_cpp/classes/sub_viewport.hpp>
 
 namespace godot {
-class OpenVROverlay : public Viewport {
-	GDCLASS(OpenVROverlay, Viewport)
+class OpenVROverlay : public SubViewport {
+	GDCLASS(OpenVROverlay, SubViewport)
 
 private:
 	openvr_data *ovr;

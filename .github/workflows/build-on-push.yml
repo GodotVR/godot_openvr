@@ -1,15 +1,12 @@
-
-# Workflow to automatically compile a Linux/Windows/OSX library on commit/push
 name: Build on push
+
+# TODO: Add mingw to matrix
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events, but only for the master branch we'll create .zip files
-on:
-  [push, pull_request]
+on: [push, pull_request]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This job builds the plugin for our target platforms
   build:
     name: Building for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -21,107 +18,74 @@ jobs:
             platform: linux
           - os: windows-latest
             platform: windows
-          # - os: macOS-latest
-          #   platform: osx
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
-        submodules: 'recursive'    
+        submodules: 'recursive'
 
-    - name: Install scons (Ubuntu)
+    - name: Install dependencies (Ubuntu)
       run: |
-        sudo apt install scons
-      if: matrix.os == 'ubuntu-20.04'
+        sudo apt-get update -qq
+        sudo apt-get install -qqq build-essential pkg-config
+      if: matrix.platform == 'linux'
 
-    - name: Install scons (Windows)
+    - name: Set up Python (for SCons)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install scons
       run: |
-        pip install scons
-      if: matrix.os == 'windows-latest'
-
-    # - name: Install scons (macOS)
-    #   run: |
-    #     brew install scons
-    #   if: matrix.os == 'macos-latest'
+        python -m pip install scons~=4.0
 
     - name: Run the build for godot-cpp
       run: |
-        cd $GITHUB_WORKSPACE/godot-cpp
-        scons platform=${{ matrix.platform }} -j2 target=release generate_bindings=yes bits=64
-      if: matrix.os != 'windows-latest'
+        scons -C godot-cpp platform=${{ matrix.platform }} -j2 target=template_release generate_bindings=yes bits=64
 
     - name: Run the build for godot_openvr
       run: |
-        cd $GITHUB_WORKSPACE
         scons platform=${{ matrix.platform }} -j2 target=release bits=64
-      if: matrix.os != 'windows-latest'
-      
-    - name: Run the build for godot-cpp (Windows)
-      run: |
-        cd ${env:GITHUB_WORKSPACE}/godot-cpp
-        scons platform=${{ matrix.platform }} -j2 target=release generate_bindings=yes bits=64
-      if: matrix.os == 'windows-latest'
 
-    - name: Run the build for godot_openvr (Windows)
-      run: |
-        cd ${env:GITHUB_WORKSPACE}
-        scons platform=${{ matrix.platform }} -j2 target=release bits=64
-      if: matrix.os == 'windows-latest'
-
-    - name: Upload build files (artifacts) (Linux)    
-      uses: actions/upload-artifact@v2
+    # There's no option to preserve the path structure on the upload action, so we just
+    # treat each asset as its respective bin/ subfolder and put it in the right place in
+    # the next job. The names are important, they become the platform names.
+    # https://github.com/actions/upload-artifact/issues/174
+    - name: Upload Windows build results
+      uses: actions/upload-artifact@v4
       with:
-        name: build-files-linux
-        path: |
-          demo/addons/godot-openvr/bin/x11/libgodot_openvr.so
-          openvr/bin/linux64/libopenvr_api.so
-      if: matrix.os == 'ubuntu-20.04'
+        name: x11
+        path: demo/addons/godot-openvr/bin/x11/
+      if: matrix.platform == 'linux'
 
-    # - name: Upload build files (artifacts) (macOS)    
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: build-files-macos
-    #     path: |
-    #       demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib
-    #       openvr/bin/osx32/OpenVR.framework
-    #   if: matrix.os == 'macos-latest'
-
-    - name: Upload build files (artifacts) (Windows)    
-      uses: actions/upload-artifact@v2
+    - name: Upload Linux build results
+      uses: actions/upload-artifact@v4
       with:
-        name: build-files-windows
-        path: |
-          demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll
-          openvr/bin/win64/openvr_api.dll
-      if: matrix.os == 'windows-latest'
+        name: win64
+        path: demo/addons/godot-openvr/bin/win64/
+      if: matrix.platform == 'windows'
+
   # This job collects the build output and assembles the final asset (artifact)
   asset:
-    name: Assembling the asset (artifact)
+    name: Assemble release bundle
     runs-on: ubuntu-20.04
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          repository: 'GodotVR/godot_openvr'
+          # Giving an explicit path prevents an automatic cd into the checkout.
           path: godot_openvr
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
-      - name: Copy files to destination
+      - name: Create destination and populate addon resources
         run: |
-          mkdir godot_openvr_plugin
-          mkdir godot_openvr_plugin/addons
-          cp -r godot_openvr/demo/addons/godot-openvr godot_openvr_plugin/addons
-          cp build-files-linux/demo/addons/godot-openvr/bin/x11/libgodot_openvr.so godot_openvr_plugin/addons/godot-openvr/bin/x11/libgodot_openvr.so
-          cp build-files-linux/openvr/bin/linux64/libopenvr_api.so godot_openvr_plugin/addons/godot-openvr/bin/x11/libopenvr_api.so
-          # cp build-files-macos/demo/addons/godot-openvr/bin/osx/libgodot_openvr.dylib godot_openvr_plugin/addons/godot-openvr/bin/osx/libgodot_openvr.dylib
-          # cp -r build-files-macos/openvr/bin/osx32/OpenVR.framework godot_openvr_plugin/addons/godot-openvr/bin/osx/OpenVR.framework
-          cp build-files-windows/demo/addons/godot-openvr/bin/win64/libgodot_openvr.dll godot_openvr_plugin/addons/godot-openvr/bin/win64/libgodot_openvr.dll
-          cp build-files-windows/openvr/bin/win64/openvr_api.dll godot_openvr_plugin/addons/godot-openvr/bin/win64/openvr_api.dll
+          mkdir -p godot_openvr_plugin/addons
+          cp -r godot_openvr/demo/addons/godot-openvr godot_openvr_plugin/addons/
+      - name: Download per-platform binaries into addon
+        uses: actions/download-artifact@v4
+        with:
+          path: godot_openvr_plugin/addons/godot-openvr/bin/
       - name: Calculate GIT short ref
         run: |
           cd godot_openvr
@@ -134,9 +98,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags')
       - name: Clean up extracted files
         run: |
-          rm -rf build-files-linux
-          #rm -rf build-files-macos
-          rm -rf build-files-windows
           rm -rf godot_openvr
           mv godot_openvr_plugin godot_openvr_${{ env.GITHUB_SHA_SHORT }}
       - name: Zip asset
@@ -151,6 +112,9 @@ jobs:
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
         if: startsWith(github.ref, 'refs/tags')
+
+      # TODO: Both create-release and upload-release-asset are abandonded, need to port to maintained replacements. Both suggest replacements in their README.
+
       - name: Create release for asset
         id: create_release
         uses: actions/create-release@v1
@@ -165,12 +129,12 @@ jobs:
           prerelease: true
         if: github.ref == 'refs/heads/master'
       - name: Upload asset
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./godot-openvr.zip
           asset_name: godot-openvr.zip
           asset_content_type: application/zip

@@ -2,17 +2,17 @@
 extends EditorExportPlugin
 
 func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int ):
-	var dir = Directory.new()
+	var dir = DirAccess.open('res://')
 	
 	# we just want the path
 	var export_to = path.get_base_dir() + "/actions/"
 	
 	# now determine which action files to export
 	var export_from = ""
-	if dir.file_exists("res://actions/actions.json"):
-		export_from = "res://actions/"
-	elif dir.file_exists("res://addons/godot-openvr/actions/actions.json"):
-		export_from = "res://addons/godot-openvr/actions/"
+	if dir.file_exists("actions/actions.json"):
+		export_from = "actions/"
+	elif dir.file_exists("addons/godot-openvr/actions/actions.json"):
+		export_from = "addons/godot-openvr/actions/"
 	else:
 		print("WARNING: Couldn't locate actions files to export")
 		return
@@ -21,7 +21,8 @@ func _export_begin(features: PackedStringArray, is_debug: bool, path: String, fl
 	if !dir.dir_exists(export_to):
 		dir.make_dir(export_to)
 	
-	if dir.open(export_from) == OK:
+	dir = dir.open(export_from)
+	if dir:
 		dir.include_hidden = false
 		dir.include_navigational = false
 		dir.list_dir_begin()
