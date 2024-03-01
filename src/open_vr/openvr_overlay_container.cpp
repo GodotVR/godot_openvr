@@ -55,8 +55,10 @@ void OpenVROverlayContainer::_ready() {
 		UtilityFunctions::print(String("Could not create overlay, OpenVR error: {0}, {1}").format(arr));
 	}
 
-	overlay_id = ovr->add_overlay(overlay, get_viewport_rid());
+	// Tie our new overlay to this container so that events can make it back here later.
+	overlay = ovr->add_overlay(overlay, get_instance_id());
 
+	// TODO: Use the position of this container in a 3d scene, if it has one.
 	Transform3D initial_transform;
 	initial_transform = initial_transform.translated(Vector3(0, 0, 1) * -1.4);
 

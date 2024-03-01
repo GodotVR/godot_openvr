@@ -42,18 +42,17 @@ public:
 		RAW
 	};
 
+	struct overlay {
+		vr::VROverlayHandle_t handle;
+		int container_instance_id;
+	};
+
 private:
 	static openvr_data *singleton;
 
 	int use_count;
 
 	vr::IVRRenderModels *render_models;
-
-	// structure to record which overlays go with which viewport
-	struct overlay {
-		vr::VROverlayHandle_t handle;
-		godot::RID viewport_rid;
-	};
 
 	std::vector<overlay> overlays;
 
@@ -190,8 +189,8 @@ public:
 	////////////////////////////////////////////////////////////////
 	// overlay
 	int get_overlay_count();
-	overlay get_overlay(int p_overlay_id);
-	int add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid);
+	overlay *get_overlay(int p_overlay_id);
+	int add_overlay(vr::VROverlayHandle_t p_new_value, int p_container_instance_id);
 	void remove_overlay(int p_overlay_id);
 
 	////////////////////////////////////////////////////////////////
