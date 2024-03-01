@@ -17,8 +17,11 @@ private:
 	float overlay_width_in_meters;
 	bool overlay_visible;
 
+	void draw_overlay(const Ref<Texture2D> &p_texture);
+
 protected:
 	static void _bind_methods();
+	void _notification(int p_what);
 
 public:
 	OpenVROverlayContainer();

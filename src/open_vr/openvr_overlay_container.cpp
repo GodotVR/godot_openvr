@@ -1,6 +1,10 @@
 #include "openvr_overlay_container.h"
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/rendering_device.hpp>
+#include <godot_cpp/classes/rendering_server.hpp>
+#include <godot_cpp/classes/sub_viewport.hpp>
+#include <godot_cpp/classes/viewport_texture.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -81,6 +85,84 @@ void OpenVROverlayContainer::_exit_tree() {
 		ovr->remove_overlay(overlay_id);
 		overlay_id = 0;
 		overlay = vr::k_ulOverlayHandleInvalid;
+	}
+}
+
+void OpenVROverlayContainer::draw_overlay(const Ref<Texture2D> &p_texture) {
+	if (overlay == vr::k_ulOverlayHandleInvalid) {
+		return;
+	}
+
+	RenderingServer *rendering_server = RenderingServer::get_singleton();
+	ERR_FAIL_NULL(rendering_server);
+	RenderingDevice *rendering_device = rendering_server->get_rendering_device();
+	ERR_FAIL_NULL(rendering_device);
+
+	RID texture_rid = rendering_server->texture_get_rd_texture(p_texture->get_rid());
+	uint64_t image = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE, texture_rid, 0);
+	uint32_t format = rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_IMAGE_NATIVE_TEXTURE_FORMAT, texture_rid, 0);
+
+	if (image == 0 || format == 0) {
+		return;
+	}
+
+	Size2 size = get_size();
+
+	vr::VRTextureBounds_t bounds;
+	bounds.uMin = 0.0f;
+	bounds.uMax = 1.0f;
+	bounds.vMin = 0.0f;
+	bounds.vMax = 1.0f;
+
+	vr::EVROverlayError vrerr;
+
+	vr::VRVulkanTextureData_t vulkan_data;
+	vulkan_data.m_pDevice = (VkDevice_T *)rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_DEVICE, RID(), 0);
+	vulkan_data.m_pPhysicalDevice = (VkPhysicalDevice_T *)rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_PHYSICAL_DEVICE, RID(), 0);
+	vulkan_data.m_pInstance = (VkInstance_T *)rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_INSTANCE, RID(), 0);
+	vulkan_data.m_pQueue = (VkQueue_T *)rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_QUEUE, RID(), 0);
+	vulkan_data.m_nQueueFamilyIndex = (uint32_t)rendering_device->get_driver_resource(RenderingDevice::DRIVER_RESOURCE_VULKAN_QUEUE_FAMILY_INDEX, RID(), 0);
+
+	vulkan_data.m_nImage = image;
+	vulkan_data.m_nFormat = format;
+	vulkan_data.m_nWidth = size.width;
+	vulkan_data.m_nHeight = size.height;
+	vulkan_data.m_nSampleCount = 0;
+
+	vr::Texture_t overlay_texture = { &vulkan_data, vr::TextureType_Vulkan, vr::ColorSpace_Gamma };
+
+	vrerr = vr::VROverlay()->SetOverlayTexture(overlay, &overlay_texture);
+
+	if (vrerr != vr::VROverlayError_None) {
+		UtilityFunctions::printerr(String("OpenVR could not set texture for overlay: ") + String::num_int64(vrerr) + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		return;
+	}
+
+	vrerr = vr::VROverlay()->SetOverlayTextureBounds(overlay, &bounds);
+
+	if (vrerr != vr::VROverlayError_None) {
+		UtilityFunctions::printerr(String("OpenVR could not set textute bounds for overlay: ") + String::num_int64(vrerr) + String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		return;
+	}
+}
+
+void OpenVROverlayContainer::_notification(int p_what) {
+	// TODO: I don't really know C++ and have no idea if I'm overriding this correctly or if there's a better way, but I couldn't seem to
+	// hijack draw_texture because it's not virtual.
+	SubViewportContainer::_notification(p_what);
+
+	switch (p_what) {
+		case NOTIFICATION_DRAW: {
+			// TODO: We _just_ did this in the superclass, see if we can reuse that result somehow
+			for (int i = 0; i < get_child_count(); i++) {
+				SubViewport *c = Object::cast_to<SubViewport>(get_child(i));
+				if (!c) {
+					continue;
+				}
+				// TODO: Do we need stretch here?
+				draw_overlay(c->get_texture());
+			}
+		} break;
 	}
 }
 
