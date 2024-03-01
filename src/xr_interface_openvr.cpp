@@ -359,6 +359,11 @@ void XRInterfaceOpenVR::_end_frame() {
 		return;
 	}
 
+	if (!texture_rid.is_valid()) {
+		// No texture means we're not actually rendering a full scene. Probably in overlay mode, but regardless we bail out of this.
+		return;
+	}
+
 	RenderingServer *rendering_server = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rendering_server);
 	RenderingDevice *rendering_device = rendering_server->get_rendering_device();
