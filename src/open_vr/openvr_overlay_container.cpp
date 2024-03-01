@@ -82,13 +82,9 @@ void OpenVROverlayContainer::_exit_tree() {
 
 float OpenVROverlayContainer::get_overlay_width_in_meters() {
 	if (overlay) {
-		float overlay_size;
-
-		vr::VROverlay()->GetOverlayWidthInMeters(overlay, &overlay_size);
-		return overlay_size;
-	} else {
-		return -1;
+		vr::VROverlay()->GetOverlayWidthInMeters(overlay, &overlay_width_in_meters);
 	}
+	return overlay_width_in_meters;
 }
 
 void OpenVROverlayContainer::set_overlay_width_in_meters(real_t p_new_size) {
@@ -108,10 +104,9 @@ void OpenVROverlayContainer::set_overlay_width_in_meters(real_t p_new_size) {
 
 bool OpenVROverlayContainer::is_overlay_visible() {
 	if (overlay) {
-		return vr::VROverlay()->IsOverlayVisible(overlay);
-	} else {
-		return false;
+		overlay_visible = vr::VROverlay()->IsOverlayVisible(overlay);
 	}
+	return overlay_visible;
 }
 
 void OpenVROverlayContainer::set_overlay_visible(bool p_visible) {

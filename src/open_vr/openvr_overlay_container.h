@@ -27,10 +27,10 @@ public:
 	virtual void _ready() override;
 	virtual void _exit_tree() override;
 
-	float get_overlay_width_in_meters() const;
+	float get_overlay_width_in_meters();
 	void set_overlay_width_in_meters(float p_new_size);
 
-	bool is_overlay_visible() const;
+	bool is_overlay_visible();
 	void set_overlay_visible(bool p_visible);
 
 	bool track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform3D p_transform);
