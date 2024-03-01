@@ -56,7 +56,7 @@ void OpenVROverlayContainer::_ready() {
 	}
 
 	// Tie our new overlay to this container so that events can make it back here later.
-	overlay = ovr->add_overlay(overlay, get_instance_id());
+	overlay_id = ovr->add_overlay(overlay, get_instance_id());
 
 	// TODO: Use the position of this container in a 3d scene, if it has one.
 	Transform3D initial_transform;
@@ -75,10 +75,12 @@ void OpenVROverlayContainer::_exit_tree() {
 			arr.push_back(String::num(vrerr));
 			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
 			UtilityFunctions::print(String("Could not destroy overlay, OpenVR error: {0}, {1}").format(arr));
+			return;
 		}
 
-		overlay = 0;
 		ovr->remove_overlay(overlay_id);
+		overlay_id = 0;
+		overlay = vr::k_ulOverlayHandleInvalid;
 	}
 }
 
