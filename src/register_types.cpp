@@ -14,9 +14,9 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "OpenVROverlay.h"
 #include "OpenVRRenderModel.h"
 #include "OpenVRSkeleton.h"
+#include "openvr_overlay_container.h"
 #include "xr_interface_openvr.h"
 
 using namespace godot;
@@ -31,7 +31,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 	}
 
 	ClassDB::register_class<XRInterfaceOpenVR>();
-	ClassDB::register_class<OpenVROverlay>();
+	ClassDB::register_class<OpenVROverlayContainer>();
 	ClassDB::register_class<OpenVRRenderModel>();
 	ClassDB::register_class<OpenVRSkeleton>();
 }

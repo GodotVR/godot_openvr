@@ -1,7 +1,4 @@
-////////////////////////////////////////////////////////////////////////////////////////////////
-// GDNative module that exposes overlay functions from OpenVR to Godot
-
-#include "OpenVROverlay.h"
+#include "openvr_overlay_container.h"
 
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -9,40 +6,41 @@
 
 using namespace godot;
 
-void OpenVROverlay::_bind_methods() {
-	// ClassDB::bind_method(D_METHOD("_ready"), &OpenVROverlay::_ready);
-	// ClassDB::bind_method(D_METHOD("_exit_tree"), &OpenVROverlay::_exit_tree);
+void OpenVROverlayContainer::_bind_methods() {
+	// ClassDB::bind_method(D_METHOD("_ready"), &OpenVROverlayContainer::_ready);
+	// ClassDB::bind_method(D_METHOD("_exit_tree"), &OpenVROverlayContainer::_exit_tree);
 
-	ClassDB::bind_method(D_METHOD("is_overlay_visible"), &OpenVROverlay::is_overlay_visible);
-	ClassDB::bind_method(D_METHOD("set_overlay_visible", "visible"), &OpenVROverlay::set_overlay_visible);
+	ClassDB::bind_method(D_METHOD("is_overlay_visible"), &OpenVROverlayContainer::is_overlay_visible);
+	ClassDB::bind_method(D_METHOD("set_overlay_visible", "visible"), &OpenVROverlayContainer::set_overlay_visible);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "overlay_visible"), "set_overlay_visible", "is_overlay_visible");
 
-	ClassDB::bind_method(D_METHOD("get_overlay_width_in_meters"), &OpenVROverlay::get_overlay_width_in_meters);
-	ClassDB::bind_method(D_METHOD("set_overlay_width_in_meters", "width"), &OpenVROverlay::set_overlay_width_in_meters);
+	ClassDB::bind_method(D_METHOD("get_overlay_width_in_meters"), &OpenVROverlayContainer::get_overlay_width_in_meters);
+	ClassDB::bind_method(D_METHOD("set_overlay_width_in_meters", "width"), &OpenVROverlayContainer::set_overlay_width_in_meters);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "overlay_width_in_meters"), "set_overlay_width_in_meters", "get_overlay_width_in_meters");
 
-	ClassDB::bind_method(D_METHOD("track_relative_to_device"), &OpenVROverlay::track_relative_to_device);
-	ClassDB::bind_method(D_METHOD("overlay_position_absolute"), &OpenVROverlay::overlay_position_absolute);
+	ClassDB::bind_method(D_METHOD("track_relative_to_device"), &OpenVROverlayContainer::track_relative_to_device);
+	ClassDB::bind_method(D_METHOD("overlay_position_absolute"), &OpenVROverlayContainer::overlay_position_absolute);
 }
 
-OpenVROverlay::OpenVROverlay() {
+OpenVROverlayContainer::OpenVROverlayContainer() {
 	ovr = openvr_data::retain_singleton();
 	overlay_width_in_meters = 1.0;
 	overlay_visible = true;
 	overlay = 0;
 }
 
-OpenVROverlay::~OpenVROverlay() {
+OpenVROverlayContainer::~OpenVROverlayContainer() {
 	if (ovr != nullptr) {
 		ovr->release();
 		ovr = nullptr;
 	}
 }
 
-void OpenVROverlay::_ready() {
+void OpenVROverlayContainer::_ready() {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		return;
 	}
+
 	String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
 	String overlay_identifier = appname + String::num(ovr->get_overlay_count() + 1);
 
@@ -65,10 +63,9 @@ void OpenVROverlay::_ready() {
 	overlay_position_absolute(initial_transform);
 	set_overlay_width_in_meters(overlay_width_in_meters);
 	set_overlay_visible(overlay_visible);
-	set_use_xr(true);
 }
 
-void OpenVROverlay::_exit_tree() {
+void OpenVROverlayContainer::_exit_tree() {
 	if (overlay) {
 		vr::EVROverlayError vrerr = vr::VROverlay()->DestroyOverlay(overlay);
 		if (vrerr != vr::VROverlayError_None) {
@@ -83,7 +80,7 @@ void OpenVROverlay::_exit_tree() {
 	}
 }
 
-real_t OpenVROverlay::get_overlay_width_in_meters() const {
+float OpenVROverlayContainer::get_overlay_width_in_meters() {
 	if (overlay) {
 		float overlay_size;
 
@@ -94,7 +91,7 @@ real_t OpenVROverlay::get_overlay_width_in_meters() const {
 	}
 }
 
-void OpenVROverlay::set_overlay_width_in_meters(real_t p_new_size) {
+void OpenVROverlayContainer::set_overlay_width_in_meters(real_t p_new_size) {
 	overlay_width_in_meters = p_new_size;
 
 	if (overlay) {
@@ -109,7 +106,7 @@ void OpenVROverlay::set_overlay_width_in_meters(real_t p_new_size) {
 	}
 }
 
-bool OpenVROverlay::is_overlay_visible() const {
+bool OpenVROverlayContainer::is_overlay_visible() {
 	if (overlay) {
 		return vr::VROverlay()->IsOverlayVisible(overlay);
 	} else {
@@ -117,7 +114,7 @@ bool OpenVROverlay::is_overlay_visible() const {
 	}
 }
 
-void OpenVROverlay::set_overlay_visible(bool p_visible) {
+void OpenVROverlayContainer::set_overlay_visible(bool p_visible) {
 	overlay_visible = p_visible;
 
 	if (overlay) {
@@ -143,7 +140,7 @@ void OpenVROverlay::set_overlay_visible(bool p_visible) {
 	}
 }
 
-bool OpenVROverlay::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform3D p_transform) {
+bool OpenVROverlayContainer::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform3D p_transform) {
 	if (overlay) {
 		XRServer *server = XRServer::get_singleton();
 		double ws = server->get_world_scale();
@@ -167,7 +164,7 @@ bool OpenVROverlay::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_
 	return false;
 }
 
-bool OpenVROverlay::overlay_position_absolute(Transform3D p_transform) {
+bool OpenVROverlayContainer::overlay_position_absolute(Transform3D p_transform) {
 	if (overlay) {
 		XRServer *server = XRServer::get_singleton();
 		double ws = server->get_world_scale();
