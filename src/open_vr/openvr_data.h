@@ -42,18 +42,17 @@ public:
 		RAW
 	};
 
+	struct overlay {
+		vr::VROverlayHandle_t handle;
+		ObjectID container_instance_id;
+	};
+
 private:
 	static openvr_data *singleton;
 
 	int use_count;
 
 	vr::IVRRenderModels *render_models;
-
-	// structure to record which overlays go with which viewport
-	struct overlay {
-		vr::VROverlayHandle_t handle;
-		godot::RID viewport_rid;
-	};
 
 	std::vector<overlay> overlays;
 
@@ -186,12 +185,13 @@ public:
 
 	// interact with tracking info
 	const godot::Transform3D get_hmd_transform() const;
+	vr::TrackedDeviceIndex_t get_tracked_device_index(Ref<XRPositionalTracker> p_tracker);
 
 	////////////////////////////////////////////////////////////////
 	// overlay
 	int get_overlay_count();
-	overlay get_overlay(int p_overlay_id);
-	int add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid);
+	overlay *get_overlay(int p_overlay_id);
+	int add_overlay(vr::VROverlayHandle_t p_new_value, ObjectID p_container_instance_id);
 	void remove_overlay(int p_overlay_id);
 
 	////////////////////////////////////////////////////////////////
