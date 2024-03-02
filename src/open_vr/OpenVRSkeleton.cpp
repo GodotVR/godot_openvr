@@ -187,7 +187,7 @@ void OpenVRSkeleton::_process(double delta) {
 
 		// TODO This has to be rewritten, we should use the quarternion data as we get it.
 		set_bone_pose_position(i, pose_transform.origin);
-		set_bone_pose_rotation(i, pose_transform.basis.get_rotation_quat());
+		set_bone_pose_rotation(i, pose_transform.basis.get_rotation_quaternion());
 	}
 
 	// I guess we're active...

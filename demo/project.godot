@@ -8,46 +8,17 @@
 
 config_version=5
 
-_global_script_classes=[{
-"base": "Node3D",
-"class": &"Framecounter3D",
-"language": &"GDScript",
-"path": "res://addons/godot-openvr/scenes/framecounter_in_3d.gd"
-}, {
-"base": "XRController3D",
-"class": &"OVRController3D",
-"language": &"GDScript",
-"path": "res://addons/godot-openvr/scenes/ovr_controller.gd"
-}, {
-"base": "XROrigin3D",
-"class": &"OVRMain3D",
-"language": &"GDScript",
-"path": "res://addons/godot-openvr/scenes/ovr_main.gd"
-}, {
-"base": "MeshInstance3D",
-"class": &"OVRRenderModel3D",
-"language": &"GDScript",
-"path": "res://addons/godot-openvr/scenes/ovr_render_model.gd"
-}, {
-"base": "Node3D",
-"class": &"OVRShaderCache",
-"language": &"GDScript",
-"path": "res://addons/godot-openvr/scenes/ovr_shader_cache.gd"
-}]
-_global_script_class_icons={
-"Framecounter3D": "",
-"OVRController3D": "",
-"OVRMain3D": "",
-"OVRRenderModel3D": "",
-"OVRShaderCache": ""
-}
-
 [application]
 
 config/name="OpenVR demo"
 run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.2")
 config/icon="res://icon.png"
-config/features=PackedStringArray("4.0")
+
+[autoload]
+
+XRToolsUserSettings="*res://addons/godot-xr-tools/user_settings/user_settings.gd"
+OpenVRInterface="*res://addons/godot-openvr/openvr_autoloader.gd"
 
 [display]
 
@@ -57,7 +28,7 @@ window/vsync/use_vsync=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-openvr/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot-openvr/plugin.cfg", "res://addons/godot-xr-tools/plugin.cfg")
 
 [layer_names]
 
@@ -81,3 +52,7 @@ vulkan/rendering/back_end=1
 xr/enabled=true
 quality/filters/msaa=1
 environment/default_environment="res://default_env.tres"
+
+[xr]
+
+shaders/enabled=true

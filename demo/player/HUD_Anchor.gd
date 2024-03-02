@@ -5,6 +5,6 @@ func _ready():
 	if material:
 		material.albedo_texture = $SubViewport.get_texture()
 
-func _process(delta):
+func _process(_delta):
 	var fps = Performance.get_monitor(Performance.TIME_FPS)
 	$SubViewport/FPS.text = "FPS: " + str(fps)

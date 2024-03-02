@@ -175,7 +175,7 @@ StringName XRInterfaceOpenVR::_get_name() const {
 
 ////////////////////////////////////////////////////////////////
 // Returns capabilities for this interface
-int64_t XRInterfaceOpenVR::_get_capabilities() const {
+uint32_t XRInterfaceOpenVR::_get_capabilities() const {
 	return XR_STEREO + XR_EXTERNAL;
 }
 
@@ -196,10 +196,6 @@ bool XRInterfaceOpenVR::_initialize() {
 	if (ovr == nullptr || xr_server == nullptr) {
 		return false;
 	}
-
-	// we only support Vulkan ATM
-	// video_driver = godot::OS::get_singleton()->get_current_video_driver();
-	video_driver = OS::VIDEO_DRIVER_VULKAN;
 
 	if (ovr->initialise()) {
 		// go and get our recommended target size
@@ -229,7 +225,7 @@ void XRInterfaceOpenVR::_uninitialize() {
 
 ////////////////////////////////////////////////////////////////
 // Returns our current tracking status
-int64_t XRInterfaceOpenVR::_get_tracking_status() const {
+XRInterface::TrackingStatus XRInterfaceOpenVR::_get_tracking_status() const {
 	// TODO implement this..
 	return XRInterface::XR_UNKNOWN_TRACKING;
 }
@@ -263,7 +259,7 @@ Vector2 XRInterfaceOpenVR::_get_render_target_size() {
 
 ////////////////////////////////////////////////////////////////
 // Informs Godot how many views are required
-int64_t XRInterfaceOpenVR::_get_view_count() {
+uint32_t XRInterfaceOpenVR::_get_view_count() {
 	return 2;
 }
 
@@ -282,7 +278,7 @@ Transform3D XRInterfaceOpenVR::_get_camera_transform() {
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each view matrix
-Transform3D XRInterfaceOpenVR::_get_transform_for_view(int64_t p_view, const Transform3D &p_cam_transform) {
+Transform3D XRInterfaceOpenVR::_get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) {
 	if (ovr == nullptr || xr_server == nullptr) {
 		return Transform3D();
 	}
@@ -304,7 +300,7 @@ Transform3D XRInterfaceOpenVR::_get_transform_for_view(int64_t p_view, const Tra
 
 ////////////////////////////////////////////////////////////////
 // This is called while rendering to get each eyes projection matrix
-PackedFloat64Array XRInterfaceOpenVR::_get_projection_for_view(int64_t p_view, double p_aspect, double p_z_near, double p_z_far) {
+PackedFloat64Array XRInterfaceOpenVR::_get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) {
 	PackedFloat64Array arr;
 
 	if (ovr == nullptr || xr_server == nullptr) {
@@ -333,7 +329,7 @@ void XRInterfaceOpenVR::_post_draw_viewport(const RID &p_render_target, const Re
 	// Note that at this point in time nothing has actually been rendered yet, this entry point gets called by Godot after
 	// all the rendering for our viewport has been prepared, but the queues have yet to be submitted to Vulkan
 
-	if (!p_screen_rect.has_no_area()) {
+	if (p_screen_rect.has_area()) {
 		// just blit left eye out to screen
 		Rect2 src_rect;
 		Rect2 dst_rect = p_screen_rect;
@@ -428,12 +424,6 @@ void XRInterfaceOpenVR::_process() {
 		// Call process on our ovr system.
 		ovr->process();
 	}
-}
-
-////////////////////////////////////////////////////////////////
-// Receive notifications sent to our ARVROrigin node.
-void XRInterfaceOpenVR::_notification(int64_t what) {
-	// nothing to do here for now but we should implement this.
 }
 
 XRInterfaceOpenVR::XRInterfaceOpenVR() {

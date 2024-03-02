@@ -24,7 +24,7 @@ func _load_controller_mesh(controller_name):
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	# instance our render model object
-	ovr_render_model = OpenVRRenderModel.new() 
+	ovr_render_model = OVRRenderModel3D.new() 
 	
 	# we haven't loaded it
 	controller_is_loaded = false
