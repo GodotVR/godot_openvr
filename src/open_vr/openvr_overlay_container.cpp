@@ -24,6 +24,8 @@ void OpenVROverlayContainer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("track_relative_to_device"), &OpenVROverlayContainer::track_relative_to_device);
 	ClassDB::bind_method(D_METHOD("overlay_position_absolute"), &OpenVROverlayContainer::overlay_position_absolute);
+
+	ClassDB::bind_method(D_METHOD("on_frame_post_draw"), &OpenVROverlayContainer::on_frame_post_draw);
 }
 
 OpenVROverlayContainer::OpenVROverlayContainer() {
@@ -69,6 +71,10 @@ void OpenVROverlayContainer::_ready() {
 	overlay_position_absolute(initial_transform);
 	set_overlay_width_in_meters(overlay_width_in_meters);
 	set_overlay_visible(overlay_visible);
+
+	// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
+	// frame_post_draw signal so we can update the overlay every frame just in case.
+	RenderingServer::get_singleton()->connect("frame_post_draw", Callable(this, "on_frame_post_draw").bind());
 }
 
 void OpenVROverlayContainer::_exit_tree() {
@@ -146,23 +152,17 @@ void OpenVROverlayContainer::draw_overlay(const Ref<Texture2D> &p_texture) {
 	}
 }
 
-void OpenVROverlayContainer::_notification(int p_what) {
-	// TODO: I don't really know C++ and have no idea if I'm overriding this correctly or if there's a better way, but I couldn't seem to
-	// hijack draw_texture because it's not virtual.
-	SubViewportContainer::_notification(p_what);
+void OpenVROverlayContainer::on_frame_post_draw() {
+	if (overlay == vr::k_ulOverlayHandleInvalid) {
+		return;
+	}
 
-	switch (p_what) {
-		case NOTIFICATION_DRAW: {
-			// TODO: We _just_ did this in the superclass, see if we can reuse that result somehow
-			for (int i = 0; i < get_child_count(); i++) {
-				SubViewport *c = Object::cast_to<SubViewport>(get_child(i));
-				if (!c) {
-					continue;
-				}
-				// TODO: Do we need stretch here?
-				draw_overlay(c->get_texture());
-			}
-		} break;
+	for (int i = 0; i < get_child_count(); i++) {
+		SubViewport *c = Object::cast_to<SubViewport>(get_child(i));
+		if (!c) {
+			continue;
+		}
+		draw_overlay(c->get_texture());
 	}
 }
 
