@@ -78,7 +78,7 @@ void OpenVROverlayContainer::_ready() {
 	}
 
 	// Tie our new overlay to this container so that events can make it back here later.
-	overlay_id = ovr->add_overlay(overlay, get_instance_id());
+	overlay_id = ovr->add_overlay(overlay, ObjectID(get_instance_id()));
 
 	// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
 	// frame_post_draw signal so we can update the overlay every frame just in case.

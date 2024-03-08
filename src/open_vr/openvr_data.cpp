@@ -519,7 +519,7 @@ openvr_data::overlay *openvr_data::get_overlay(int p_overlay_id) {
 	return &overlays[p_overlay_id];
 }
 
-int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, int p_container_instance_id) {
+int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, ObjectID p_container_instance_id) {
 	overlay new_entry;
 	new_entry.handle = p_new_value;
 	new_entry.container_instance_id = p_container_instance_id;

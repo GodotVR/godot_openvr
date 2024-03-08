@@ -44,7 +44,7 @@ public:
 
 	struct overlay {
 		vr::VROverlayHandle_t handle;
-		int container_instance_id;
+		ObjectID container_instance_id;
 	};
 
 private:
@@ -191,7 +191,7 @@ public:
 	// overlay
 	int get_overlay_count();
 	overlay *get_overlay(int p_overlay_id);
-	int add_overlay(vr::VROverlayHandle_t p_new_value, int p_container_instance_id);
+	int add_overlay(vr::VROverlayHandle_t p_new_value, ObjectID p_container_instance_id);
 	void remove_overlay(int p_overlay_id);
 
 	////////////////////////////////////////////////////////////////
