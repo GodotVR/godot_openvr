@@ -22,8 +22,21 @@ void OpenVROverlayContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_overlay_width_in_meters", "width"), &OpenVROverlayContainer::set_overlay_width_in_meters);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "overlay_width_in_meters"), "set_overlay_width_in_meters", "get_overlay_width_in_meters");
 
-	ClassDB::bind_method(D_METHOD("track_relative_to_device"), &OpenVROverlayContainer::track_relative_to_device);
-	ClassDB::bind_method(D_METHOD("overlay_position_absolute"), &OpenVROverlayContainer::overlay_position_absolute);
+	ClassDB::bind_method(D_METHOD("get_tracked_device"), &OpenVROverlayContainer::get_tracked_device);
+	ClassDB::bind_method(D_METHOD("set_tracked_device", "tracked_device"), &OpenVROverlayContainer::set_tracked_device);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "tracked_device", PROPERTY_HINT_ENUM, "None,HMD,LeftHand,RightHand,Custom"), "set_tracked_device", "get_tracked_device");
+
+	ClassDB::bind_method(D_METHOD("get_tracked_device_name"), &OpenVROverlayContainer::get_tracked_device_name);
+	ClassDB::bind_method(D_METHOD("set_tracked_device_name", "tracked_device_name"), &OpenVROverlayContainer::set_tracked_device_name);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "tracked_device_name"), "set_tracked_device_name", "get_tracked_device_name");
+
+	ClassDB::bind_method(D_METHOD("get_absolute_position"), &OpenVROverlayContainer::get_absolute_position);
+	ClassDB::bind_method(D_METHOD("set_absolute_position", "absolute_position"), &OpenVROverlayContainer::set_absolute_position);
+	ADD_PROPERTY(PropertyInfo(Variant::TRANSFORM3D, "absolute_position"), "set_absolute_position", "get_absolute_position");
+
+	ClassDB::bind_method(D_METHOD("get_tracked_device_relative_position"), &OpenVROverlayContainer::get_tracked_device_relative_position);
+	ClassDB::bind_method(D_METHOD("set_tracked_device_relative_position", "tracked_device_relative_position"), &OpenVROverlayContainer::set_tracked_device_relative_position);
+	ADD_PROPERTY(PropertyInfo(Variant::TRANSFORM3D, "tracked_device_relative_position"), "set_tracked_device_relative_position", "get_tracked_device_relative_position");
 
 	ClassDB::bind_method(D_METHOD("on_frame_post_draw"), &OpenVROverlayContainer::on_frame_post_draw);
 }
@@ -32,6 +45,9 @@ OpenVROverlayContainer::OpenVROverlayContainer() {
 	ovr = openvr_data::retain_singleton();
 	overlay_width_in_meters = 1.0;
 	overlay_visible = true;
+	tracked_device = OpenVROverlayContainer::TrackedDevice::None;
+	custom_tracked_device_name = StringName();
+	fallback_behavior = OpenVROverlayContainer::TrackedDeviceFallbackBehavior::Absolute;
 	overlay = 0;
 }
 
@@ -64,17 +80,17 @@ void OpenVROverlayContainer::_ready() {
 	// Tie our new overlay to this container so that events can make it back here later.
 	overlay_id = ovr->add_overlay(overlay, get_instance_id());
 
+	// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
+	// frame_post_draw signal so we can update the overlay every frame just in case.
+	RenderingServer::get_singleton()->connect("frame_post_draw", Callable(this, "on_frame_post_draw").bind());
+
 	// TODO: Use the position of this container in a 3d scene, if it has one.
 	Transform3D initial_transform;
 	initial_transform = initial_transform.translated(Vector3(0, 0, 1) * -1.4);
 
-	overlay_position_absolute(initial_transform);
+	set_absolute_position(initial_transform);
 	set_overlay_width_in_meters(overlay_width_in_meters);
 	set_overlay_visible(overlay_visible);
-
-	// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
-	// frame_post_draw signal so we can update the overlay every frame just in case.
-	RenderingServer::get_singleton()->connect("frame_post_draw", Callable(this, "on_frame_post_draw").bind());
 }
 
 void OpenVROverlayContainer::_exit_tree() {
@@ -221,15 +237,84 @@ void OpenVROverlayContainer::set_overlay_visible(bool p_visible) {
 	}
 }
 
-bool OpenVROverlayContainer::track_relative_to_device(vr::TrackedDeviceIndex_t p_tracked_device_index, Transform3D p_transform) {
-	if (overlay) {
+OpenVROverlayContainer::TrackedDevice OpenVROverlayContainer::get_tracked_device() {
+	return tracked_device;
+}
+
+void OpenVROverlayContainer::set_tracked_device(OpenVROverlayContainer::TrackedDevice p_tracked_device) {
+	tracked_device = p_tracked_device;
+	update_overlay_transform();
+}
+
+StringName OpenVROverlayContainer::get_tracked_device_name() {
+	switch (tracked_device) {
+		case None:
+			return StringName();
+		case HMD:
+			return "hmd";
+		case LeftHand:
+			return "left_hand"; // Matches reserved name for XRPositionalTracker
+		case RightHand:
+			return "right_hand"; // Ditto
+		case Custom:
+			return custom_tracked_device_name;
+	}
+
+	return "wat"; // Should be impossible, silences the warning.
+}
+
+void OpenVROverlayContainer::set_tracked_device_name(StringName p_tracked_device_name) {
+	custom_tracked_device_name = p_tracked_device_name;
+	update_overlay_transform();
+}
+
+Transform3D OpenVROverlayContainer::get_absolute_position() {
+	return absolute_position;
+}
+
+void OpenVROverlayContainer::set_absolute_position(Transform3D p_position) {
+	absolute_position = p_position;
+	update_overlay_transform();
+}
+
+Transform3D OpenVROverlayContainer::get_tracked_device_relative_position() {
+	return tracked_device_relative_position;
+}
+
+void OpenVROverlayContainer::set_tracked_device_relative_position(Transform3D p_position) {
+	tracked_device_relative_position = p_position;
+	update_overlay_transform();
+}
+
+bool OpenVROverlayContainer::update_overlay_transform() {
+	if (overlay == vr::k_ulOverlayHandleInvalid) {
+		return false;
+	}
+
+	// TODO: dedup this code
+	if (tracked_device != None) {
 		XRServer *server = XRServer::get_singleton();
 		double ws = server->get_world_scale();
 		vr::HmdMatrix34_t matrix;
 
-		ovr->matrix_from_transform(&matrix, &p_transform, ws);
+		ovr->matrix_from_transform(&matrix, &tracked_device_relative_position, ws);
 
-		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, p_tracked_device_index, &matrix);
+		StringName tracker_name = get_tracked_device_name();
+		vr::TrackedDeviceIndex_t index = vr::k_unTrackedDeviceIndexInvalid;
+		if (tracked_device == HMD) {
+			index = vr::k_unTrackedDeviceIndex_Hmd;
+		} else {
+			index = ovr->get_tracked_device_index(server->get_tracker(tracker_name));
+		}
+
+		if (index == vr::k_unTrackedDeviceIndexInvalid) {
+			Array arr;
+			arr.push_back(tracker_name);
+			UtilityFunctions::print(String("Could not track overlay relative to unknown device {0}").format(arr));
+			return false;
+		}
+
+		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, index, &matrix);
 
 		if (vrerr != vr::VROverlayError_None) {
 			Array arr;
@@ -241,18 +326,13 @@ bool OpenVROverlayContainer::track_relative_to_device(vr::TrackedDeviceIndex_t p
 		}
 
 		return true;
-	}
-	return false;
-}
-
-bool OpenVROverlayContainer::overlay_position_absolute(Transform3D p_transform) {
-	if (overlay) {
+	} else {
 		XRServer *server = XRServer::get_singleton();
 		double ws = server->get_world_scale();
 		vr::HmdMatrix34_t matrix;
 		vr::TrackingUniverseOrigin origin;
 
-		ovr->matrix_from_transform(&matrix, &p_transform, ws);
+		ovr->matrix_from_transform(&matrix, &absolute_position, ws);
 
 		openvr_data::OpenVRTrackingUniverse tracking_universe = ovr->get_tracking_universe();
 		if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {
@@ -276,5 +356,6 @@ bool OpenVROverlayContainer::overlay_position_absolute(Transform3D p_transform) 
 
 		return true;
 	}
+
 	return false;
 }

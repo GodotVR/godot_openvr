@@ -185,6 +185,7 @@ public:
 
 	// interact with tracking info
 	const godot::Transform3D get_hmd_transform() const;
+	vr::TrackedDeviceIndex_t get_tracked_device_index(Ref<XRPositionalTracker> p_tracker);
 
 	////////////////////////////////////////////////////////////////
 	// overlay

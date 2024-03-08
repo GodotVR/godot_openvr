@@ -645,6 +645,15 @@ void openvr_data::pre_render_update() {
 
 ////////////////////////////////////////////////////////////////
 // Interact with tracking info
+vr::TrackedDeviceIndex_t openvr_data::get_tracked_device_index(Ref<XRPositionalTracker> p_tracker) {
+	for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+		if (tracked_devices[i].tracker == p_tracker) {
+			return i;
+		}
+	}
+
+	return vr::k_unTrackedDeviceIndexInvalid;
+}
 
 ////////////////////////////////////////////////////////////////
 // Register an action set
