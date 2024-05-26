@@ -1395,7 +1395,6 @@ bool openvr_data::_load_render_model(model_mesh *p_model) {
 	// create our array for our model
 	arr.resize(ArrayMesh::ARRAY_MAX);
 
-	/* TODO Fix this
 	// load our pool arrays into our array
 	arr[ArrayMesh::ARRAY_VERTEX] = vertices;
 	arr[ArrayMesh::ARRAY_NORMAL] = normals;
@@ -1417,9 +1416,7 @@ bool openvr_data::_load_render_model(model_mesh *p_model) {
 
 	// free up our render model
 	render_models->FreeRenderModel(ovr_render_model);
-	*/
 
-	// I guess we're done...
 	return true;
 }
 
@@ -1473,27 +1470,20 @@ bool openvr_data::_load_texture(texture_material *p_texture) {
 		}
 	}
 
-	Ref<Image> image;
-	image.instantiate();
-	image->create_from_data(ovr_texture->unWidth, ovr_texture->unHeight, false, Image::FORMAT_RGBA8, image_data);
+	Ref<Image> image = image->create_from_data(ovr_texture->unWidth, ovr_texture->unHeight, false, Image::FORMAT_RGBA8, image_data);
 
-	Ref<ImageTexture> texture;
-	texture.instantiate();
-	texture->create_from_image(image);
+	Ref<ImageTexture> texture = texture->create_from_image(image);
 
-	/* TODO fix this!
 	switch (p_texture->type) {
 		case TT_ALBEDO:
 			p_texture->material->set_texture(StandardMaterial3D::TEXTURE_ALBEDO, texture);
 			break;
 		default: break;
 	}
-	*/
 
 	// reset our references to ensure our material gets freed at the right time
 	p_texture->material = Ref<StandardMaterial3D>();
 
-	// I guess we're done...
 	return true;
 }
 
