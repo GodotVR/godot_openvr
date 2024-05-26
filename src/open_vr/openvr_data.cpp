@@ -1263,8 +1263,60 @@ godot::String openvr_data::get_render_model_name(uint32_t p_model_index) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Get the number of components available for the given render model.
+uint32_t openvr_data::get_render_model_component_count(const godot::String &p_model_name) {
+	if (hmd == nullptr) {
+		return 0;
+	}
+
+	return render_models->GetComponentCount(p_model_name.utf8().get_data());
+}
+
+////////////////////////////////////////////////////////////////
+// Get the name of a render model component at a given index.
+godot::String openvr_data::get_render_model_component_name(const godot::String &p_model_name, uint32_t p_component_index) {
+	godot::String name;
+
+	if (hmd != nullptr) {
+		// TODO: Dynamically size these.
+		char component_name[256];
+		render_models->GetComponentName(p_model_name.utf8().get_data(), p_component_index, component_name, 256);
+		name = component_name;
+	}
+
+	return name;
+}
+
+////////////////////////////////////////////////////////////////
+// Get the name of a render model for a component to use for
+// loading it. This may be an absolute path on the filesystem,
+// but is not documented as such and should be treated as an
+// opaque value.
+godot::String openvr_data::get_render_model_component_model_name(const godot::String &p_model_name, const godot::String &p_component_name) {
+	godot::String name = "";
+
+	if (hmd != nullptr) {
+		// This function (may? does?) return absolute paths, so make sure there's enough room (260 on windows, 4096 on linux but not really).
+		// TODO: Dynamically size these.
+		char model_name[4096];
+		uint32_t name_length = render_models->GetComponentRenderModelName(p_model_name.utf8().get_data(), p_component_name.utf8().get_data(), model_name, 4096);
+
+		if (name_length == 0) { // No model available.
+			return name;
+		}
+		name = model_name;
+	}
+
+	return name;
+}
+
+////////////////////////////////////////////////////////////////
 // load the given render model into the provided ArrayMesh
-void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mesh) {
+void openvr_data::load_render_model(const String &p_model_name, Ref<ArrayMesh> p_mesh) {
+	if (!p_mesh.is_valid()) {
+		return;
+	}
+
 	// if we already have an entry, remove it
 	remove_mesh(p_mesh);
 
@@ -1283,6 +1335,13 @@ void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mes
 // OpenVR loads this in a separate thread so we repeatedly call this
 // until the model is loaded and only then process it
 bool openvr_data::_load_render_model(model_mesh *p_model) {
+	// Since this happens in the background, the mesh may have been discarded by now. If
+	// so, don't try to load the model since it is no longer wanted. Return true so we
+	// won't try again later.
+	if (!p_model->mesh.is_valid()) {
+		return true;
+	}
+
 	vr::RenderModel_t *ovr_render_model = nullptr;
 
 	// Load our render model
@@ -1349,7 +1408,6 @@ bool openvr_data::_load_render_model(model_mesh *p_model) {
 	// create our array for our model
 	arr.resize(ArrayMesh::ARRAY_MAX);
 
-	/* TODO Fix this
 	// load our pool arrays into our array
 	arr[ArrayMesh::ARRAY_VERTEX] = vertices;
 	arr[ArrayMesh::ARRAY_NORMAL] = normals;
@@ -1371,9 +1429,7 @@ bool openvr_data::_load_render_model(model_mesh *p_model) {
 
 	// free up our render model
 	render_models->FreeRenderModel(ovr_render_model);
-	*/
 
-	// I guess we're done...
 	return true;
 }
 
@@ -1427,33 +1483,28 @@ bool openvr_data::_load_texture(texture_material *p_texture) {
 		}
 	}
 
-	Ref<Image> image;
-	image.instantiate();
-	image->create_from_data(ovr_texture->unWidth, ovr_texture->unHeight, false, Image::FORMAT_RGBA8, image_data);
+	Ref<Image> image = image->create_from_data(ovr_texture->unWidth, ovr_texture->unHeight, false, Image::FORMAT_RGBA8, image_data);
 
-	Ref<ImageTexture> texture;
-	texture.instantiate();
-	texture->create_from_image(image);
+	Ref<ImageTexture> texture = texture->create_from_image(image);
 
-	/* TODO fix this!
 	switch (p_texture->type) {
 		case TT_ALBEDO:
 			p_texture->material->set_texture(StandardMaterial3D::TEXTURE_ALBEDO, texture);
 			break;
 		default: break;
 	}
-	*/
 
 	// reset our references to ensure our material gets freed at the right time
 	p_texture->material = Ref<StandardMaterial3D>();
 
-	// I guess we're done...
+	render_models->FreeTexture(ovr_texture);
+
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////
 // Remove our mesh from our load queue
-void openvr_data::remove_mesh(ArrayMesh *p_mesh) {
+void openvr_data::remove_mesh(Ref<ArrayMesh> p_mesh) {
 	// check in reverse so we can safely remove things
 	for (int i = (int)load_models.size() - 1; i >= 0; i--) {
 		if (load_models[i].mesh == p_mesh) {
