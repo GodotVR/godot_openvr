@@ -8,7 +8,10 @@ var controller_is_loaded = false
 
 ## Override the render model. If unset and the parent of this node is an XRController3D,
 ## an attempt will be made to locate the correct model automatically.
-@export var render_model_name: String
+@export var render_model_name: String:
+	set(name):
+	   render_model_name = name
+	   controller_is_loaded = false
 
 func apply_world_scale():
 	var new_ws = XRServer.world_scale
@@ -29,9 +32,6 @@ func _load_controller_mesh(controller_name):
 func _ready():
 	# instance our render model object
 	ovr_render_model = OpenVRRenderModel.new()
-
-	# we haven't loaded it
-	controller_is_loaded = false
 
 func _process(_delta):
 	var controller: XRController3D
