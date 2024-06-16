@@ -286,6 +286,9 @@ public:
 	uint32_t get_render_model_count();
 	godot::String get_render_model_name(uint32_t p_model_index);
 	void load_render_model(const godot::String &p_model_name, godot::ArrayMesh *p_mesh);
+	uint32_t get_render_model_component_count(const godot::String &p_model_name);
+	godot::String get_render_model_component_name(const godot::String &p_model_name, uint32_t p_component_index);
+	godot::String get_render_model_component_model_name(const godot::String &p_model_name, const godot::String &p_component_name);
 
 	// clear async data
 	void remove_mesh(godot::ArrayMesh *p_mesh);

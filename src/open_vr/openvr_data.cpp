@@ -1309,6 +1309,54 @@ godot::String openvr_data::get_render_model_name(uint32_t p_model_index) {
 }
 
 ////////////////////////////////////////////////////////////////
+// Get the number of components available for the given render model.
+uint32_t openvr_data::get_render_model_component_count(const godot::String &p_model_name) {
+	if (hmd == nullptr) {
+		return 0;
+	}
+
+	return render_models->GetComponentCount(p_model_name.utf8().get_data());
+}
+
+////////////////////////////////////////////////////////////////
+// Get the name of a render model component at a given index.
+godot::String openvr_data::get_render_model_component_name(const godot::String &p_model_name, uint32_t p_component_index) {
+	godot::String name;
+
+	if (hmd != nullptr) {
+		// TODO: Dynamically size these.
+		char component_name[256];
+		render_models->GetComponentName(p_model_name.utf8().get_data(), p_component_index, component_name, 256);
+		name = component_name;
+	}
+
+	return name;
+}
+
+////////////////////////////////////////////////////////////////
+// Get the name of a render model for a component to use for
+// loading it. This may be an absolute path on the filesystem,
+// but is not documented as such and should be treated as an
+// opaque value.
+godot::String openvr_data::get_render_model_component_model_name(const godot::String &p_model_name, const godot::String &p_component_name) {
+	godot::String name = "";
+
+	if (hmd != nullptr) {
+		// This function (may? does?) return absolute paths, so make sure there's enough room (260 on windows, 4096 on linux but not really).
+		// TODO: Dynamically size these.
+		char model_name[4096];
+		uint32_t name_length = render_models->GetComponentRenderModelName(p_model_name.utf8().get_data(), p_component_name.utf8().get_data(), model_name, 4096);
+
+		if (name_length == 0) { // No model available.
+			return name;
+		}
+		name = model_name;
+	}
+
+	return name;
+}
+
+////////////////////////////////////////////////////////////////
 // load the given render model into the provided ArrayMesh
 void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mesh) {
 	// if we already have an entry, remove it

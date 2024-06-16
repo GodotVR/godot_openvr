@@ -2,7 +2,8 @@ extends MeshInstance3D
 
 class_name OVRRenderModel3D
 
-var ovr_render_model
+var ovr: XRInterfaceOpenVR
+
 var ws = 0
 var controller_is_loaded = false
 
@@ -10,28 +11,31 @@ var controller_is_loaded = false
 ## an attempt will be made to locate the correct model automatically.
 @export var render_model_name: String:
 	set(name):
-	   render_model_name = name
-	   controller_is_loaded = false
+		render_model_name = name
+		controller_is_loaded = false
 
 func apply_world_scale():
 	var new_ws = XRServer.world_scale
 	if (ws != new_ws):
 		ws = new_ws
 		scale = Vector3(ws, ws, ws)
+#
+# Called when the node enters the scene tree for the first time.
+func _enter_tree():
+	ovr = OpenVRInterface.get_interface()
 
 func _load_controller_mesh(controller_name):
 	# TODO: This can never actually return false, the fallback is useless.
-	if ovr_render_model.load_model(controller_name):
-		return ovr_render_model
+	var model: ArrayMesh
+	model = ovr.load_render_model(controller_name)
+	if model:
+		return model
 
-	if ovr_render_model.load_model("generic_controller"):
-		return ovr_render_model
+	model = ovr.load_render_model("generic_controller")
+	if model:
+		return model
 
 	return Mesh.new()
-
-func _ready():
-	# instance our render model object
-	ovr_render_model = OpenVRRenderModel.new()
 
 func _process(_delta):
 	var controller: XRController3D
