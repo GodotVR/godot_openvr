@@ -24,6 +24,7 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_default_action_set"), &XRInterfaceOpenVR::set_default_action_set);
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "default_action_set"), "set_default_action_set", "get_default_action_set");
 
+	ClassDB::bind_method(D_METHOD("set_action_manifest_path"), &XRInterfaceOpenVR::set_action_manifest_path);
 	ClassDB::bind_method(D_METHOD("register_action_set"), &XRInterfaceOpenVR::register_action_set);
 	ClassDB::bind_method(D_METHOD("set_active_action_set"), &XRInterfaceOpenVR::set_active_action_set);
 	ClassDB::bind_method(D_METHOD("toggle_action_set_active"), &XRInterfaceOpenVR::toggle_action_set_active);
@@ -61,6 +62,14 @@ void XRInterfaceOpenVR::set_tracking_universe(int p_universe) {
 	if (ovr != nullptr) {
 		ovr->set_tracking_universe((openvr_data::OpenVRTrackingUniverse)p_universe);
 	}
+}
+
+bool XRInterfaceOpenVR::set_action_manifest_path(const String p_path) {
+	if (ovr == nullptr) {
+		return false;
+	}
+
+	return ovr->set_action_manifest_path(p_path);
 }
 
 String XRInterfaceOpenVR::get_default_action_set() const {
