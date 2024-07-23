@@ -69,16 +69,7 @@ bool XRInterfaceOpenVR::set_action_manifest_path(const String p_path) {
 		return false;
 	}
 
-	vr::EVRInputError error = vr::VRInput()->SetActionManifestPath(p_path.utf8().get_data());
-
-	if (error != vr::VRInputError_None) {
-		Array arr;
-		arr.push_back(error);
-		UtilityFunctions::print(String("Could not set action manifest, OpenVR error: {0}").format(arr));
-		return false;
-	}
-
-	return true;
+	return ovr->set_action_manifest_path(p_path);
 }
 
 String XRInterfaceOpenVR::get_default_action_set() const {

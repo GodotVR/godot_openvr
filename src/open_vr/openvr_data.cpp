@@ -30,32 +30,10 @@ openvr_data::openvr_data() {
 		play_area[i].z = 0.0f;
 	}
 
-	// setting up our action set data
-	// TODO we should find a way to read this from our json
-
+	// TODO: need to initialize the first action set because it's accessed instantly by the editor as a property.
 	int default_action_set = register_action_set(String("/actions/godot"));
 	action_sets[default_action_set].is_active = true;
 	active_action_set_count = 1;
-
-	// Our default actions, we should be loading this from our action json
-
-	// TODO rename actions so this is 1:1
-	add_input_action("primary", "primary", IT_VECTOR2);
-	add_input_action("secondary", "secondary", IT_VECTOR2);
-	add_input_action("trigger_value", "analog_trigger", IT_FLOAT);
-	add_input_action("grip_value", "analog_grip", IT_FLOAT);
-
-	add_input_action("primary_click", "primary_click", IT_BOOL);
-	add_input_action("secondary_click", "secondary_click", IT_BOOL);
-	add_input_action("trigger_click", "trigger", IT_BOOL);
-	add_input_action("grip_click", "grip", IT_BOOL);
-	add_input_action("ax", "button_ax", IT_BOOL);
-	add_input_action("by", "button_by", IT_BOOL);
-	// add_input_action("menu", "???", IT_BOOL);
-
-	// here we remove the _pose or we'll overlap action names but we don't want the _pose in Godot
-	add_pose_action("aim", "aim_pose");
-	add_pose_action("grip", "grip_pose");
 }
 
 openvr_data::~openvr_data() {
@@ -251,6 +229,7 @@ bool openvr_data::initialise() {
 			}
 		}
 
+		// If we found an action manifest, use it. If not, move on and assume one will be set later.
 		if (manifest_path.length() != 0) {
 			String absolute_path;
 			if (os->has_feature("editor")) {
@@ -259,67 +238,8 @@ bool openvr_data::initialise() {
 				absolute_path = exec_path.path_join(manifest_path);
 			}
 
-			vr::EVRInputError err = vr::VRInput()->SetActionManifestPath(absolute_path.utf8().get_data());
-			if (err == vr::VRInputError_None) {
-				Array arr;
-				arr.push_back(manifest_path);
-				UtilityFunctions::print(String("Loaded action json from: {0}").format(arr));
-			} else {
+			if (!set_action_manifest_path(absolute_path)) {
 				success = false;
-				Array arr;
-				arr.push_back(manifest_path);
-				UtilityFunctions::print(String("Failed to load action json from: {0}").format(arr));
-			}
-		} else {
-			success = false;
-			UtilityFunctions::print(godot::String("Failed to find action file"));
-		}
-	}
-
-	if (success) {
-		// TODO: Contemplate whether we should parse the JSON ourselves so we know what actions and action sets are available...
-		// we can then get action handles for all of them automatically.
-
-		for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
-			vr::EVRInputError err = vr::VRInput()->GetActionSetHandle((const char *)it->name.utf8().get_data(), &it->handle);
-			if (err != vr::VRInputError_None) {
-				Array arr;
-				arr.push_back(String(it->name));
-				UtilityFunctions::print(String("Failed to obtain action set handle for {0}").format(arr));
-			}
-		}
-
-		for (auto &input : inputs) {
-			// setup handle
-			char action_path[1024];
-			// TODO at some point support additional action sets
-			sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), input.path);
-
-			vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &input.handle);
-			if (err != vr::VRInputError_None) {
-				// maybe output something?
-				input.handle = vr::k_ulInvalidActionHandle;
-
-				Array arr;
-				arr.push_back(String(action_path));
-				UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
-			}
-		}
-
-		for (auto &pose : poses) {
-			// setup handle
-			char action_path[1024];
-			// TODO at some point support additional action sets
-			sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), pose.path);
-
-			vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &pose.handle);
-			if (err != vr::VRInputError_None) {
-				// maybe output something?
-				pose.handle = vr::k_ulInvalidActionHandle;
-
-				Array arr;
-				arr.push_back(String(action_path));
-				UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
 			}
 		}
 	}
@@ -1029,6 +949,92 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 			}
 		}
 	}
+}
+
+bool openvr_data::set_action_manifest_path(const String p_path) {
+	if (hmd == nullptr) {
+		return false;
+	}
+
+	vr::EVRInputError error = vr::VRInput()->SetActionManifestPath(p_path.utf8().get_data());
+
+	if (error != vr::VRInputError_None) {
+		Array arr;
+		arr.push_back(p_path);
+		arr.push_back(error);
+		UtilityFunctions::print(String("Could not set action manifest to {0}, OpenVR error: {1}").format(arr));
+		return false;
+	}
+
+	// Set up default action set.
+	// TODO: Replace this with parsing the manifest.
+
+	int default_action_set = register_action_set(String("/actions/godot"));
+	action_sets[default_action_set].is_active = true;
+	active_action_set_count = 1;
+
+	// TODO rename actions so this is 1:1
+	add_input_action("primary", "primary", IT_VECTOR2);
+	add_input_action("secondary", "secondary", IT_VECTOR2);
+	add_input_action("trigger_value", "analog_trigger", IT_FLOAT);
+	add_input_action("grip_value", "analog_grip", IT_FLOAT);
+
+	add_input_action("primary_click", "primary_click", IT_BOOL);
+	add_input_action("secondary_click", "secondary_click", IT_BOOL);
+	add_input_action("trigger_click", "trigger", IT_BOOL);
+	add_input_action("grip_click", "grip", IT_BOOL);
+	add_input_action("ax", "button_ax", IT_BOOL);
+	add_input_action("by", "button_by", IT_BOOL);
+	// add_input_action("menu", "???", IT_BOOL);
+
+	// here we remove the _pose or we'll overlap action names but we don't want the _pose in Godot
+	add_pose_action("aim", "aim_pose");
+	add_pose_action("grip", "grip_pose");
+
+	for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
+		vr::EVRInputError err = vr::VRInput()->GetActionSetHandle((const char *)it->name.utf8().get_data(), &it->handle);
+		if (err != vr::VRInputError_None) {
+			Array arr;
+			arr.push_back(String(it->name));
+			UtilityFunctions::print(String("Failed to obtain action set handle for {0}").format(arr));
+		}
+	}
+
+	for (auto &input : inputs) {
+		// setup handle
+		char action_path[1024];
+		// TODO at some point support additional action sets
+		sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), input.path);
+
+		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &input.handle);
+		if (err != vr::VRInputError_None) {
+			// maybe output something?
+			input.handle = vr::k_ulInvalidActionHandle;
+
+			Array arr;
+			arr.push_back(String(action_path));
+			UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
+		}
+	}
+
+	for (auto &pose : poses) {
+		// setup handle
+		char action_path[1024];
+		// TODO at some point support additional action sets
+		sprintf(action_path, "%s/in/%s", (const char *)action_sets[0].name.utf8().get_data(), pose.path);
+
+		vr::EVRInputError err = vr::VRInput()->GetActionHandle(action_path, &pose.handle);
+		if (err != vr::VRInputError_None) {
+			// maybe output something?
+			pose.handle = vr::k_ulInvalidActionHandle;
+
+			Array arr;
+			arr.push_back(String(action_path));
+			UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
+		}
+	}
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////

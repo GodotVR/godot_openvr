@@ -208,6 +208,7 @@ public:
 	////////////////////////////////////////////////////////////////
 	// action set
 
+	bool set_action_manifest_path(const godot::String p_path);
 	godot::String get_default_action_set() const;
 	void set_default_action_set(const godot::String p_name);
 	int register_action_set(const godot::String p_action_set);
