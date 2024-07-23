@@ -3,8 +3,10 @@
 
 #include "openvr_data.h"
 
-#include "godot_cpp/classes/time.hpp"
-#include "godot_cpp/classes/xr_server.hpp"
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/json.hpp>
+#include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/classes/xr_server.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include <string.h>
@@ -956,6 +958,28 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 		return false;
 	}
 
+	Error err;
+	String manifest_data = FileAccess::get_file_as_string(p_path);
+	if (manifest_data.is_empty()) {
+		Array arr;
+		err = FileAccess::get_open_error();
+		arr.push_back(err);
+		UtilityFunctions::print(String("Could not read action manifest: {0}").format(arr));
+		return false;
+	}
+
+	JSON json;
+	err = json.parse(manifest_data);
+	if (err != OK) {
+		Array arr;
+		arr.push_back(err);
+		UtilityFunctions::print(String("Could not parse action manifest: {0}").format(arr));
+		return false;
+	}
+	Dictionary manifest = json.get_data();
+	Array manifest_action_sets = manifest.get("action_set", Array());
+	Array manifest_actions = manifest.get("actions", Array());
+
 	vr::EVRInputError error = vr::VRInput()->SetActionManifestPath(p_path.utf8().get_data());
 
 	if (error != vr::VRInputError_None) {
@@ -966,30 +990,29 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 		return false;
 	}
 
-	// Set up default action set.
-	// TODO: Replace this with parsing the manifest.
+	for (int i = 0; i < manifest_actions.size(); i++) {
+		String name = manifest_actions[i].get("name");
+		String type = manifest_actions[i].get("type");
 
-	int default_action_set = register_action_set(String("/actions/godot"));
-	action_sets[default_action_set].is_active = true;
-	active_action_set_count = 1;
+		if (type == "boolean") {
+			add_input_action(name.utf8().get_data(), name.utf8().get_data(), IT_BOOL);
+		} else if (type == "vector1") {
+			add_input_action(name.utf8().get_data(), name.utf8().get_data(), IT_FLOAT);
+		} else if (type == "vector2") {
+			add_input_action(name.utf8().get_data(), name.utf8().get_data(), IT_VECTOR2);
+		} else if (type == "pose") {
+			add_pose_action(name.utf8().get_data(), name.utf8().get_data());
+		} else if (type == "skeleton") {
+			continue; // TODO: Not handled.
+		} else if (type == "vibration") {
+			continue; // TODO: Currently these are picked up on the fly when trigger_haptic_pulse is called.
+		}
+	}
 
-	// TODO rename actions so this is 1:1
-	add_input_action("primary", "primary", IT_VECTOR2);
-	add_input_action("secondary", "secondary", IT_VECTOR2);
-	add_input_action("trigger_value", "analog_trigger", IT_FLOAT);
-	add_input_action("grip_value", "analog_grip", IT_FLOAT);
-
-	add_input_action("primary_click", "primary_click", IT_BOOL);
-	add_input_action("secondary_click", "secondary_click", IT_BOOL);
-	add_input_action("trigger_click", "trigger", IT_BOOL);
-	add_input_action("grip_click", "grip", IT_BOOL);
-	add_input_action("ax", "button_ax", IT_BOOL);
-	add_input_action("by", "button_by", IT_BOOL);
-	// add_input_action("menu", "???", IT_BOOL);
-
-	// here we remove the _pose or we'll overlap action names but we don't want the _pose in Godot
-	add_pose_action("aim", "aim_pose");
-	add_pose_action("grip", "grip_pose");
+	for (int i = 0; i < manifest_action_sets.size(); i++) {
+		String name = manifest_action_sets[i].get("name");
+		register_action_set(name);
+	}
 
 	for (std::vector<action_set>::iterator it = action_sets.begin(); it != action_sets.end(); ++it) {
 		vr::EVRInputError err = vr::VRInput()->GetActionSetHandle((const char *)it->name.utf8().get_data(), &it->handle);
