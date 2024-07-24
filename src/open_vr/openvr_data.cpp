@@ -368,10 +368,7 @@ void openvr_data::process() {
 			}
 		}
 
-		// Pass the array to OpenVR
-		if (current_index == active_action_set_count) {
-			vr::VRInput()->UpdateActionState(active_action_sets.data(), sizeof(vr::VRActiveActionSet_t), active_action_set_count);
-		}
+		vr::VRInput()->UpdateActionState(active_action_sets.data(), sizeof(vr::VRActiveActionSet_t), active_action_set_count);
 	}
 
 	// update our poses structure, this tracks our controllers
@@ -682,7 +679,6 @@ void openvr_data::add_input_action(const char *p_action, const char *p_path, con
 	input.path = p_path;
 	input.type = p_type;
 	input.handle = vr::k_ulInvalidActionHandle;
-	inputs.push_back(input);
 
 	vr::EVRInputError err = vr::VRInput()->GetActionHandle(input.path, &input.handle);
 	if (err != vr::VRInputError_None) {
@@ -692,6 +688,8 @@ void openvr_data::add_input_action(const char *p_action, const char *p_path, con
 		arr.push_back(String(input.path));
 		UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
 	}
+
+	inputs.push_back(input);
 }
 
 void openvr_data::remove_input_action(const char *p_action) {
@@ -786,7 +784,6 @@ void openvr_data::add_pose_action(const char *p_action, const char *p_path) {
 	action.name = p_action;
 	action.path = p_path;
 	action.handle = vr::k_ulInvalidActionHandle;
-	poses.push_back(action);
 
 	vr::EVRInputError err = vr::VRInput()->GetActionHandle(action.path, &action.handle);
 	if (err != vr::VRInputError_None) {
@@ -796,6 +793,8 @@ void openvr_data::add_pose_action(const char *p_action, const char *p_path) {
 		arr.push_back(String(action.path));
 		UtilityFunctions::print(String("Failed to obtain action handle for {0}").format(arr));
 	}
+
+	poses.push_back(action);
 }
 
 void openvr_data::remove_pose_action(const char *p_action) {
@@ -1012,7 +1011,7 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 		return false;
 	}
 	Dictionary manifest = json.get_data();
-	Array manifest_action_sets = manifest.get("action_set", Array());
+	Array manifest_action_sets = manifest.get("action_sets", Array());
 	Array manifest_actions = manifest.get("actions", Array());
 
 	vr::EVRInputError error = vr::VRInput()->SetActionManifestPath(p_path.utf8().get_data());
@@ -1027,7 +1026,8 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 
 	for (int i = 0; i < manifest_action_sets.size(); i++) {
 		String name = manifest_action_sets[i].get("name");
-		register_action_set(name);
+		int action_set_index = register_action_set(name);
+		toggle_action_set_active(name, true);
 	}
 
 	for (int i = 0; i < manifest_actions.size(); i++) {

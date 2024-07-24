@@ -1,5 +1,5 @@
 {
-	"action_set" : [
+	"action_sets" : [
 		{
 			"name" : "/actions/godot",
 			"usage" : "leftright"
