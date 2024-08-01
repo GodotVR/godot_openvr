@@ -34,6 +34,34 @@ void OpenVROverlayContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tracked_device_relative_position", "tracked_device_relative_position"), &OpenVROverlayContainer::set_tracked_device_relative_position);
 	ADD_PROPERTY(PropertyInfo(Variant::TRANSFORM3D, "tracked_device_relative_position"), "set_tracked_device_relative_position", "get_tracked_device_relative_position");
 
+	ClassDB::bind_method(D_METHOD("get_flag", "flag"), &OpenVROverlayContainer::get_flag);
+	ClassDB::bind_method(D_METHOD("set_flag", "flag", "state"), &OpenVROverlayContainer::set_flag);
+
+	ADD_GROUP("Flags", "");
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "no_dashboard_tab"), "set_flag", "get_flag", vr::VROverlayFlags_NoDashboardTab);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "send_vr_discrete_scroll_events"), "set_flag", "get_flag", vr::VROverlayFlags_SendVRDiscreteScrollEvents);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "send_vr_touchpad_events"), "set_flag", "get_flag", vr::VROverlayFlags_SendVRTouchpadEvents);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "show_touch_pad_scroll_wheel"), "set_flag", "get_flag", vr::VROverlayFlags_ShowTouchPadScrollWheel);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "transfer_ownership_to_internal_process"), "set_flag", "get_flag", vr::VROverlayFlags_TransferOwnershipToInternalProcess);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "side_by_side_parallel"), "set_flag", "get_flag", vr::VROverlayFlags_SideBySide_Parallel);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "side_by_side_crossed"), "set_flag", "get_flag", vr::VROverlayFlags_SideBySide_Crossed);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "panorama"), "set_flag", "get_flag", vr::VROverlayFlags_Panorama);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "stereo_panorama"), "set_flag", "get_flag", vr::VROverlayFlags_StereoPanorama);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "sort_with_non_scene_overlays"), "set_flag", "get_flag", vr::VROverlayFlags_SortWithNonSceneOverlays);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "visible_in_dashboard"), "set_flag", "get_flag", vr::VROverlayFlags_VisibleInDashboard);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "make_overlays_interactive_if_visible"), "set_flag", "get_flag", vr::VROverlayFlags_MakeOverlaysInteractiveIfVisible);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "send_vr_smooth_scroll_events"), "set_flag", "get_flag", vr::VROverlayFlags_SendVRSmoothScrollEvents);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "protected_content"), "set_flag", "get_flag", vr::VROverlayFlags_ProtectedContent);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "hide_laser_interaction"), "set_flag", "get_flag", vr::VROverlayFlags_HideLaserIntersection);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "wants_modal_behavior"), "set_flag", "get_flag", vr::VROverlayFlags_WantsModalBehavior);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "is_premultiplied"), "set_flag", "get_flag", vr::VROverlayFlags_IsPremultiplied);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "ignore_texture_alpha"), "set_flag", "get_flag", vr::VROverlayFlags_IgnoreTextureAlpha);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enable_control_bar"), "set_flag", "get_flag", vr::VROverlayFlags_EnableControlBar);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enable_control_bar_keyboard"), "set_flag", "get_flag", vr::VROverlayFlags_EnableControlBarKeyboard);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enable_control_bar_close"), "set_flag", "get_flag", vr::VROverlayFlags_EnableControlBarClose);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enable_click_stabilization"), "set_flag", "get_flag", vr::VROverlayFlags_EnableClickStabilization);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "multi_cursor"), "set_flag", "get_flag", vr::VROverlayFlags_MultiCursor);
+
 	ClassDB::bind_method(D_METHOD("on_frame_post_draw"), &OpenVROverlayContainer::on_frame_post_draw);
 }
 
@@ -86,6 +114,10 @@ void OpenVROverlayContainer::_ready() {
 	set_absolute_position(initial_transform);
 	set_overlay_width_in_meters(overlay_width_in_meters);
 	set_overlay_visible(overlay_visible);
+
+	for (const vr::VROverlayFlags flag : initial_flags) {
+		set_flag(flag, true);
+	}
 }
 
 void OpenVROverlayContainer::_exit_tree() {
@@ -102,6 +134,43 @@ void OpenVROverlayContainer::_exit_tree() {
 		ovr->remove_overlay(overlay_id);
 		overlay_id = 0;
 		overlay = vr::k_ulOverlayHandleInvalid;
+	}
+}
+
+bool OpenVROverlayContainer::get_flag(vr::VROverlayFlags p_flag) {
+	if (overlay == vr::k_ulOverlayHandleInvalid) {
+		return initial_flags.has(p_flag);
+	}
+
+	bool state;
+	vr::EVROverlayError error = vr::VROverlay()->GetOverlayFlag(overlay, p_flag, &state);
+	if (error != vr::VROverlayError_None) {
+		Array arr;
+		arr.push_back(String::num(error));
+		arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(error)));
+		UtilityFunctions::print(String("Could not get overlay flag, OpenVR error: {0}, {1}").format(arr));
+	}
+
+	return state;
+}
+
+void OpenVROverlayContainer::set_flag(vr::VROverlayFlags p_flag, bool p_state) {
+	if (overlay == vr::k_ulOverlayHandleInvalid) {
+		if (p_state) {
+			initial_flags.insert(p_flag);
+		} else {
+			initial_flags.erase(p_flag);
+		}
+
+		return;
+	}
+
+	vr::EVROverlayError error = vr::VROverlay()->SetOverlayFlag(overlay, p_flag, p_state);
+	if (error != vr::VROverlayError_None) {
+		Array arr;
+		arr.push_back(String::num(error));
+		arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(error)));
+		UtilityFunctions::print(String("Could not set overlay flag, OpenVR error: {0}, {1}").format(arr));
 	}
 }
 
