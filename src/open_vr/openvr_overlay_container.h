@@ -11,15 +11,7 @@ class OpenVROverlayContainer : public SubViewportContainer {
 	GDCLASS(OpenVROverlayContainer, SubViewportContainer)
 
 public:
-	enum TrackedDevice {
-		None,
-		HMD,
-		LeftHand,
-		RightHand,
-		Custom
-	};
-
-	// If TrackedDevice is not None and the requested device is not available, the
+	// If tracked_device is set and the requested device is not available, the
 	// fallback behavior decides what happens to the overlay.
 	enum TrackedDeviceFallbackBehavior {
 		Absolute, // Revert to absolute transform (positioned in the world)
@@ -34,14 +26,11 @@ private:
 	float overlay_width_in_meters;
 	bool overlay_visible;
 
-	// custom_tracked_device_name is only used when tracked_device == Custom, the return
-	// value of get_tracked_device_name will be overridden in other cases.
-	TrackedDevice tracked_device;
-	StringName custom_tracked_device_name;
+	String tracked_device_name;
 	TrackedDeviceFallbackBehavior fallback_behavior;
 
-	Transform3D absolute_position; // Used when tracked_device == None
-	Transform3D tracked_device_relative_position; // Used when tracked_device != None
+	Transform3D absolute_position; // Used when tracked_device == ""
+	Transform3D tracked_device_relative_position; // Used when tracked_device != ""
 
 	void on_frame_post_draw();
 	void draw_overlay(const Ref<Texture2D> &p_texture);
@@ -64,11 +53,8 @@ public:
 	bool is_overlay_visible();
 	void set_overlay_visible(bool p_visible);
 
-	TrackedDevice get_tracked_device();
-	void set_tracked_device(TrackedDevice p_tracked_device);
-
-	StringName get_tracked_device_name();
-	void set_tracked_device_name(StringName p_tracked_device_name);
+	String get_tracked_device_name();
+	void set_tracked_device_name(String p_tracked_device_name);
 
 	Transform3D get_absolute_position();
 	void set_absolute_position(Transform3D p_position);
@@ -77,7 +63,5 @@ public:
 	void set_tracked_device_relative_position(Transform3D p_position);
 };
 } // namespace godot
-
-VARIANT_ENUM_CAST(OpenVROverlayContainer::TrackedDevice);
 
 #endif /* !OPENVR_OVERLAY_CONTAINER_H */

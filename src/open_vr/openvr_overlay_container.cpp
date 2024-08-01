@@ -22,13 +22,9 @@ void OpenVROverlayContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_overlay_width_in_meters", "width"), &OpenVROverlayContainer::set_overlay_width_in_meters);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "overlay_width_in_meters"), "set_overlay_width_in_meters", "get_overlay_width_in_meters");
 
-	ClassDB::bind_method(D_METHOD("get_tracked_device"), &OpenVROverlayContainer::get_tracked_device);
-	ClassDB::bind_method(D_METHOD("set_tracked_device", "tracked_device"), &OpenVROverlayContainer::set_tracked_device);
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "tracked_device", PROPERTY_HINT_ENUM, "None,HMD,LeftHand,RightHand,Custom"), "set_tracked_device", "get_tracked_device");
-
 	ClassDB::bind_method(D_METHOD("get_tracked_device_name"), &OpenVROverlayContainer::get_tracked_device_name);
-	ClassDB::bind_method(D_METHOD("set_tracked_device_name", "tracked_device_name"), &OpenVROverlayContainer::set_tracked_device_name);
-	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "tracked_device_name"), "set_tracked_device_name", "get_tracked_device_name");
+	ClassDB::bind_method(D_METHOD("set_tracked_device_name", "tracked_device"), &OpenVROverlayContainer::set_tracked_device_name);
+	ADD_PROPERTY(PropertyInfo(Variant::STRING, "tracked_device_name", PROPERTY_HINT_ENUM_SUGGESTION, "hmd,left_hand,right_hand"), "set_tracked_device_name", "get_tracked_device_name");
 
 	ClassDB::bind_method(D_METHOD("get_absolute_position"), &OpenVROverlayContainer::get_absolute_position);
 	ClassDB::bind_method(D_METHOD("set_absolute_position", "absolute_position"), &OpenVROverlayContainer::set_absolute_position);
@@ -45,8 +41,7 @@ OpenVROverlayContainer::OpenVROverlayContainer() {
 	ovr = openvr_data::retain_singleton();
 	overlay_width_in_meters = 1.0;
 	overlay_visible = true;
-	tracked_device = OpenVROverlayContainer::TrackedDevice::None;
-	custom_tracked_device_name = StringName();
+	tracked_device_name = "";
 	fallback_behavior = OpenVROverlayContainer::TrackedDeviceFallbackBehavior::Absolute;
 	overlay = 0;
 }
@@ -237,34 +232,12 @@ void OpenVROverlayContainer::set_overlay_visible(bool p_visible) {
 	}
 }
 
-OpenVROverlayContainer::TrackedDevice OpenVROverlayContainer::get_tracked_device() {
-	return tracked_device;
+String OpenVROverlayContainer::get_tracked_device_name() {
+	return tracked_device_name;
 }
 
-void OpenVROverlayContainer::set_tracked_device(OpenVROverlayContainer::TrackedDevice p_tracked_device) {
-	tracked_device = p_tracked_device;
-	update_overlay_transform();
-}
-
-StringName OpenVROverlayContainer::get_tracked_device_name() {
-	switch (tracked_device) {
-		case None:
-			return StringName();
-		case HMD:
-			return "hmd";
-		case LeftHand:
-			return "left_hand"; // Matches reserved name for XRPositionalTracker
-		case RightHand:
-			return "right_hand"; // Ditto
-		case Custom:
-			return custom_tracked_device_name;
-	}
-
-	return "wat"; // Should be impossible, silences the warning.
-}
-
-void OpenVROverlayContainer::set_tracked_device_name(StringName p_tracked_device_name) {
-	custom_tracked_device_name = p_tracked_device_name;
+void OpenVROverlayContainer::set_tracked_device_name(String p_tracked_device) {
+	tracked_device_name = p_tracked_device;
 	update_overlay_transform();
 }
 
@@ -292,24 +265,23 @@ bool OpenVROverlayContainer::update_overlay_transform() {
 	}
 
 	// TODO: dedup this code
-	if (tracked_device != None) {
+	if (tracked_device_name != "") {
 		XRServer *server = XRServer::get_singleton();
 		double ws = server->get_world_scale();
 		vr::HmdMatrix34_t matrix;
 
 		ovr->matrix_from_transform(&matrix, &tracked_device_relative_position, ws);
 
-		StringName tracker_name = get_tracked_device_name();
 		vr::TrackedDeviceIndex_t index = vr::k_unTrackedDeviceIndexInvalid;
-		if (tracked_device == HMD) {
+		if (tracked_device_name == "hmd") {
 			index = vr::k_unTrackedDeviceIndex_Hmd;
 		} else {
-			index = ovr->get_tracked_device_index(server->get_tracker(tracker_name));
+			index = ovr->get_tracked_device_index(server->get_tracker(tracked_device_name));
 		}
 
 		if (index == vr::k_unTrackedDeviceIndexInvalid) {
 			Array arr;
-			arr.push_back(tracker_name);
+			arr.push_back(tracked_device_name);
 			UtilityFunctions::print(String("Could not track overlay relative to unknown device {0}").format(arr));
 			return false;
 		}
