@@ -1,5 +1,5 @@
 @tool
-extends Node
+extends OpenVREventHandler
 
 var _xr_interface_openvr : XRInterfaceOpenVR
 

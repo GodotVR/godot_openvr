@@ -78,8 +78,6 @@ See the Windows platform-specific notes below for further info about mingw and p
 The finished GDExtension must be shipped with Valve's `openvr_api.dll` (Windows) or `libopenvr_api.so` (Linux). This is handled automatically by the build system whenever possible. The expected res:// paths of the library can be found in godot\_openvr.gdextension.
 
 ## Running the demo
-To use the demo you will additionally need to install the godot-xr-tools addon, which is available in the asset library within the editor. For alternative installation methods, see [the documentation](https://godotvr.github.io/godot-xr-tools/docs/installation/).
-After installing, you will need to make sure it is enabled and then restart the editor.
 
 If you are building yourself, the demo should now be runnable. If you want to test it out without building, you can download the package from the latest Github actions build, unzip it, and replace the addons/godot-openvr directory with the one from the zip. Note that the debug build is not currently included in the package.
 

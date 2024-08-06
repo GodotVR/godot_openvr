@@ -8,6 +8,8 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include "openvr_event_signals.h"
+
 using namespace godot;
 
 void OpenVROverlayContainer::_bind_methods() {
@@ -60,6 +62,33 @@ void OpenVROverlayContainer::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "multi_cursor"), "set_flag", "get_flag", vr::VROverlayFlags_MultiCursor);
 
 	ClassDB::bind_method(D_METHOD("on_frame_post_draw"), &OpenVROverlayContainer::on_frame_post_draw);
+
+	// Events
+	// See openvr_event_handler.cpp for an explanation of this macro.
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_MouseMove, openvr_data::Mouse, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_MouseButtonDown, openvr_data::Mouse, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_MouseButtonUp, openvr_data::Mouse, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_FocusEnter, openvr_data::Overlay, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_FocusLeave, openvr_data::Overlay, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_ScrollDiscrete, openvr_data::Scroll, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_TouchPadMove, openvr_data::Mouse, header);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_ScrollSmooth, openvr_data::Scroll, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_LockMousePosition, openvr_data::Mouse, header);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_UnlockMousePosition, openvr_data::Mouse, header);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_OverlayShown, openvr_data::None, tested);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_OverlayHidden, openvr_data::None, tested);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_ImageLoaded, openvr_data::Unknown, none);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_OverlayGamepadFocusGained, openvr_data::None, guess);
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_OverlayGamepadFocusLost, openvr_data::None, guess);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_ImageFailed, openvr_data::Unknown, none);
+
+	VREVENT_SIGNAL(vr::EVREventType::VREvent_OverlayClosed, openvr_data::Overlay, guess);
 }
 
 OpenVROverlayContainer::OpenVROverlayContainer() {
@@ -98,7 +127,7 @@ void OpenVROverlayContainer::_notification(int p_what) {
 		}
 
 		// Tie our new overlay to this container so that events can make it back here later.
-		overlay_id = ovr->add_overlay(overlay, ObjectID(get_instance_id()));
+		overlay_id = ovr->add_overlay(overlay, this);
 
 		// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
 		// frame_post_draw signal so we can update the overlay every frame just in case.
