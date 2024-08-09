@@ -236,6 +236,8 @@ public:
 	void set_vrevent_handler(OpenVREventHandler *handler);
 	void remove_vrevent_handler(OpenVREventHandler *handler);
 
+	Variant get_tracked_device_property(vr::TrackedDeviceIndex_t p_device_index, vr::ETrackedDeviceProperty p_property, vr::TrackedPropertyError *error);
+
 	// interact with tracking info
 	const godot::Transform3D get_hmd_transform() const;
 	vr::TrackedDeviceIndex_t get_tracked_device_index(Ref<XRPositionalTracker> p_tracker);
