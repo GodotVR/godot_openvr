@@ -1029,6 +1029,7 @@ Variant openvr_data::get_tracked_device_property(vr::TrackedDeviceIndex_t p_devi
 		case vr::Prop_ImuFactoryAccelerometerBias_Vector3:
 		case vr::Prop_ImuFactoryAccelerometerScale_Vector3:
 		case vr::Prop_DisplayColorMultLeft_Vector3:
+		case vr::Prop_DisplayColorMultRight_Vector3:
 			break; // TODO: Are these array of float??? There's no function.
 
 		// Included to satisfy the linter:
