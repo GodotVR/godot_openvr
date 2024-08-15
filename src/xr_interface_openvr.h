@@ -44,8 +44,7 @@ public:
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
 
-	float get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index);
-	bool is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index);
+	Variant get_device_property(vr::TrackedDeviceIndex_t p_index, vr::ETrackedDeviceProperty p_property);
 
 	// Functions
 	virtual StringName _get_name() const override;
