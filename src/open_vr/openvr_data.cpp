@@ -116,7 +116,7 @@ openvr_data *openvr_data::retain_singleton() {
 		Array arr;
 		arr.push_back(Variant(singleton->use_count));
 
-		UtilityFunctions::print(msg.format(arr));
+		UtilityFunctions::print_verbose(msg.format(arr));
 	}
 	return singleton;
 }
@@ -132,7 +132,7 @@ void openvr_data::release() {
 		Array arr;
 		arr.push_back(Variant(singleton->use_count));
 
-		UtilityFunctions::print(msg.format(arr));
+		UtilityFunctions::print_verbose(msg.format(arr));
 	} else {
 		delete this;
 	}
