@@ -117,13 +117,13 @@ PackedVector3Array XRInterfaceOpenVR::get_play_area() const {
 	return arr;
 }
 
-Variant XRInterfaceOpenVR::get_device_property(vr::TrackedDeviceIndex_t p_index, vr::ETrackedDeviceProperty p_property) {
+Variant XRInterfaceOpenVR::get_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property) {
 	if (ovr == nullptr) {
 		return nullptr;
 	}
 
 	vr::ETrackedPropertyError error;
-	return ovr->get_tracked_device_property(p_index, p_property, &error);
+	return ovr->get_tracked_device_property(ovr->get_tracked_device_index(p_tracker), p_property, &error);
 
 	if (error != vr::TrackedProp_Success) {
 		Array arr;
