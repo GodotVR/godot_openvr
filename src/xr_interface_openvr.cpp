@@ -34,6 +34,8 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_render_model_names"), &XRInterfaceOpenVR::get_render_model_names);
 	ClassDB::bind_method(D_METHOD("load_render_model", "model_name"), &XRInterfaceOpenVR::load_render_model);
 	ClassDB::bind_method(D_METHOD("load_render_model_components", "model_name"), &XRInterfaceOpenVR::load_render_model_components);
+
+	ClassDB::bind_method(D_METHOD("get_raw_projection_matrix", "eye"), &XRInterfaceOpenVR::get_raw_projection_matrix);
 }
 
 int XRInterfaceOpenVR::get_application_type() const {
@@ -208,6 +210,19 @@ Array XRInterfaceOpenVR::load_render_model_components(String p_model_name) {
 	}
 
 	return components;
+}
+
+////////////////////////////////////////////////////////////////
+// This returns the underlying projection matrix reported by OpenVR.
+// The elements of the array are left, right, top, bottom.
+PackedFloat32Array XRInterfaceOpenVR::get_raw_projection_matrix(uint32_t p_view) {
+	PackedFloat32Array arr;
+	arr.resize(4);
+
+	ovr->hmd->GetProjectionRaw(
+			p_view == 0 ? vr::Eye_Left : vr::Eye_Right, &arr[0], &arr[1], &arr[2], &arr[3]);
+
+	return arr;
 }
 
 ////////////////////////////////////////////////////////////////

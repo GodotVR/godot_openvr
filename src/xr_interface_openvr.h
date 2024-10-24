@@ -72,6 +72,8 @@ public:
 	Ref<ArrayMesh> load_render_model(String p_model_name);
 	Array load_render_model_components(String p_model_name);
 
+	PackedFloat32Array get_raw_projection_matrix(uint32_t p_view);
+
 	XRInterfaceOpenVR();
 	~XRInterfaceOpenVR();
 };
