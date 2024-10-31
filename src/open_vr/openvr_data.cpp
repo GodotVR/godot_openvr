@@ -840,11 +840,12 @@ void openvr_data::remove_pose_action(const char *p_action) {
 ////////////////////////////////////////////////////////////////
 // Called when we detect a new device, set it up
 void openvr_data::attach_device(uint32_t p_device_index) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
 	tracked_device *device = &tracked_devices[p_device_index];
 
-	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
-		// really?!
-	} else if (device->tracker.is_null()) {
+	if (device->tracker.is_null()) {
 		char device_name[256];
 		strcpy(device_name, get_device_name(p_device_index, 255));
 
@@ -916,11 +917,12 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 ////////////////////////////////////////////////////////////////
 // Called when we lose tracked device, cleanup
 void openvr_data::detach_device(uint32_t p_device_index) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
 	tracked_device *device = &tracked_devices[p_device_index];
 
-	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
-		// really?!
-	} else if (device->tracker.is_valid()) {
+	if (device->tracker.is_valid()) {
 		XRServer *xr_server = XRServer::get_singleton();
 		if (xr_server != nullptr) {
 			// XXX: Work around a design issue with XRServer: removing a tracker happens by
