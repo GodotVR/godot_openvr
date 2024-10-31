@@ -914,7 +914,7 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Called when we loose tracked device, cleanup
+// Called when we lose tracked device, cleanup
 void openvr_data::detach_device(uint32_t p_device_index) {
 	tracked_device *device = &tracked_devices[p_device_index];
 
@@ -923,16 +923,20 @@ void openvr_data::detach_device(uint32_t p_device_index) {
 	} else if (device->tracker.is_valid()) {
 		XRServer *xr_server = XRServer::get_singleton();
 		if (xr_server != nullptr) {
-			xr_server->remove_tracker(device->tracker);
+			// XXX: Work around a design issue with XRServer: removing a tracker happens by
+			// name, instead of removing the exact object you pass. This means that if a
+			// tracker has been replaced and then goes inactive, we will remove the wrong one.
+			Ref<XRPositionalTracker> existing_tracker = xr_server->get_tracker(
+					device->tracker->get_tracker_name());
+			if (existing_tracker == device->tracker) {
+				xr_server->remove_tracker(device->tracker);
+			} else {
+				Array arr;
+				arr.push_back(device->tracker->get_tracker_name());
+				UtilityFunctions::push_warning(String("Not removing tracker {0}, already replaced").format(arr));
+			}
 		}
 		device->tracker.unref();
-
-		// unset left/right hand devices
-		if (left_hand_device == p_device_index) {
-			left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		} else if (right_hand_device == p_device_index) {
-			right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		}
 	}
 }
 
