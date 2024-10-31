@@ -341,10 +341,6 @@ bool openvr_data::initialise() {
 			tracked_devices[i].tracker = Ref<XRPositionalTracker>();
 		}
 
-		device_hands_are_available = false;
-		left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-
 		// find any already attached devices
 		for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
 			if (is_tracked_device_connected(i)) {
@@ -878,17 +874,8 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				int32_t controllerRole = get_controller_role(p_device_index);
 				if (controllerRole == vr::TrackedControllerRole_RightHand) {
 					hand = 2;
-					device_hands_are_available = true;
 				} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
 					hand = 1;
-					device_hands_are_available = true;
-				} else if (!device_hands_are_available) {
-					// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
-					if (left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
-						hand = 1;
-					} else if (right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
-						hand = 2;
-					}
 				}
 			} else {
 				Array arr;
@@ -905,17 +892,12 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				new_tracker->set_tracker_desc(device_name);
 				new_tracker->set_tracker_hand(XRPositionalTracker::TrackerHand(hand));
 
-				// remember our primary left and right hand devices
-				if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				if (hand == 1) {
 					new_tracker->set_tracker_name("left_hand");
-
 					vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
-					left_hand_device = p_device_index;
-				} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				} else if (hand == 2) {
 					new_tracker->set_tracker_name("right_hand");
-
 					vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
-					right_hand_device = p_device_index;
 				} else {
 					// other devices don't have source handles...
 					sprintf(device_name, "controller_%i", p_device_index);
