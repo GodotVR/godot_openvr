@@ -1,6 +1,6 @@
 # GDExtension based OpenVR plugin for Godot
 
-![GitHub forks](https://img.shields.io/github/forks/godotvr/godot_openxr_?style=plastic)
+![GitHub forks](https://img.shields.io/github/forks/godotvr/godot_openxr?style=plastic)
 ![GitHub Repo stars](https://img.shields.io/github/stars/godotvr/godot_openxr?style=plastic)
 ![GitHub contributors](https://img.shields.io/github/contributors/godotvr/godot_openxr?style=plastic)
 ![GitHub](https://img.shields.io/github/license/godotvr/godot_openxr?style=plastic)
