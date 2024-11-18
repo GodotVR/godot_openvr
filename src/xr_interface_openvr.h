@@ -24,7 +24,6 @@ private:
 	uint32_t width = 0;
 	uint32_t height = 0;
 
-	OS::VideoDriver video_driver = OS::VIDEO_DRIVER_VULKAN;
 	RID texture_rid;
 
 public:
@@ -51,26 +50,24 @@ public:
 
 	// Functions
 	virtual StringName _get_name() const override;
-	virtual int64_t _get_capabilities() const override;
+	virtual uint32_t _get_capabilities() const override;
 
 	virtual bool _is_initialized() const override;
 	virtual bool _initialize() override;
 	virtual void _uninitialize() override;
 
-	virtual int64_t _get_tracking_status() const override;
+	virtual XRInterface::TrackingStatus _get_tracking_status() const override;
 	virtual void _trigger_haptic_pulse(const String &action_name, const StringName &tracker_name, double frequency, double amplitude, double duration_sec, double delay_sec) override;
 
 	virtual Vector2 _get_render_target_size() override;
-	virtual int64_t _get_view_count() override;
+	virtual uint32_t _get_view_count() override;
 	virtual Transform3D _get_camera_transform() override;
-	virtual Transform3D _get_transform_for_view(int64_t p_view, const Transform3D &p_cam_transform) override;
-	virtual PackedFloat64Array _get_projection_for_view(int64_t p_view, double p_aspect, double p_z_near, double p_z_far) override;
+	virtual Transform3D _get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) override;
+	virtual PackedFloat64Array _get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) override;
 
 	virtual void _process() override;
 	virtual void _post_draw_viewport(const RID &render_target, const Rect2 &screen_rect) override;
 	virtual void _end_frame() override;
-
-	virtual void _notification(int64_t what) override;
 
 	XRInterfaceOpenVR();
 	~XRInterfaceOpenVR();

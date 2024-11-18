@@ -1,27 +1,22 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=4 format=3 uid="uid://7q2uyb55p6e5"]
 
-[ext_resource path="res://addons/godot-xr-tools/objects/Object_pickable.tscn" type="PackedScene" id=1]
-[ext_resource path="res://assets/kenney.nl/mug.tres" type="ArrayMesh" id=2]
+[ext_resource type="PackedScene" uid="uid://c8l60rnugru40" path="res://addons/godot-xr-tools/objects/pickable.tscn" id="1"]
+[ext_resource type="ArrayMesh" path="res://assets/kenney.nl/mug.tres" id="2"]
 
-[sub_resource type="CylinderShape3D" id=1]
+[sub_resource type="CylinderShape3D" id="1"]
 margin = 0.01
-radius = 0.0630744
 height = 0.109187
+radius = 0.0630744
 
-[node name="Cup" instance=ExtResource( 1 )]
-center_pickup_on = NodePath("Pickup")
-highlight_mesh_instance = NodePath("MeshInstance")
+[node name="Cup" instance=ExtResource("1")]
 picked_up_layer = 1024
 
 [node name="CollisionShape3D" parent="." index="0"]
-shape = SubResource( 1 )
+shape = SubResource("1")
 
 [node name="MeshInstance" type="MeshInstance3D" parent="." index="1"]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -0.00689943, -0.0554655, 0)
-mesh = ExtResource( 2 )
-surface_material_override/0 = null
-script = null
+mesh = ExtResource("2")
 
 [node name="Pickup" type="Node3D" parent="." index="2"]
 transform = Transform3D(0.506786, 0, -0.862072, 0, 1, 0, 0.862072, 0, 0.506786, -0.0568881, 0, 0.0334469)
-script = null

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://ylx5afjemhln"]
+[gd_scene load_steps=24 format=3 uid="uid://ylx5afjemhln"]
 
 [ext_resource type="Script" path="res://Main.gd" id="1"]
 [ext_resource type="Material" uid="uid://cok6b068i8j3m" path="res://assets/wahooney.itch.io/green_grid.tres" id="2"]
@@ -8,12 +8,13 @@
 [ext_resource type="PackedScene" path="res://misc/Table.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://misc/Box.tscn" id="8"]
 [ext_resource type="Script" path="res://player/right_controller.gd" id="8_oqay4"]
-[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_Teleport.tscn" id="9"]
-[ext_resource type="PackedScene" uid="uid://hkoqglc13fsw" path="res://addons/godot-xr-tools/functions/Function_Direct_movement.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://misc/Cup.tscn" id="11"]
-[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_Pickup.tscn" id="12"]
-[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/Function_pointer.tscn" id="14"]
-[ext_resource type="PackedScene" uid="uid://dhcsolk3uwmy6" path="res://addons/godot-xr-tools/objects/Viewport_2D_in_3D.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/function_teleport.tscn" id="9"]
+[ext_resource type="PackedScene" uid="uid://bl2nuu3qhlb5k" path="res://addons/godot-xr-tools/functions/movement_direct.tscn" id="10"]
+[ext_resource type="PackedScene" uid="uid://7q2uyb55p6e5" path="res://misc/Cup.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/function_pickup.tscn" id="12"]
+[ext_resource type="PackedScene" uid="uid://diyu06cw06syv" path="res://addons/godot-xr-tools/player/player_body.tscn" id="12_d8snu"]
+[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/functions/function_pointer.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://addons/godot-xr-tools/objects/viewport_2d_in_3d.tscn" id="15"]
 [ext_resource type="PackedScene" uid="uid://bvl8eat4blx3g" path="res://player/ButtonStates.tscn" id="16"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_2ndrj"]
@@ -32,11 +33,11 @@ size = Vector3(0.01, 0.01, 0.01)
 albedo_color = Color(0.109804, 0.27451, 1, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_ynikn"]
-material = SubResource( "StandardMaterial3D_8pi1c" )
+material = SubResource("StandardMaterial3D_8pi1c")
 size = Vector3(0.01, 0.01, 0.01)
 
 [sub_resource type="PlaneMesh" id="1"]
-material = ExtResource( "2" )
+material = ExtResource("2")
 size = Vector2(400, 400)
 subdivide_width = 10
 subdivide_depth = 10
@@ -45,7 +46,7 @@ subdivide_depth = 10
 size = Vector3(1000, 2, 1000)
 
 [node name="Main" type="Node3D"]
-script = ExtResource( "1" )
+script = ExtResource("1")
 
 [node name="DirectionalLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.756623, -0.453791, -0.470739, 0.644498, 0.396268, 0.653907, -0.110198, -0.798151, 0.592293, 0, 4, 0)
@@ -54,12 +55,15 @@ shadow_bias = 0.01
 directional_shadow_max_distance = 50.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = ExtResource( "4" )
+environment = ExtResource("4")
 
-[node name="OVRFirstPerson" parent="." instance=ExtResource( "3_0jmmx" )]
+[node name="OVRFirstPerson" parent="." instance=ExtResource("3_0jmmx")]
+default_action_set = null
+viewport = null
+physics_factor = null
 
 [node name="HUD_Anchor" parent="OVRFirstPerson" index="1"]
-script = ExtResource( "4_n1047" )
+script = ExtResource("4_n1047")
 
 [node name="SubViewport" type="SubViewport" parent="OVRFirstPerson/HUD_Anchor" index="0"]
 disable_3d = true
@@ -75,18 +79,17 @@ text = "FPS: 0"
 
 [node name="FPSQuad" type="MeshInstance3D" parent="OVRFirstPerson/HUD_Anchor" index="1"]
 transform = Transform3D(0.965182, 0.11344, 0.235702, -0.0501897, 0.96464, -0.258746, -0.25672, 0.237907, 0.936747, -0.32241, 0.322052, -0.966649)
-mesh = SubResource( "QuadMesh_2ndrj" )
-surface_material_override/0 = SubResource( "StandardMaterial3D_ux7rk" )
+mesh = SubResource("QuadMesh_2ndrj")
+surface_material_override/0 = SubResource("StandardMaterial3D_ux7rk")
 
 [node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/Left_Hand" index="1"]
-mesh = SubResource( "BoxMesh_jxy6n" )
+mesh = SubResource("BoxMesh_jxy6n")
 skeleton = NodePath("../../Right_Hand")
 
-[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="0" instance=ExtResource( "10" )]
-camera = NodePath("../../XRCamera3D")
+[node name="Function_Direct_movement" parent="OVRFirstPerson/Right_Hand" index="0" instance=ExtResource("10")]
 
 [node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/Right_Hand" index="2"]
-mesh = SubResource( "BoxMesh_jxy6n" )
+mesh = SubResource("BoxMesh_jxy6n")
 
 [node name="aim_left_hand" type="XRController3D" parent="OVRFirstPerson"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 1.25, 0)
@@ -94,58 +97,59 @@ tracker = &"left_hand"
 pose = &"aim"
 
 [node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/aim_left_hand"]
-mesh = SubResource( "BoxMesh_ynikn" )
+mesh = SubResource("BoxMesh_ynikn")
 skeleton = NodePath("../../aim_right_hand")
 
-[node name="Function_Teleport" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource( "9" )]
+[node name="Function_Teleport" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource("9")]
 collision_mask = 1022
-camera = NodePath("../../XRCamera3D")
 
-[node name="Function_pointer" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource( "14" )]
+[node name="Function_pointer" parent="OVRFirstPerson/aim_left_hand" instance=ExtResource("14")]
 collision_mask = 2048
 
 [node name="aim_right_hand" type="XRController3D" parent="OVRFirstPerson"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 1.25, 0)
 tracker = &"right_hand"
 pose = &"aim"
-script = ExtResource( "8_oqay4" )
+script = ExtResource("8_oqay4")
 
 [node name="TestCube" type="MeshInstance3D" parent="OVRFirstPerson/aim_right_hand"]
-mesh = SubResource( "BoxMesh_ynikn" )
+mesh = SubResource("BoxMesh_ynikn")
 
-[node name="Viewport2Din3D" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource( "15" )]
+[node name="Viewport2Din3D" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource("15")]
 transform = Transform3D(0.960079, 0.211887, -0.182625, -0.163522, 0.954819, 0.248155, 0.226955, -0.208384, 0.95135, 0.167837, 0, 0)
 screen_size = Vector2(0.3, 0.2)
-scene = ExtResource( "16" )
 collision_layer = 2048
+scene = ExtResource("16")
 
-[node name="Function_Pickup" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource( "12" )]
+[node name="Function_Pickup" parent="OVRFirstPerson/aim_right_hand" instance=ExtResource("12")]
+
+[node name="PlayerBody" parent="OVRFirstPerson" instance=ExtResource("12_d8snu")]
 
 [node name="Floor" type="StaticBody3D" parent="."]
 collision_layer = 2
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource( "1" )
+mesh = SubResource("1")
 
 [node name="CollisionShape" type="CollisionShape3D" parent="Floor"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-shape = SubResource( "2" )
+shape = SubResource("2")
 
 [node name="Objects" type="Node3D" parent="."]
 
-[node name="Table" parent="Objects" instance=ExtResource( "7" )]
+[node name="Table" parent="Objects" instance=ExtResource("7")]
 
-[node name="Box01" parent="Objects" instance=ExtResource( "8" )]
+[node name="Box01" parent="Objects" instance=ExtResource("8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1, -2)
 
-[node name="Box02" parent="Objects" instance=ExtResource( "8" )]
+[node name="Box02" parent="Objects" instance=ExtResource("8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1, 0)
 
-[node name="Box03" parent="Objects" instance=ExtResource( "8" )]
+[node name="Box03" parent="Objects" instance=ExtResource("8")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1, -1)
 
-[node name="Cup" parent="Objects" instance=ExtResource( "11" )]
+[node name="Cup" parent="Objects" instance=ExtResource("11")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.702487, -6)
 
 [connection signal="button_pressed" from="OVRFirstPerson/aim_right_hand" to="OVRFirstPerson/aim_right_hand" method="_on_aim_right_hand_button_pressed"]
