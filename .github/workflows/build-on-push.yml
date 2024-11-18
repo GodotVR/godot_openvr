@@ -70,7 +70,7 @@ jobs:
     name: Assemble release bundle
     runs-on: ubuntu-20.04
     needs: build
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -86,16 +86,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: godot_openvr_plugin/addons/godot-openvr/bin/
-      - name: Calculate GIT short ref
-        run: |
-          cd godot_openvr
-          echo "GITHUB_SHA_SHORT=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
-        if: github.ref == 'refs/heads/master'
       - name: Get tag name
         run: |
           cd godot_openvr
           echo "GITHUB_SHA_SHORT=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-        if: startsWith(github.ref, 'refs/tags')
       - name: Clean up extracted files
         run: |
           rm -rf godot_openvr
@@ -108,34 +102,7 @@ jobs:
         with:
           allowUpdates: true
           artifacts: "godot-openvr.zip"
-          body: "A new release!"
-          prerelease: false
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
         if: startsWith(github.ref, 'refs/tags')
-
-      # TODO: Both create-release and upload-release-asset are abandonded, need to port to maintained replacements. Both suggest replacements in their README.
-
-      - name: Create release for asset
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.GITHUB_SHA_SHORT }}
-          release_name: Automatic build for changeset ${{ env.GITHUB_SHA_SHORT }}
-          body: |
-            This is an automated build for changeset ${{ env.GITHUB_SHA_SHORT }}
-          draft: false
-          prerelease: true
-        if: github.ref == 'refs/heads/master'
-      - name: Upload asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./godot-openvr.zip
-          asset_name: godot-openvr.zip
-          asset_content_type: application/zip
-        if: github.ref == 'refs/heads/master'
