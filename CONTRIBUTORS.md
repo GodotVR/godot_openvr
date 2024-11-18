@@ -11,3 +11,4 @@ Other people who have helped out by submitting fixes, enhancements, etc are:
 - [CrispyPin](https://github.com/CrispyPin)
 - [SaracenOne](https://github.com/SaracenOne)
 - [lyuma](https://github.com/lyuma)
+- [Bill Doyle](https://github.com/vilhalmer)

@@ -1,5 +1,10 @@
 # GDExtension based OpenVR plugin for Godot
 
+![GitHub forks](https://img.shields.io/github/forks/godotvr/godot_openxr_?style=plastic)
+![GitHub Repo stars](https://img.shields.io/github/stars/godotvr/godot_openxr?style=plastic)
+![GitHub contributors](https://img.shields.io/github/contributors/godotvr/godot_openxr?style=plastic)
+![GitHub](https://img.shields.io/github/license/godotvr/godot_openxr?style=plastic)
+
 This is a GDExtension based plugin that adds OpenVR support to Godot.
 
 The leading version of this repository now lives at:
@@ -11,8 +16,8 @@ https://github.com/GodotVR/godot_openvr
 
 # Branches
 This repo currently maintains the following branches:
-- `master` is our main development in which we maintain our `1.x.y` version of this plugin. This version works with Godot 3.x.
-- `2.0-dev` is our 2.0 development branch, this is an unstable branch in which we're porting this plugin to work in Godot 4.x.
+- `master` is our main development in which the latest version of this plugin resides. This version works with Godot 4.x.
+- `Godot-3.x` is our legacy branch in which we maintain our `1.x` version of this plugin. This version works with Godot 3.x.
 
 # Building
 
