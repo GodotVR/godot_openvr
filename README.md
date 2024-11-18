@@ -42,11 +42,13 @@ You must compile the `godot-cpp` submodule first by executing:
 
 	cd godot-cpp
 	scons platform=windows target=template_release generate_bindings=yes arch=x86_64
+	scons platform=windows target=template_debug arch=x86_64
 	cd ..
 
 You can then compile this extension by executing:
 
-	scons
+	scons target=release
+	scons target=debug
 
 The results will be placed within the extension's addon hierarchy in the included demo. This entire hierarchy (demo/addons/godot-openvr on downward) is then distributable.
 
