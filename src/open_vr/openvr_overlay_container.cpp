@@ -67,7 +67,6 @@ OpenVROverlayContainer::OpenVROverlayContainer() {
 	overlay_width_in_meters = 1.0;
 	overlay_visible = true;
 	tracked_device_name = "";
-	fallback_behavior = OpenVROverlayContainer::TrackedDeviceFallbackBehavior::Absolute;
 	overlay = 0;
 }
 

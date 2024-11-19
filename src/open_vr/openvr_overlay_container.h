@@ -11,14 +11,6 @@ namespace godot {
 class OpenVROverlayContainer : public SubViewportContainer {
 	GDCLASS(OpenVROverlayContainer, SubViewportContainer)
 
-public:
-	// If tracked_device is set and the requested device is not available, the
-	// fallback behavior decides what happens to the overlay.
-	enum TrackedDeviceFallbackBehavior {
-		Absolute, // Revert to absolute transform (positioned in the world)
-		Hide // Hide the overlay
-	};
-
 private:
 	openvr_data *ovr;
 	vr::VROverlayHandle_t overlay;
@@ -29,8 +21,6 @@ private:
 	HashSet<vr::VROverlayFlags> initial_flags;
 
 	String tracked_device_name;
-	TrackedDeviceFallbackBehavior fallback_behavior;
-
 	Transform3D absolute_position; // Used when tracked_device == ""
 	Transform3D tracked_device_relative_position; // Used when tracked_device != ""
 
