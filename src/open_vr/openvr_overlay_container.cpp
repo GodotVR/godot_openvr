@@ -332,12 +332,12 @@ bool OpenVROverlayContainer::update_overlay_transform() {
 		return false;
 	}
 
-	// TODO: dedup this code
-	if (tracked_device_name != "") {
-		XRServer *server = XRServer::get_singleton();
-		double ws = server->get_world_scale();
-		vr::HmdMatrix34_t matrix;
+	XRServer *server = XRServer::get_singleton();
+	double ws = server->get_world_scale();
+	vr::HmdMatrix34_t matrix;
+	vr::EVROverlayError vrerr;
 
+	if (tracked_device_name != "") {
 		ovr->matrix_from_transform(&matrix, &tracked_device_relative_position, ws);
 
 		vr::TrackedDeviceIndex_t index = vr::k_unTrackedDeviceIndexInvalid;
@@ -354,22 +354,8 @@ bool OpenVROverlayContainer::update_overlay_transform() {
 			return false;
 		}
 
-		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, index, &matrix);
-
-		if (vrerr != vr::VROverlayError_None) {
-			Array arr;
-			arr.push_back(String::num(vrerr));
-			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-			UtilityFunctions::print(String("Could not track overlay relative to device, OpenVR error: {0}, {1}").format(arr));
-
-			return false;
-		}
-
-		return true;
+		vrerr = vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(overlay, index, &matrix);
 	} else {
-		XRServer *server = XRServer::get_singleton();
-		double ws = server->get_world_scale();
-		vr::HmdMatrix34_t matrix;
 		vr::TrackingUniverseOrigin origin;
 
 		ovr->matrix_from_transform(&matrix, &absolute_position, ws);
@@ -383,19 +369,17 @@ bool OpenVROverlayContainer::update_overlay_transform() {
 			origin = vr::TrackingUniverseRawAndUncalibrated;
 		}
 
-		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlayTransformAbsolute(overlay, origin, &matrix);
-
-		if (vrerr != vr::VROverlayError_None) {
-			Array arr;
-			arr.push_back(String::num(vrerr));
-			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-			UtilityFunctions::print(String("Could not track overlay absolute, OpenVR error: {0}, {1}").format(arr));
-
-			return false;
-		}
-
-		return true;
+		vrerr = vr::VROverlay()->SetOverlayTransformAbsolute(overlay, origin, &matrix);
 	}
 
-	return false;
+	if (vrerr != vr::VROverlayError_None) {
+		Array arr;
+		arr.push_back(String::num(vrerr));
+		arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+		UtilityFunctions::print(String("Could not set overlay transform, OpenVR error: {0}, {1}").format(arr));
+
+		return false;
+	}
+
+	return true;
 }
