@@ -46,8 +46,7 @@ public:
 	OpenVROverlayContainer();
 	~OpenVROverlayContainer();
 
-	virtual void _ready() override;
-	virtual void _exit_tree() override;
+	void _notification(int p_what);
 
 	bool get_flag(vr::VROverlayFlags p_flag);
 	void set_flag(vr::VROverlayFlags p_flag, bool p_state);

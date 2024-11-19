@@ -11,9 +11,6 @@
 using namespace godot;
 
 void OpenVROverlayContainer::_bind_methods() {
-	// ClassDB::bind_method(D_METHOD("_ready"), &OpenVROverlayContainer::_ready);
-	// ClassDB::bind_method(D_METHOD("_exit_tree"), &OpenVROverlayContainer::_exit_tree);
-
 	ClassDB::bind_method(D_METHOD("is_overlay_visible"), &OpenVROverlayContainer::is_overlay_visible);
 	ClassDB::bind_method(D_METHOD("set_overlay_visible", "visible"), &OpenVROverlayContainer::set_overlay_visible);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "overlay_visible"), "set_overlay_visible", "is_overlay_visible");
@@ -81,47 +78,49 @@ OpenVROverlayContainer::~OpenVROverlayContainer() {
 	}
 }
 
-void OpenVROverlayContainer::_ready() {
-	if (Engine::get_singleton()->is_editor_hint()) {
-		return;
-	}
+void OpenVROverlayContainer::_notification(int p_what) {
+	if (p_what == NOTIFICATION_READY) {
+		if (Engine::get_singleton()->is_editor_hint()) {
+			return;
+		}
 
-	String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
-	String overlay_identifier = appname + String::num(ovr->get_overlay_count() + 1);
+		String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
+		String overlay_identifier = appname + String::num(ovr->get_overlay_count() + 1);
 
-	const char *overlay_key = overlay_identifier.utf8().get_data();
-	const char *overlay_name = overlay_key;
+		const char *overlay_key = overlay_identifier.utf8().get_data();
+		const char *overlay_name = overlay_key;
 
-	vr::EVROverlayError vrerr = vr::VROverlay()->CreateOverlay(overlay_key, overlay_name, &overlay);
-	if (vrerr != vr::VROverlayError_None) {
-		Array arr;
-		arr.push_back(String::num(vrerr));
-		arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
-		UtilityFunctions::print(String("Could not create overlay, OpenVR error: {0}, {1}").format(arr));
-	}
+		vr::EVROverlayError vrerr = vr::VROverlay()->CreateOverlay(overlay_key, overlay_name, &overlay);
+		if (vrerr != vr::VROverlayError_None) {
+			Array arr;
+			arr.push_back(String::num(vrerr));
+			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+			UtilityFunctions::print(String("Could not create overlay, OpenVR error: {0}, {1}").format(arr));
+		}
 
-	// Tie our new overlay to this container so that events can make it back here later.
-	overlay_id = ovr->add_overlay(overlay, ObjectID(get_instance_id()));
+		// Tie our new overlay to this container so that events can make it back here later.
+		overlay_id = ovr->add_overlay(overlay, ObjectID(get_instance_id()));
 
-	// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
-	// frame_post_draw signal so we can update the overlay every frame just in case.
-	RenderingServer::get_singleton()->connect("frame_post_draw", Callable(this, "on_frame_post_draw").bind());
+		// We have no way of knowing when our SubViewports' textures are actually updated. Connect to the
+		// frame_post_draw signal so we can update the overlay every frame just in case.
+		RenderingServer::get_singleton()->connect("frame_post_draw", Callable(this, "on_frame_post_draw").bind());
 
-	// TODO: Use the position of this container in a 3d scene, if it has one.
-	Transform3D initial_transform;
-	initial_transform = initial_transform.translated(Vector3(0, 0, 1) * -1.4);
+		// TODO: Use the position of this container in a 3d scene, if it has one.
+		Transform3D initial_transform;
+		initial_transform = initial_transform.translated(Vector3(0, 0, 1) * -1.4);
 
-	set_absolute_position(initial_transform);
-	set_overlay_width_in_meters(overlay_width_in_meters);
-	set_overlay_visible(overlay_visible);
+		set_absolute_position(initial_transform);
+		set_overlay_width_in_meters(overlay_width_in_meters);
+		set_overlay_visible(overlay_visible);
 
-	for (const vr::VROverlayFlags flag : initial_flags) {
-		set_flag(flag, true);
-	}
-}
+		for (const vr::VROverlayFlags flag : initial_flags) {
+			set_flag(flag, true);
+		}
+	} else if (p_what == NOTIFICATION_EXIT_TREE) {
+		if (!overlay) {
+			return;
+		}
 
-void OpenVROverlayContainer::_exit_tree() {
-	if (overlay) {
 		vr::EVROverlayError vrerr = vr::VROverlay()->DestroyOverlay(overlay);
 		if (vrerr != vr::VROverlayError_None) {
 			Array arr;
