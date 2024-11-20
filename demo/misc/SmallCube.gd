@@ -1,4 +1,4 @@
-extends "res://addons/godot-xr-tools/objects/Object_pickable.gd"
+extends RigidBody3D
 
 var color_idx = 0
 var colors = [ Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0), Color(0.0, 0.0, 1.0, 1.0) ]

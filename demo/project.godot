@@ -17,7 +17,6 @@ config/icon="res://icon.png"
 
 [autoload]
 
-XRToolsUserSettings="*res://addons/godot-xr-tools/user_settings/user_settings.gd"
 OpenVRInterface="*res://addons/godot-openvr/openvr_autoloader.gd"
 
 [display]
@@ -28,7 +27,7 @@ window/vsync/use_vsync=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-openvr/plugin.cfg", "res://addons/godot-xr-tools/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot-openvr/plugin.cfg")
 
 [layer_names]
 
