@@ -1,5 +1,5 @@
 {
-	"action_set" : [
+	"action_sets" : [
 		{
 			"name" : "/actions/godot",
 			"usage" : "leftright"
@@ -7,32 +7,32 @@
 	],
 	"actions" : [
 		{
-			"name": "/actions/godot/in/aim_pose",
+			"name": "/actions/godot/in/aim",
 			"requirement" : "mandatory",
 			"type": "pose"
 		},
 		{
-			"name": "/actions/godot/in/grip_pose",
+			"name": "/actions/godot/in/grip",
 			"requirement" : "mandatory",
 			"type": "pose"
 		},
 		{
-			"name" : "/actions/godot/in/trigger",
+			"name" : "/actions/godot/in/trigger_click",
 			"requirement" : "mandatory",
 			"type" : "boolean"
 		},
 		{
-			"name" : "/actions/godot/in/analog_trigger",
+			"name" : "/actions/godot/in/trigger_value",
 			"requirement" : "suggested",
 			"type" : "vector1"
 		},
 		{
-			"name" : "/actions/godot/in/grip",
+			"name" : "/actions/godot/in/grip_click",
 			"requirement" : "suggested",
 			"type" : "boolean"
 		},
 		{
-			"name" : "/actions/godot/in/analog_grip",
+			"name" : "/actions/godot/in/grip_value",
 			"requirement" : "suggested",
 			"type" : "vector1"
 		},
@@ -57,12 +57,12 @@
 			"type" : "boolean"
 		},
 		{
-			"name" : "/actions/godot/in/button_ax",
+			"name" : "/actions/godot/in/ax",
 			"requirement" : "optional",
 			"type" : "boolean"
 		},
 		{
-			"name" : "/actions/godot/in/button_by",
+			"name" : "/actions/godot/in/by",
 			"requirement" : "optional",
 			"type" : "boolean"
 		},
