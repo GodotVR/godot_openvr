@@ -228,7 +228,7 @@ Array XRInterfaceOpenVR::load_render_model_components(String p_model_name) {
 		Ref<ArrayMesh> mesh;
 		mesh.instantiate();
 		mesh->set_name(name);
-		ovr->load_render_model(component_name, mesh.ptr());
+		ovr->load_render_model(component_name, mesh);
 		components.append(mesh);
 	}
 

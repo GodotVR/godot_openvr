@@ -1358,7 +1358,11 @@ godot::String openvr_data::get_render_model_component_model_name(const godot::St
 
 ////////////////////////////////////////////////////////////////
 // load the given render model into the provided ArrayMesh
-void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mesh) {
+void openvr_data::load_render_model(const String &p_model_name, Ref<ArrayMesh> p_mesh) {
+	if (!p_mesh.is_valid()) {
+		return;
+	}
+
 	// if we already have an entry, remove it
 	remove_mesh(p_mesh);
 
@@ -1377,6 +1381,13 @@ void openvr_data::load_render_model(const String &p_model_name, ArrayMesh *p_mes
 // OpenVR loads this in a separate thread so we repeatedly call this
 // until the model is loaded and only then process it
 bool openvr_data::_load_render_model(model_mesh *p_model) {
+	// Since this happens in the background, the mesh may have been discarded by now. If
+	// so, don't try to load the model since it is no longer wanted. Return true so we
+	// won't try again later.
+	if (!p_model->mesh.is_valid()) {
+		return true;
+	}
+
 	vr::RenderModel_t *ovr_render_model = nullptr;
 
 	// Load our render model
@@ -1537,7 +1548,7 @@ bool openvr_data::_load_texture(texture_material *p_texture) {
 
 ////////////////////////////////////////////////////////////////
 // Remove our mesh from our load queue
-void openvr_data::remove_mesh(ArrayMesh *p_mesh) {
+void openvr_data::remove_mesh(Ref<ArrayMesh> p_mesh) {
 	// check in reverse so we can safely remove things
 	for (int i = (int)load_models.size() - 1; i >= 0; i--) {
 		if (load_models[i].mesh == p_mesh) {
