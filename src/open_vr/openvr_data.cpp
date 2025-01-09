@@ -341,10 +341,6 @@ bool openvr_data::initialise() {
 			tracked_devices[i].tracker = Ref<XRPositionalTracker>();
 		}
 
-		device_hands_are_available = false;
-		left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-
 		// find any already attached devices
 		for (uint32_t i = vr::k_unTrackedDeviceIndex_Hmd; i < vr::k_unMaxTrackedDeviceCount; i++) {
 			if (is_tracked_device_connected(i)) {
@@ -844,11 +840,12 @@ void openvr_data::remove_pose_action(const char *p_action) {
 ////////////////////////////////////////////////////////////////
 // Called when we detect a new device, set it up
 void openvr_data::attach_device(uint32_t p_device_index) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
 	tracked_device *device = &tracked_devices[p_device_index];
 
-	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
-		// really?!
-	} else if (device->tracker.is_null()) {
+	if (device->tracker.is_null()) {
 		char device_name[256];
 		strcpy(device_name, get_device_name(p_device_index, 255));
 
@@ -878,17 +875,8 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				int32_t controllerRole = get_controller_role(p_device_index);
 				if (controllerRole == vr::TrackedControllerRole_RightHand) {
 					hand = 2;
-					device_hands_are_available = true;
 				} else if (controllerRole == vr::TrackedControllerRole_LeftHand) {
 					hand = 1;
-					device_hands_are_available = true;
-				} else if (!device_hands_are_available) {
-					// this definately needs to improve, if we haven't got hand information, our first controller becomes left and our second becomes right
-					if (left_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
-						hand = 1;
-					} else if (right_hand_device == vr::k_unTrackedDeviceIndexInvalid) {
-						hand = 2;
-					}
 				}
 			} else {
 				Array arr;
@@ -905,17 +893,12 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				new_tracker->set_tracker_desc(device_name);
 				new_tracker->set_tracker_hand(XRPositionalTracker::TrackerHand(hand));
 
-				// remember our primary left and right hand devices
-				if ((hand == 1) && (left_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				if (hand == 1) {
 					new_tracker->set_tracker_name("left_hand");
-
 					vr::VRInput()->GetInputSourceHandle("/user/hand/left", &device->source_handle);
-					left_hand_device = p_device_index;
-				} else if ((hand == 2) && (right_hand_device == vr::k_unTrackedDeviceIndexInvalid)) {
+				} else if (hand == 2) {
 					new_tracker->set_tracker_name("right_hand");
-
 					vr::VRInput()->GetInputSourceHandle("/user/hand/right", &device->source_handle);
-					right_hand_device = p_device_index;
 				} else {
 					// other devices don't have source handles...
 					sprintf(device_name, "controller_%i", p_device_index);
@@ -932,25 +915,30 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 }
 
 ////////////////////////////////////////////////////////////////
-// Called when we loose tracked device, cleanup
+// Called when we lose tracked device, cleanup
 void openvr_data::detach_device(uint32_t p_device_index) {
+	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
+		return;
+	}
 	tracked_device *device = &tracked_devices[p_device_index];
 
-	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
-		// really?!
-	} else if (device->tracker.is_valid()) {
+	if (device->tracker.is_valid()) {
 		XRServer *xr_server = XRServer::get_singleton();
 		if (xr_server != nullptr) {
-			xr_server->remove_tracker(device->tracker);
+			// XXX: Work around a design issue with XRServer: removing a tracker happens by
+			// name, instead of removing the exact object you pass. This means that if a
+			// tracker has been replaced and then goes inactive, we will remove the wrong one.
+			Ref<XRPositionalTracker> existing_tracker = xr_server->get_tracker(
+					device->tracker->get_tracker_name());
+			if (existing_tracker == device->tracker) {
+				xr_server->remove_tracker(device->tracker);
+			} else {
+				Array arr;
+				arr.push_back(device->tracker->get_tracker_name());
+				UtilityFunctions::push_warning(String("Not removing tracker {0}, already replaced").format(arr));
+			}
 		}
 		device->tracker.unref();
-
-		// unset left/right hand devices
-		if (left_hand_device == p_device_index) {
-			left_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		} else if (right_hand_device == p_device_index) {
-			right_hand_device = vr::k_unTrackedDeviceIndexInvalid;
-		}
 	}
 }
 

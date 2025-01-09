@@ -121,10 +121,6 @@ private:
 		vr::VRInputValueHandle_t source_handle;
 	};
 
-	bool device_hands_are_available;
-	uint32_t left_hand_device;
-	uint32_t right_hand_device;
-
 	tracked_device tracked_devices[vr::k_unMaxTrackedDeviceCount];
 
 	void attach_device(uint32_t p_device_index);
