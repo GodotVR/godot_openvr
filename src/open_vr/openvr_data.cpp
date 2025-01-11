@@ -515,14 +515,14 @@ int openvr_data::get_overlay_count() {
 	return (int)overlays.size();
 }
 
-openvr_data::overlay openvr_data::get_overlay(int p_overlay_id) {
-	return overlays[p_overlay_id];
+openvr_data::overlay *openvr_data::get_overlay(int p_overlay_id) {
+	return &overlays[p_overlay_id];
 }
 
-int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, godot::RID p_viewport_rid) {
+int openvr_data::add_overlay(vr::VROverlayHandle_t p_new_value, ObjectID p_container_instance_id) {
 	overlay new_entry;
 	new_entry.handle = p_new_value;
-	new_entry.viewport_rid = p_viewport_rid;
+	new_entry.container_instance_id = p_container_instance_id;
 
 	overlays.push_back(new_entry);
 	return (int)overlays.size() - 1;
@@ -645,6 +645,15 @@ void openvr_data::pre_render_update() {
 
 ////////////////////////////////////////////////////////////////
 // Interact with tracking info
+vr::TrackedDeviceIndex_t openvr_data::get_tracked_device_index(Ref<XRPositionalTracker> p_tracker) {
+	for (uint32_t i = 0; i < vr::k_unMaxTrackedDeviceCount; i++) {
+		if (tracked_devices[i].tracker == p_tracker) {
+			return i;
+		}
+	}
+
+	return vr::k_unTrackedDeviceIndexInvalid;
+}
 
 ////////////////////////////////////////////////////////////////
 // Register an action set
