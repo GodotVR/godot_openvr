@@ -25,6 +25,8 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_action_set_active"), &XRInterfaceOpenVR::set_action_set_active);
 	ClassDB::bind_method(D_METHOD("is_action_set_active"), &XRInterfaceOpenVR::is_action_set_active);
 
+	ClassDB::bind_method(D_METHOD("is_dashboard_visible"), &XRInterfaceOpenVR::is_dashboard_visible);
+
 	ClassDB::bind_method(D_METHOD("play_area_available"), &XRInterfaceOpenVR::play_area_available);
 	ClassDB::bind_method(D_METHOD("get_play_area"), &XRInterfaceOpenVR::get_play_area);
 
@@ -91,6 +93,14 @@ bool XRInterfaceOpenVR::is_action_set_active(const String p_action_set) const {
 	}
 
 	return ovr->is_action_set_active(p_action_set);
+}
+
+bool XRInterfaceOpenVR::is_dashboard_visible() {
+	if (ovr == nullptr) {
+		return false;
+	}
+
+	return vr::VROverlay()->IsDashboardVisible();
 }
 
 bool XRInterfaceOpenVR::play_area_available() const {

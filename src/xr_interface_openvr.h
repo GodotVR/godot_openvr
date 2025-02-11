@@ -41,6 +41,8 @@ public:
 	void set_action_set_active(const String p_action_set, const bool p_is_active);
 	bool is_action_set_active(const String p_action_set) const;
 
+	bool is_dashboard_visible();
+
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
 
