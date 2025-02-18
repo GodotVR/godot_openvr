@@ -2,6 +2,7 @@
 // Our main XRInterface code for our OpenVR GDExtension module
 
 #include "xr_interface_openvr.h"
+#include "openvr_mingw.hpp"
 
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/rendering_device.hpp>
@@ -26,6 +27,7 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_action_set_active"), &XRInterfaceOpenVR::is_action_set_active);
 
 	ClassDB::bind_method(D_METHOD("is_dashboard_visible"), &XRInterfaceOpenVR::is_dashboard_visible);
+	ClassDB::bind_method(D_METHOD("get_application_key"), &XRInterfaceOpenVR::get_application_key);
 
 	ClassDB::bind_method(D_METHOD("play_area_available"), &XRInterfaceOpenVR::play_area_available);
 	ClassDB::bind_method(D_METHOD("get_play_area"), &XRInterfaceOpenVR::get_play_area);
@@ -101,6 +103,23 @@ bool XRInterfaceOpenVR::is_dashboard_visible() {
 	}
 
 	return vr::VROverlay()->IsDashboardVisible();
+}
+
+String XRInterfaceOpenVR::get_application_key() {
+	if (ovr == nullptr) {
+		return "";
+	}
+
+	uint32_t pid = OS::get_singleton()->get_process_id();
+
+	char key[vr::k_unMaxApplicationKeyLength];
+	vr::EVRApplicationError error = vr::VRApplications()->GetApplicationKeyByProcessId(
+			pid, key, vr::k_unMaxApplicationKeyLength);
+	if (error != vr::VRApplicationError_None) {
+		return "";
+	}
+
+	return key;
 }
 
 bool XRInterfaceOpenVR::play_area_available() const {

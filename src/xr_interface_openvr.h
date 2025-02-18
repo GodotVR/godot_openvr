@@ -42,6 +42,7 @@ public:
 	bool is_action_set_active(const String p_action_set) const;
 
 	bool is_dashboard_visible();
+	String get_application_key();
 
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
