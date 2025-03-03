@@ -517,6 +517,9 @@ void openvr_data::process() {
 			case vr::VREvent_ChaperoneDataHasChanged: {
 				play_area_is_dirty = true;
 			}; break;
+			case vr::VREvent_TrackedDeviceRoleChanged: {
+				_update_device_roles();
+			}; break;
 			default: {
 				// ignored for now...
 			}; break;
@@ -606,16 +609,8 @@ void openvr_data::process() {
 
 	// Now we're done updating the state of the universe and can forward signals to anyone interested.
 
-	for (int i = 0; i < events_to_signal.size(); i++) {
-		switch (events_to_signal[i].eventType) {
-			// We watch TrackedDeviceRoleChanged internally to handle assignment of left and right hand changing with symmetrical devices like the Vive wands.
-			case vr::VREvent_TrackedDeviceRoleChanged:
-				UtilityFunctions::print(String("Tracked devices changed"));
-				_update_device_roles();
-				break;
-		}
-
-		if (vrevent_handler) {
+	if (vrevent_handler) {
+		for (int i = 0; i < events_to_signal.size(); i++) {
 			_handle_event(vrevent_handler, events_to_signal[i]);
 		}
 	}
