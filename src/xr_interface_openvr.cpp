@@ -123,14 +123,17 @@ Variant XRInterfaceOpenVR::get_device_property(Ref<XRPositionalTracker> p_tracke
 	}
 
 	vr::ETrackedPropertyError error;
-	return ovr->get_tracked_device_property(ovr->get_tracked_device_index(p_tracker), p_property, &error);
+	Variant out = ovr->get_tracked_device_property(ovr->get_tracked_device_index(p_tracker), p_property, &error);
 
 	if (error != vr::TrackedProp_Success) {
 		Array arr;
 		arr.push_back(error);
 		arr.push_back(ovr->hmd->GetPropErrorNameFromEnum(error));
 		UtilityFunctions::print(String("Could not get property, OpenVR error: {0}, {1}").format(arr));
+		return nullptr;
 	}
+
+	return out;
 }
 
 Array XRInterfaceOpenVR::get_render_model_names() {
