@@ -1220,10 +1220,13 @@ void openvr_data::_update_device_roles() {
 		UtilityFunctions::print(String("Updating left hand {0} -> {1}").format(arr));
 
 		if (current_left.is_valid()) {
+			vr::TrackedDeviceIndex_t current_left_idx = get_tracked_device_index(current_left);
+
 			_safe_remove_tracker(current_left); // This bug probably can't happen here, but might as well be paranoid.
 			current_left->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_UNKNOWN);
-			sprintf(device_name, "controller_%i", get_tracked_device_index(current_left));
+			sprintf(device_name, "controller_%i", current_left_idx);
 			current_left->set_tracker_name(device_name);
+			tracked_devices[current_left_idx].source_handle = vr::k_ulInvalidInputValueHandle;
 
 			// It's safe to add this now because the index can't be the same as the new left's index, thus even with the new left
 			// still registered as controller_N the names won't collide.
@@ -1235,6 +1238,7 @@ void openvr_data::_update_device_roles() {
 			new_left->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_LEFT);
 			new_left->set_tracker_name("left_hand");
 			xr_server->add_tracker(new_left);
+			vr::VRInput()->GetInputSourceHandle("/user/hand/left", &tracked_devices[new_left_idx].source_handle);
 		}
 	}
 
@@ -1255,10 +1259,13 @@ void openvr_data::_update_device_roles() {
 		UtilityFunctions::print(String("Updating right hand {0} -> {1}").format(arr));
 
 		if (current_right.is_valid()) {
-			_safe_remove_tracker(current_right);
+			vr::TrackedDeviceIndex_t current_right_idx = get_tracked_device_index(current_right);
+
+			_safe_remove_tracker(current_right); // This bug probably can't happen here, but might as well be paranoid.
 			current_right->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_UNKNOWN);
-			sprintf(device_name, "controller_%i", get_tracked_device_index(current_right));
+			sprintf(device_name, "controller_%i", current_right_idx);
 			current_right->set_tracker_name(device_name);
+			tracked_devices[current_right_idx].source_handle = vr::k_ulInvalidInputValueHandle;
 
 			xr_server->add_tracker(current_right);
 		}
@@ -1268,6 +1275,7 @@ void openvr_data::_update_device_roles() {
 			new_right->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_RIGHT);
 			new_right->set_tracker_name("right_hand");
 			xr_server->add_tracker(new_right);
+			vr::VRInput()->GetInputSourceHandle("/user/hand/right", &tracked_devices[new_right_idx].source_handle);
 		}
 	}
 }
