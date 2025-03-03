@@ -1074,6 +1074,7 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 
 				device->tracker = new_tracker;
 				xr_server->add_tracker(new_tracker);
+				_update_device_roles();
 			}
 		}
 	}
