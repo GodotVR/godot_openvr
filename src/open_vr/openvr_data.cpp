@@ -1543,6 +1543,8 @@ bool openvr_data::_load_texture(texture_material *p_texture) {
 	// reset our references to ensure our material gets freed at the right time
 	p_texture->material = Ref<StandardMaterial3D>();
 
+	render_models->FreeTexture(ovr_texture);
+
 	return true;
 }
 
