@@ -1002,15 +1002,16 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 		return false;
 	}
 
-	JSON json;
-	err = json.parse(manifest_data);
+	Ref<JSON> json;
+	json.instantiate();
+	err = json->parse(manifest_data);
 	if (err != OK) {
 		Array arr;
 		arr.push_back(err);
 		UtilityFunctions::print(String("Could not parse action manifest: {0}").format(arr));
 		return false;
 	}
-	Dictionary manifest = json.get_data();
+	Dictionary manifest = json->get_data();
 	Array manifest_action_sets = manifest.get("action_sets", Array());
 	Array manifest_actions = manifest.get("actions", Array());
 
