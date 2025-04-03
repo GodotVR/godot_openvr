@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2n2wcnoskmmr"]
+
+[ext_resource type="Script" path="res://overlay_main.gd" id="1_jfubd"]
+
+[node name="OverlayMain" type="HBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_jfubd")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+text = "This is a demo of creating anOpenVR Overlay from a SubViewport!
+
+Use Run Current Scene (F6) to try this."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OpenVROverlayContainer" type="OpenVROverlayContainer" parent="."]
+absolute_position = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -1.4)
+layout_mode = 2
+size_flags_horizontal = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="OpenVROverlayContainer"]
+handle_input_locally = false
+size = Vector2i(639, 648)
+render_target_update_mode = 4
+
+[node name="Label" type="Label" parent="OpenVROverlayContainer/SubViewport"]
+offset_right = 634.0
+offset_bottom = 648.0
+size_flags_vertical = 3
+text = "I appear in an overlay too!"
+horizontal_alignment = 1
+vertical_alignment = 1
