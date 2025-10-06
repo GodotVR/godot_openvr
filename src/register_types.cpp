@@ -16,6 +16,7 @@
 
 #include "OpenVRRenderModel.h"
 #include "OpenVRSkeleton.h"
+#include "openvr_event_handler.h"
 #include "openvr_overlay_container.h"
 #include "xr_interface_openvr.h"
 
@@ -34,6 +35,9 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 	ClassDB::register_class<OpenVROverlayContainer>();
 	ClassDB::register_class<OpenVRRenderModel>();
 	ClassDB::register_class<OpenVRSkeleton>();
+
+	// Virtual classes
+	ClassDB::register_class<OpenVREventHandler>(true);
 }
 
 extern "C" {

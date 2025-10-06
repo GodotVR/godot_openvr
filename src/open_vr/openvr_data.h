@@ -23,10 +23,14 @@
 #include <godot_cpp/classes/xr_positional_tracker.hpp>
 #include <godot_cpp/classes/xr_server.hpp>
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/templates/vmap.hpp>
 
 #include <vector>
 
 namespace godot {
+class OpenVREventHandler; // Cyclic reference...
+class OpenVROverlayContainer;
+
 class openvr_data {
 public:
 	// enums
@@ -42,9 +46,51 @@ public:
 		RAW
 	};
 
+	enum OpenVREventDataType { // Derived from the VREvent_Data_t union.
+		None, // Documented to contain no data.
+		Unknown = None, // Undocumented and not yet determined. Please fix these entries if you can!
+
+		// Reserved, // Unused, here for completeness.
+		Controller,
+		Mouse,
+		Scroll,
+		Process,
+		Notification,
+		Overlay,
+		Status,
+		Keyboard,
+		Ipd,
+		Chaperone,
+		PerformanceTest,
+		TouchPadMove,
+		SeatedZeroPoseReset,
+		Screenshot,
+		ScreenshotProgress,
+		ApplicationLaunch,
+		EditingCameraSurface,
+		MessageOverlay,
+		Property,
+		HapticVibration,
+		WebConsole,
+		InputBindingLoad,
+		InputActionManifestLoad,
+		SpatialAnchor,
+		ProgressUpdate,
+		ShowUI,
+		ShowDevTools,
+		HDCPError,
+		AudioVolumeControl,
+		AudioMuteControl,
+	};
+
+	struct vr_event {
+		OpenVREventDataType data_type;
+		StringName signal_name;
+	};
+
 	struct overlay {
 		vr::VROverlayHandle_t handle;
-		ObjectID container_instance_id;
+		OpenVROverlayContainer *container;
 	};
 
 private:
@@ -58,6 +104,9 @@ private:
 
 	OpenVRApplicationType application_type;
 	OpenVRTrackingUniverse tracking_universe;
+
+	OpenVREventHandler *vrevent_handler;
+	static VMap<uint32_t, vr_event> event_signals;
 
 	vr::IVRChaperone *chaperone;
 	bool play_area_is_dirty;
@@ -161,6 +210,8 @@ private:
 	void load_texture(TextureType p_type, vr::TextureID_t p_texture_id, godot::Ref<godot::StandardMaterial3D> p_material);
 	bool _load_texture(texture_material *p_texture);
 
+	void _handle_event(Node *source, vr::VREvent_t event);
+
 public:
 	vr::IVRSystem *hmd; // make this private?
 
@@ -170,6 +221,8 @@ public:
 
 	static openvr_data *retain_singleton();
 	void release();
+
+	static void register_event_signal(uint32_t p_event_id, OpenVREventDataType p_type, String p_signal_name);
 
 	////////////////////////////////////////////////////////////////
 	// interact with openvr
@@ -183,6 +236,9 @@ public:
 
 	void pre_render_update();
 
+	void set_vrevent_handler(OpenVREventHandler *handler);
+	void remove_vrevent_handler(OpenVREventHandler *handler);
+
 	// interact with tracking info
 	const godot::Transform3D get_hmd_transform() const;
 	vr::TrackedDeviceIndex_t get_tracked_device_index(Ref<XRPositionalTracker> p_tracker);
@@ -191,7 +247,7 @@ public:
 	// overlay
 	int get_overlay_count();
 	overlay *get_overlay(int p_overlay_id);
-	int add_overlay(vr::VROverlayHandle_t p_new_value, ObjectID p_container_instance_id);
+	int add_overlay(vr::VROverlayHandle_t p_new_value, OpenVROverlayContainer *container);
 	void remove_overlay(int p_overlay_id);
 
 	////////////////////////////////////////////////////////////////
@@ -241,5 +297,7 @@ public:
 	void transform_from_bone(Transform3D &p_transform, const vr::VRBoneTransform_t *p_bone_transform);
 };
 } // namespace godot
+
+VARIANT_ENUM_CAST(openvr_data::OpenVREventDataType);
 
 #endif /* !OPENVR_DATA_H */
