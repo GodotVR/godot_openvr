@@ -5,12 +5,12 @@ compatibility_minimum = 4.1
 
 [libraries]
 
-linux.64.debug="res://addons/godot-openvr/bin/x11/libgodot_openvr_debug.so"
-linux.64.release="res://addons/godot-openvr/bin/x11/libgodot_openvr_release.so"
-windows.64.debug="res://addons/godot-openvr/bin/win64/libgodot_openvr_debug.dll"
-windows.64.release="res://addons/godot-openvr/bin/win64/libgodot_openvr_release.dll"
+linux.x86_64.debug="res://addons/godot-openvr/bin/x11/libgodot_openvr_debug.so"
+linux.x86_64.release="res://addons/godot-openvr/bin/x11/libgodot_openvr_release.so"
+windows.x86_64.debug="res://addons/godot-openvr/bin/win64/libgodot_openvr_debug.dll"
+windows.x86_64.release="res://addons/godot-openvr/bin/win64/libgodot_openvr_release.dll"
 
 [dependencies]
 
-linux.64=[ "res://addons/godot-openvr/bin/x11/libopenvr_api.so" ]
-windows.64=[ "res://addons/godot-openvr/bin/win64/openvr_api.dll" ]
+linux.x86_64=[ "res://addons/godot-openvr/bin/x11/libopenvr_api.so" ]
+windows.x86_64=[ "res://addons/godot-openvr/bin/win64/openvr_api.dll" ]
