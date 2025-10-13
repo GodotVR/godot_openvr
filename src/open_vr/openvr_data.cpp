@@ -245,14 +245,7 @@ bool openvr_data::initialise() {
 
 		// If we found an action manifest, use it. If not, move on and assume one will be set later.
 		if (manifest_path.length() != 0) {
-			String absolute_path;
-			if (os->has_feature("editor")) {
-				absolute_path = project_settings->globalize_path(manifest_path);
-			} else {
-				absolute_path = exec_path.path_join(manifest_path);
-			}
-
-			if (!set_action_manifest_path(absolute_path)) {
+			if (!set_action_manifest_path(manifest_path)) {
 				success = false;
 			}
 		}
