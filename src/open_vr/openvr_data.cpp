@@ -227,9 +227,10 @@ bool openvr_data::initialise() {
 		// check 3 locations in order
 		// 1) check if we have an action folder alongside our executable (runtime deployed actions)
 		String path = exec_path.path_join("actions/actions.json");
+		UtilityFunctions::print(path);
 		if (directory->file_exists(path)) {
 			manifest_path = path;
-		} else {
+		} else if (os->has_feature("editor")) {
 			// 2) else check if we have an action folder in our project folder (custom user actions in development)
 			path = "res://actions/actions.json";
 			if (directory->file_exists(path)) {
@@ -243,12 +244,20 @@ bool openvr_data::initialise() {
 			}
 		}
 
-		// If we found an action manifest, use it. If not, move on and assume one will be set later.
-		if (manifest_path.length() != 0) {
-			UtilityFunctions::print(manifest_path);
-			if (!set_action_manifest_path(manifest_path)) {
-				success = false;
-			}
+        // If we found an action manifest, use it. If not, move on and assume one will be set later.
+        if (manifest_path.length() != 0) {
+            String absolute_path;
+            if (os->has_feature("editor")) {
+                absolute_path = project_settings->globalize_path(manifest_path);
+            } else {
+                absolute_path = manifest_path;
+            }
+
+            if (!set_action_manifest_path(absolute_path)) {
+                success = false;
+            }
+        } else {
+			UtilityFunctions::print("Action manifest not found, load it later");
 		}
 	}
 
