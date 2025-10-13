@@ -4,6 +4,6 @@
 
 [resource]
 diffuse_mode = 1
-albedo_texture = ExtResource( "1" )
+albedo_texture = ExtResource("1")
 roughness = 0.93
 uv1_scale = Vector3(100, 100, 100)

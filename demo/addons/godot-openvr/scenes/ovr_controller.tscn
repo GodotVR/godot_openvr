@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://858xxqdsip2m"]
 
-[ext_resource type="Script" path="res://addons/godot-openvr/scenes/ovr_controller.gd" id="1"]
+[ext_resource type="Script" uid="uid://cco3v1m5yqtcv" path="res://addons/godot-openvr/scenes/ovr_controller.gd" id="1"]
 [ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_render_model.tscn" id="2"]
 
 [node name="OVRController" type="XRController3D"]
