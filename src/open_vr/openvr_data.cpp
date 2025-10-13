@@ -245,6 +245,7 @@ bool openvr_data::initialise() {
 
 		// If we found an action manifest, use it. If not, move on and assume one will be set later.
 		if (manifest_path.length() != 0) {
+			UtilityFunctions::print(manifest_path);
 			if (!set_action_manifest_path(manifest_path)) {
 				success = false;
 			}
