@@ -229,7 +229,7 @@ bool openvr_data::initialise() {
 		String path = exec_path.path_join("actions/actions.json");
 		if (directory->file_exists(path)) {
 			manifest_path = path;
-		} else {
+		} else if (os->has_feature("editor")) {
 			// 2) else check if we have an action folder in our project folder (custom user actions in development)
 			path = "res://actions/actions.json";
 			if (directory->file_exists(path)) {
@@ -249,12 +249,14 @@ bool openvr_data::initialise() {
 			if (os->has_feature("editor")) {
 				absolute_path = project_settings->globalize_path(manifest_path);
 			} else {
-				absolute_path = exec_path.path_join(manifest_path);
+				absolute_path = manifest_path;
 			}
 
 			if (!set_action_manifest_path(absolute_path)) {
 				success = false;
 			}
+		} else {
+			UtilityFunctions::print("Action manifest not found, load it later");
 		}
 	}
 
