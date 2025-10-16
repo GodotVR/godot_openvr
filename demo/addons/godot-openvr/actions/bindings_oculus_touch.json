@@ -15,11 +15,11 @@
 			],
 			"poses" : [
 				{
-					"output" : "/actions/godot/in/aim_pose",
+					"output" : "/actions/godot/in/aim",
 					"path" : "/user/hand/left/pose/tip"
 				},
 				{
-					"output" : "/actions/godot/in/aim_pose",
+					"output" : "/actions/godot/in/aim",
 					"path" : "/user/hand/right/pose/tip"
 				},
 				{
@@ -27,11 +27,11 @@
 					"path" : "/user/hand/left/pose/openxr_aim"
 				},
 				{
-					"output" : "/actions/godot/in/grip_pose",
+					"output" : "/actions/godot/in/grip",
 					"path" : "/user/hand/left/pose/handgrip"
 				},
 				{
-					"output" : "/actions/godot/in/grip_pose",
+					"output" : "/actions/godot/in/grip",
 					"path" : "/user/hand/right/pose/handgrip"
 				}
 			],
