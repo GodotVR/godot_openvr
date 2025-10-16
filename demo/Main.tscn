@@ -42,7 +42,6 @@ directional_shadow_max_distance = 50.0
 environment = ExtResource("4")
 
 [node name="OVRFirstPerson" parent="." instance=ExtResource("3_0jmmx")]
-default_action_set = null
 viewport = null
 physics_factor = null
 

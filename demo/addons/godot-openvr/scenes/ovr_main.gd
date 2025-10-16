@@ -10,10 +10,6 @@ class_name OVRMain3D
 # 3) in the actions folder within the plugin (i.e. "res://addons/godot-openvr/actions/actions.json")
 # OpenVR can't read actions files within the exported datapack.
 
-# The plugin always registers atleast one action set.
-# If you have renamed this action set you can specify the name here
-@export var default_action_set : String = "/actions/godot"
-
 # If we render to a custom viewport give our node path here.
 @export var viewport : NodePath
 
@@ -28,9 +24,6 @@ func _ready():
 	# Find the interface and initialise
 	xr_interface = XRServer.find_interface("OpenVR")
 	if xr_interface:
-		# Configure our interface before initializing
-		xr_interface.default_action_set = default_action_set
-
 		if xr_interface.initialize():
 			# We can't query our HMDs refresh rate just yet so we hardcode this to 90
 			var refresh_rate = 90

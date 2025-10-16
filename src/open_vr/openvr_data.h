@@ -130,9 +130,6 @@ private:
 
 	std::vector<action_set> action_sets;
 
-	std::vector<vr::VRActiveActionSet_t> active_action_sets;
-	int active_action_set_count = 0;
-
 	enum InputType {
 		IT_BOOL,
 		IT_FLOAT,
@@ -262,14 +259,12 @@ public:
 	const godot::Vector3 *get_play_area() const;
 
 	////////////////////////////////////////////////////////////////
-	// action set
+	// action manifests and sets
 
 	bool set_action_manifest_path(const godot::String p_path);
-	godot::String get_default_action_set() const;
-	void set_default_action_set(const godot::String p_name);
+
 	int register_action_set(const godot::String p_action_set);
-	void set_active_action_set(const godot::String p_action_set);
-	void toggle_action_set_active(const godot::String p_action_set, bool p_is_active);
+	void set_action_set_active(const godot::String p_action_set, bool p_is_active);
 	bool is_action_set_active(const godot::String p_action_set) const;
 
 	void add_input_action(const char *p_action, const char *p_path, const InputType p_type);
