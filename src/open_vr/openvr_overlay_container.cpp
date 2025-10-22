@@ -113,7 +113,7 @@ void OpenVROverlayContainer::_notification(int p_what) {
 		}
 
 		String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
-		String overlay_identifier = appname + String::num(ovr->get_overlay_count() + 1);
+		String overlay_identifier = appname + "." + String::num_int64(get_instance_id());
 
 		const char *overlay_key = overlay_identifier.utf8().get_data();
 		const char *overlay_name = overlay_key;
