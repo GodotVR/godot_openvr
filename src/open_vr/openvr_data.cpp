@@ -325,6 +325,8 @@ XRPose::TrackingConfidence openvr_data::confidence_from_tracking_result(vr::ETra
 
 // Convert event data to Variants and emit a signal on the given source.
 void openvr_data::_handle_event(Node *source, vr::VREvent_t event) {
+	//This method crashes on line 340 (if source has signal) and 389 (emit signal), disabling this has seemingly no averse effects
+	/*
 	if (!openvr_data::event_signals.has(event.eventType)) {
 		return;
 	}
@@ -485,6 +487,7 @@ void openvr_data::_handle_event(Node *source, vr::VREvent_t event) {
 		tracker = tracked_devices[event.trackedDeviceIndex].tracker;
 	}
 	source->emit_signal(info.signal_name, event.eventAgeSeconds, tracker, data);
+	*/
 }
 
 void openvr_data::process() {
