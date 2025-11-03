@@ -1100,6 +1100,12 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 
 	// Check our action based poses
 	for (auto pose : poses) {
+		// The godot actionset is special, we trim off the action set prefix so the poses will be mapped to the standard names Godot expects from an XRInterface.
+		// This still requires the application to include the /actions/godot actionset in its manifest to receive these poses.
+		// It's recommended that this actionset by set to `"usage": "hidden"` so the user can't unmap it in the bindings UI.
+		// Other actionset names won't be affected by this trim and are used unmodified.
+		String pose_name = pose.name.trim_prefix("/actions/godot/in/");
+
 		if (pose.handle != vr::k_ulInvalidActionHandle) {
 			// TODO change vr::TrackingUniverseStanding to correct value
 			vr::InputPoseActionData_t data;
@@ -1107,19 +1113,19 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 			if (err != vr::VRInputError_None) {
 				// No new status
 			} else if (!data.bActive) {
-				p_device->tracker->invalidate_pose(pose.name);
+				p_device->tracker->invalidate_pose(pose_name);
 			} else if (!data.pose.bPoseIsValid) {
-				p_device->tracker->invalidate_pose(pose.name);
+				p_device->tracker->invalidate_pose(pose_name);
 			} else {
 				XRPose::TrackingConfidence confidence = confidence_from_tracking_result(data.pose.eTrackingResult);
 				Transform3D transform = transform_from_matrix(&data.pose.mDeviceToAbsoluteTracking, 1.0);
 				Vector3 linear_velocity(data.pose.vVelocity.v[0], data.pose.vVelocity.v[1], data.pose.vVelocity.v[2]);
 				Vector3 angular_velocity(data.pose.vAngularVelocity.v[0], data.pose.vAngularVelocity.v[1], data.pose.vAngularVelocity.v[2]);
 
-				p_device->tracker->set_pose(pose.name, transform, linear_velocity, angular_velocity, confidence);
+				p_device->tracker->set_pose(pose_name, transform, linear_velocity, angular_velocity, confidence);
 			}
 		} else {
-			p_device->tracker->invalidate_pose(pose.name);
+			p_device->tracker->invalidate_pose(pose_name);
 		}
 	}
 
