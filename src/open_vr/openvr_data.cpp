@@ -35,11 +35,6 @@ openvr_data::openvr_data() {
 		play_area[i].y = 0.0f;
 		play_area[i].z = 0.0f;
 	}
-
-	// TODO: need to initialize the first action set because it's accessed instantly by the editor as a property.
-	int default_action_set = register_action_set(String("/actions/godot"));
-	action_sets[default_action_set].is_active = true;
-	active_action_set_count = 1;
 }
 
 openvr_data::~openvr_data() {
@@ -531,27 +526,27 @@ void openvr_data::process() {
 	// update our play area data ?
 	update_play_area();
 
-	// Update our active action set
-	if (active_action_set_count > 0) {
-		int current_index = 0;
+	// Loop through all the action sets and add the ones requring update to the array
+	std::vector<vr::VRActiveActionSet_t> active_action_sets;
+	for (int i = 0; i < action_sets.size(); i++) {
+		if (action_sets[i].is_active) {
+			vr::VRActiveActionSet_t action_set = { 0 };
+			action_set.ulActionSet = action_sets[i].handle;
 
-		// If the active action set count has changed, resize the array
-		if (active_action_sets.size() != active_action_set_count) {
-			active_action_sets.resize(active_action_set_count);
+			// TODO: Support action sets tied to specific devices.
+			action_set.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
+
+			active_action_sets.push_back(action_set);
 		}
+	}
 
-		// Loop through all the action sets and add the ones requring update to the array
-		for (int i = 0; i < action_sets.size(); i++) {
-			if (action_sets[i].is_active) {
-				vr::VRActiveActionSet_t actionSet = { 0 };
-				actionSet.ulActionSet = action_sets[i].handle;
-
-				active_action_sets[current_index] = actionSet;
-				current_index++;
-			}
+	if (active_action_sets.size() > 0) {
+		vr::EVRInputError vrerr = vr::VRInput()->UpdateActionState(active_action_sets.data(), sizeof(vr::VRActiveActionSet_t), active_action_sets.size());
+		if (vrerr != vr::VRInputError_None) {
+			Array arr;
+			arr.push_back(vrerr);
+			UtilityFunctions::print(String("Failed to update action states, OpenVR error: {0}").format(arr));
 		}
-
-		vr::VRInput()->UpdateActionState(active_action_sets.data(), sizeof(vr::VRActiveActionSet_t), active_action_set_count);
 	}
 
 	// update our poses structure, this tracks our controllers
@@ -819,43 +814,11 @@ int openvr_data::register_action_set(const String p_action_set) {
 	return set_index;
 }
 
-////////////////////////////////////////////////////////////////
-// Set the active action set
-void openvr_data::set_active_action_set(const String p_action_set) {
-	bool found = false;
+void openvr_data::set_action_set_active(const String p_action_set, const bool p_is_active) {
 	for (int i = 0; i < action_sets.size(); i++) {
 		if (action_sets[i].name == p_action_set) {
-			// found it!
-			action_sets[i].is_active = true;
-			found = true;
-		} else {
-			action_sets[i].is_active = false;
-		}
-	}
-
-	// couldn't find it?? Make our default active
-	if (found) {
-		if (action_sets.size() > 0) {
-			action_sets[0].is_active = true;
-		}
-	}
-
-	active_action_set_count = 1;
-}
-
-void openvr_data::toggle_action_set_active(const String p_action_set, const bool p_is_active) {
-	for (int i = 0; i < action_sets.size(); i++) {
-		if (action_sets[i].name == p_action_set) {
-			// found it!
-			if (action_sets[i].is_active != p_is_active) {
-				action_sets[i].is_active = p_is_active;
-				if (p_is_active) {
-					active_action_set_count++;
-				} else {
-					active_action_set_count--;
-				}
-			}
-			return;
+			action_sets[i].is_active = p_is_active;
+			break;
 		}
 	}
 }
@@ -863,7 +826,6 @@ void openvr_data::toggle_action_set_active(const String p_action_set, const bool
 bool openvr_data::is_action_set_active(const String p_action_set) const {
 	for (int i = 0; i < action_sets.size(); i++) {
 		if (action_sets[i].name == p_action_set) {
-			// found it!
 			return action_sets[i].is_active;
 		}
 	}
@@ -1238,7 +1200,7 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 	for (int i = 0; i < manifest_action_sets.size(); i++) {
 		String name = manifest_action_sets[i].get("name");
 		int action_set_index = register_action_set(name);
-		toggle_action_set_active(name, true);
+		set_action_set_active(name, true);
 	}
 
 	for (int i = 0; i < manifest_actions.size(); i++) {
@@ -1261,22 +1223,6 @@ bool openvr_data::set_action_manifest_path(const String p_path) {
 	}
 
 	return true;
-}
-
-////////////////////////////////////////////////////////////////
-// Get the name of our default action set
-String openvr_data::get_default_action_set() const {
-	return action_sets[0].name;
-}
-
-////////////////////////////////////////////////////////////////
-// Set the name of our default action set
-void openvr_data::set_default_action_set(const String p_name) {
-	if (is_initialised()) {
-		UtilityFunctions::print("OpenVR has already been initialised");
-	} else {
-		action_sets[0].name = p_name;
-	}
 }
 
 const godot::Transform3D openvr_data::get_hmd_transform() const {

@@ -20,14 +20,9 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tracking_universe", "tracking_universe"), &XRInterfaceOpenVR::set_tracking_universe);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tracking_universe", PROPERTY_HINT_ENUM, "Seated,Standing,Raw"), "set_tracking_universe", "get_tracking_universe");
 
-	ClassDB::bind_method(D_METHOD("get_default_action_set"), &XRInterfaceOpenVR::get_default_action_set);
-	ClassDB::bind_method(D_METHOD("set_default_action_set"), &XRInterfaceOpenVR::set_default_action_set);
-	ADD_PROPERTY(PropertyInfo(Variant::STRING, "default_action_set"), "set_default_action_set", "get_default_action_set");
-
 	ClassDB::bind_method(D_METHOD("set_action_manifest_path"), &XRInterfaceOpenVR::set_action_manifest_path);
 	ClassDB::bind_method(D_METHOD("register_action_set"), &XRInterfaceOpenVR::register_action_set);
-	ClassDB::bind_method(D_METHOD("set_active_action_set"), &XRInterfaceOpenVR::set_active_action_set);
-	ClassDB::bind_method(D_METHOD("toggle_action_set_active"), &XRInterfaceOpenVR::toggle_action_set_active);
+	ClassDB::bind_method(D_METHOD("set_action_set_active"), &XRInterfaceOpenVR::set_action_set_active);
 	ClassDB::bind_method(D_METHOD("is_action_set_active"), &XRInterfaceOpenVR::is_action_set_active);
 
 	ClassDB::bind_method(D_METHOD("play_area_available"), &XRInterfaceOpenVR::play_area_available);
@@ -72,35 +67,15 @@ bool XRInterfaceOpenVR::set_action_manifest_path(const String p_path) {
 	return ovr->set_action_manifest_path(p_path);
 }
 
-String XRInterfaceOpenVR::get_default_action_set() const {
-	if (ovr == nullptr) {
-		return String();
-	}
-
-	return ovr->get_default_action_set();
-}
-
-void XRInterfaceOpenVR::set_default_action_set(const String p_name) {
-	if (ovr != nullptr) {
-		ovr->set_default_action_set(p_name);
-	}
-}
-
 void XRInterfaceOpenVR::register_action_set(const String p_action_set) {
 	if (ovr != nullptr) {
 		ovr->register_action_set(p_action_set);
 	}
 }
 
-void XRInterfaceOpenVR::set_active_action_set(const String p_action_set) {
+void XRInterfaceOpenVR::set_action_set_active(const String p_action_set, const bool p_is_active) {
 	if (ovr != nullptr) {
-		ovr->set_active_action_set(p_action_set);
-	}
-}
-
-void XRInterfaceOpenVR::toggle_action_set_active(const String p_action_set, const bool p_is_active) {
-	if (ovr != nullptr) {
-		ovr->toggle_action_set_active(p_action_set, p_is_active);
+		ovr->set_action_set_active(p_action_set, p_is_active);
 	}
 }
 
