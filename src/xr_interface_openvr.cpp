@@ -30,6 +30,10 @@ void XRInterfaceOpenVR::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_device_battery_percentage"), &XRInterfaceOpenVR::get_device_battery_percentage);
 	ClassDB::bind_method(D_METHOD("is_device_charging"), &XRInterfaceOpenVR::is_device_charging);
+
+	ClassDB::bind_method(D_METHOD("get_render_model_names"), &XRInterfaceOpenVR::get_render_model_names);
+	ClassDB::bind_method(D_METHOD("load_render_model", "model_name"), &XRInterfaceOpenVR::load_render_model);
+	ClassDB::bind_method(D_METHOD("load_render_model_components", "model_name"), &XRInterfaceOpenVR::load_render_model_components);
 }
 
 int XRInterfaceOpenVR::get_application_type() const {
@@ -148,6 +152,62 @@ bool XRInterfaceOpenVR::is_device_charging(vr::TrackedDeviceIndex_t p_tracked_de
 	}
 
 	return is_charging;
+}
+
+Array XRInterfaceOpenVR::get_render_model_names() {
+	if (ovr == nullptr) {
+		return Array();
+	}
+
+	Array arr;
+
+	if (ovr->is_initialised()) {
+		int model_count = ovr->get_render_model_count();
+		for (int m = 0; m < model_count; m++) {
+			String s = ovr->get_render_model_name(m);
+
+			arr.push_back(s);
+		}
+	}
+
+	return arr;
+}
+
+Ref<ArrayMesh> XRInterfaceOpenVR::load_render_model(String p_model_name) {
+	Ref<ArrayMesh> mesh;
+	if (ovr == nullptr) {
+		return mesh;
+	}
+
+	mesh.instantiate();
+	ovr->load_render_model(p_model_name, mesh.ptr());
+	return mesh;
+}
+
+Array XRInterfaceOpenVR::load_render_model_components(String p_model_name) {
+	if (ovr == nullptr) {
+		return Array();
+	}
+
+	Array components;
+
+	for (int i = 0; i < ovr->get_render_model_component_count(p_model_name); ++i) {
+		String name = ovr->get_render_model_component_name(p_model_name, i);
+		String component_name = ovr->get_render_model_component_model_name(p_model_name, name);
+
+		// Some components have no visual representation (usually poses).
+		if (component_name.is_empty()) { // TODO: Should probably return bool + outparam? Find some prior art.
+			continue;
+		}
+
+		Ref<ArrayMesh> mesh;
+		mesh.instantiate();
+		mesh->set_name(name);
+		ovr->load_render_model(component_name, mesh);
+		components.append(mesh);
+	}
+
+	return components;
 }
 
 ////////////////////////////////////////////////////////////////

@@ -183,7 +183,7 @@ private:
 	// structure to record which model we're loading for our mesh so we can async load this.
 	struct model_mesh {
 		char model_name[1024];
-		godot::ArrayMesh *mesh;
+		Ref<godot::ArrayMesh> mesh;
 	};
 
 	std::vector<model_mesh> load_models;
@@ -280,10 +280,13 @@ public:
 	// interact with render models
 	uint32_t get_render_model_count();
 	godot::String get_render_model_name(uint32_t p_model_index);
-	void load_render_model(const godot::String &p_model_name, godot::ArrayMesh *p_mesh);
+	void load_render_model(const godot::String &p_model_name, Ref<godot::ArrayMesh> p_mesh);
+	uint32_t get_render_model_component_count(const godot::String &p_model_name);
+	godot::String get_render_model_component_name(const godot::String &p_model_name, uint32_t p_component_index);
+	godot::String get_render_model_component_model_name(const godot::String &p_model_name, const godot::String &p_component_name);
 
 	// clear async data
-	void remove_mesh(godot::ArrayMesh *p_mesh);
+	void remove_mesh(Ref<godot::ArrayMesh> p_mesh);
 
 	////////////////////////////////////////////////////////////////
 	// helper functions

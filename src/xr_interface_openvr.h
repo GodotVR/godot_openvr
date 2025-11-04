@@ -4,6 +4,7 @@
 #ifndef XR_INTERFACE_OPENVR_H
 #define XR_INTERFACE_OPENVR_H
 
+#include <godot_cpp/classes/array_mesh.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/xr_interface_extension.hpp>
 #include <godot_cpp/classes/xr_server.hpp>
@@ -66,6 +67,10 @@ public:
 	virtual void _process() override;
 	virtual void _post_draw_viewport(const RID &render_target, const Rect2 &screen_rect) override;
 	virtual void _end_frame() override;
+
+	Array get_render_model_names();
+	Ref<ArrayMesh> load_render_model(String p_model_name);
+	Array load_render_model_components(String p_model_name);
 
 	XRInterfaceOpenVR();
 	~XRInterfaceOpenVR();
