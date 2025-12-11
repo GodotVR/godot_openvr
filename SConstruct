@@ -57,6 +57,9 @@ if env['platform'] == 'windows':
     godot_cpp_library += '.windows'
     platform_dir = 'win' + str(env['bits'])
 
+    # Ensure we use .dll even when cross-compiling
+    env["SHLIBSUFFIX"] = ".dll"
+
     if env['use_llvm']:
         # untested
         env.Tool('clang')
@@ -80,7 +83,8 @@ if env['platform'] == 'windows':
         env.Append(CPPDEFINES=["USE_OPENVR_MINGW_HEADER"])
 
         if env["use_static_cpp"]:
-            env.Append(LINKFLAGS=['-static-libgcc', '-static-libstdc++'])
+            # -static is needed to additionally statically link libwinpthread-1.dll when cross compiling.
+            env.Append(LINKFLAGS=['-static', '-static-libgcc', '-static-libstdc++'])
 
     else:
         env.Tool('default')
