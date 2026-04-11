@@ -6,7 +6,7 @@
 code = "shader_type spatial;
 render_mode unshaded;
 
-uniform sampler2D viewport_texture : hint_albedo;
+uniform sampler2D viewport_texture : source_color;
 
 void fragment() {
 	vec4 color = texture(viewport_texture, UV);
