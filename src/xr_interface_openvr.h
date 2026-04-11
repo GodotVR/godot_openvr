@@ -44,7 +44,7 @@ public:
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
 
-	Variant get_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property);
+	Variant get_tracked_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property);
 
 	// Functions
 	virtual StringName _get_name() const override;

@@ -28,7 +28,7 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("play_area_available"), &XRInterfaceOpenVR::play_area_available);
 	ClassDB::bind_method(D_METHOD("get_play_area"), &XRInterfaceOpenVR::get_play_area);
 
-	ClassDB::bind_method(D_METHOD("get_device_property", "device_index", "property_id"), &XRInterfaceOpenVR::get_device_property);
+	ClassDB::bind_method(D_METHOD("get_tracked_device_property", "device_index", "property_id"), &XRInterfaceOpenVR::get_tracked_device_property);
 
 	ClassDB::bind_method(D_METHOD("get_render_model_names"), &XRInterfaceOpenVR::get_render_model_names);
 	ClassDB::bind_method(D_METHOD("load_render_model", "model_name"), &XRInterfaceOpenVR::load_render_model);
@@ -117,7 +117,7 @@ PackedVector3Array XRInterfaceOpenVR::get_play_area() const {
 	return arr;
 }
 
-Variant XRInterfaceOpenVR::get_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property) {
+Variant XRInterfaceOpenVR::get_tracked_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property) {
 	if (ovr == nullptr) {
 		return nullptr;
 	}
