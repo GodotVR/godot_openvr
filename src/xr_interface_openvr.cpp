@@ -2,7 +2,6 @@
 // Our main XRInterface code for our OpenVR GDExtension module
 
 #include "xr_interface_openvr.h"
-#include "openvr_mingw.hpp"
 
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/rendering_device.hpp>
