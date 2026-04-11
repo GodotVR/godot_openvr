@@ -74,7 +74,6 @@ public:
 	XRInterfaceOpenVR();
 	~XRInterfaceOpenVR();
 };
-
 } // namespace godot
 
 VARIANT_ENUM_CAST(vr::ETrackedDeviceProperty);
