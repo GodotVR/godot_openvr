@@ -113,12 +113,11 @@ void OpenVROverlayContainer::_notification(int p_what) {
 		}
 
 		String appname = ProjectSettings::get_singleton()->get_setting("application/config/name");
-		String overlay_identifier = appname + "." + String::num_int64(get_instance_id());
+		String overlay_key = appname + "." + String::num_int64(get_instance_id());
 
-		const char *overlay_key = overlay_identifier.utf8().get_data();
-		const char *overlay_name = overlay_key;
-
-		vr::EVROverlayError vrerr = vr::VROverlay()->CreateOverlay(overlay_key, overlay_name, &overlay);
+		// Footgun alert: Do not keep the result of `utf8().get_data()` in a variable. The CharString returned by utf8() will fall out of
+		// scope and you'll get a use-after-free that results in garbage being passed to openvr.
+		vr::EVROverlayError vrerr = vr::VROverlay()->CreateOverlay(overlay_key.utf8().get_data(), overlay_key.utf8().get_data(), &overlay);
 		if (vrerr != vr::VROverlayError_None) {
 			Array arr;
 			arr.push_back(String::num(vrerr));
