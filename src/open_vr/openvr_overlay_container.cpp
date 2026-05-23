@@ -21,6 +21,10 @@ void OpenVROverlayContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_overlay_width_in_meters", "width"), &OpenVROverlayContainer::set_overlay_width_in_meters);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "overlay_width_in_meters"), "set_overlay_width_in_meters", "get_overlay_width_in_meters");
 
+	ClassDB::bind_method(D_METHOD("get_overlay_sort_order"), &OpenVROverlayContainer::get_overlay_sort_order);
+	ClassDB::bind_method(D_METHOD("set_overlay_sort_order", "sort_order"), &OpenVROverlayContainer::set_overlay_sort_order);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "overlay_sort_order"), "set_overlay_sort_order", "get_overlay_sort_order");
+
 	ClassDB::bind_method(D_METHOD("get_tracked_device_name"), &OpenVROverlayContainer::get_tracked_device_name);
 	ClassDB::bind_method(D_METHOD("set_tracked_device_name", "tracked_device"), &OpenVROverlayContainer::set_tracked_device_name);
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "tracked_device_name", PROPERTY_HINT_ENUM_SUGGESTION, "hmd,left_hand,right_hand"), "set_tracked_device_name", "get_tracked_device_name");
@@ -95,6 +99,7 @@ OpenVROverlayContainer::OpenVROverlayContainer() {
 	ovr = openvr_data::retain_singleton();
 	overlay_width_in_meters = 1.0;
 	overlay_visible = true;
+	overlay_sort_order = 0;
 	tracked_device_name = "";
 	overlay = 0;
 }
@@ -139,6 +144,7 @@ void OpenVROverlayContainer::_notification(int p_what) {
 
 		set_absolute_position(initial_transform);
 		set_overlay_width_in_meters(overlay_width_in_meters);
+		set_overlay_sort_order(overlay_sort_order);
 		set_overlay_visible(overlay_visible);
 
 		for (const vr::VROverlayFlags flag : initial_flags) {
@@ -291,6 +297,32 @@ void OpenVROverlayContainer::set_overlay_width_in_meters(real_t p_new_size) {
 			arr.push_back(String::num(vrerr));
 			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
 			UtilityFunctions::print(String("Could not set overlay width in meters, OpenVR error: {0}, {1}").format(arr));
+		}
+	}
+}
+
+int32_t OpenVROverlayContainer::get_overlay_sort_order() {
+	if (overlay) {
+		uint32_t value = 0;
+		vr::EVROverlayError vrerr = vr::VROverlay()->GetOverlaySortOrder(overlay, &value);
+		if (vrerr == vr::VROverlayError_None) {
+			overlay_sort_order = (int32_t)value;
+		}
+	}
+	return overlay_sort_order;
+}
+
+void OpenVROverlayContainer::set_overlay_sort_order(int32_t p_sort_order) {
+	overlay_sort_order = p_sort_order;
+
+	if (overlay) {
+		vr::EVROverlayError vrerr = vr::VROverlay()->SetOverlaySortOrder(overlay, (uint32_t)p_sort_order);
+
+		if (vrerr != vr::VROverlayError_None) {
+			Array arr;
+			arr.push_back(String::num(vrerr));
+			arr.push_back(String(vr::VROverlay()->GetOverlayErrorNameFromEnum(vrerr)));
+			UtilityFunctions::print(String("Could not set overlay sort order, OpenVR error: {0}, {1}").format(arr));
 		}
 	}
 }
