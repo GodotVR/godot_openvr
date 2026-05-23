@@ -148,12 +148,24 @@ bool openvr_data::initialise() {
 
 	if (success) {
 		// Loading the SteamVR Runtime
-		if (application_type == OpenVRApplicationType::OVERLAY) {
-			hmd = vr::VR_Init(&error, vr::VRApplication_Overlay);
-			UtilityFunctions::print("Application in overlay mode.");
-		} else {
-			hmd = vr::VR_Init(&error, vr::VRApplication_Scene);
-			UtilityFunctions::print("Application in scene (normal) mode.");
+		switch (application_type) {
+			case OpenVRApplicationType::OTHER:
+				hmd = vr::VR_Init(&error, vr::VRApplication_Other);
+				UtilityFunctions::print("Application in other mode.");
+				break;
+			case OpenVRApplicationType::OVERLAY:
+				hmd = vr::VR_Init(&error, vr::VRApplication_Overlay);
+				UtilityFunctions::print("Application in overlay mode.");
+				break;
+			case OpenVRApplicationType::BACKGROUND:
+				hmd = vr::VR_Init(&error, vr::VRApplication_Background);
+				UtilityFunctions::print("Application in background mode.");
+				break;
+			case OpenVRApplicationType::SCENE:
+			default:
+				hmd = vr::VR_Init(&error, vr::VRApplication_Scene);
+				UtilityFunctions::print("Application in scene (normal) mode.");
+				break;
 		}
 
 		if (error != vr::VRInitError_None) {
@@ -183,7 +195,7 @@ bool openvr_data::initialise() {
 	}
 
 	if (success) {
-		if (!vr::VRCompositor()) {
+		if ((application_type != OpenVRApplicationType::BACKGROUND) && !vr::VRCompositor()) {
 			success = false;
 
 			UtilityFunctions::print("Compositor initialization failed. See log file for details.");
@@ -191,7 +203,7 @@ bool openvr_data::initialise() {
 	}
 
 	if (success) {
-		if (application_type == OpenVRApplicationType::OVERLAY) {
+		if (application_type == OpenVRApplicationType::OVERLAY || application_type == OpenVRApplicationType::BACKGROUND) {
 			if (!vr::VROverlay()) {
 				success = false;
 
@@ -552,7 +564,7 @@ void openvr_data::process() {
 	// update our poses structure, this tracks our controllers
 	vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
 
-	if (get_application_type() == openvr_data::OpenVRApplicationType::OVERLAY) {
+	if (get_application_type() == openvr_data::OpenVRApplicationType::OVERLAY || get_application_type() == openvr_data::OpenVRApplicationType::BACKGROUND) {
 		openvr_data::OpenVRTrackingUniverse tracking_universe = get_tracking_universe();
 		if (tracking_universe == openvr_data::OpenVRTrackingUniverse::SEATED) {
 			vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, 0.0, tracked_device_pose, vr::k_unMaxTrackedDeviceCount);
@@ -746,7 +758,7 @@ Transform3D openvr_data::get_eye_to_head_transform(int p_view, double p_world_sc
 }
 
 void openvr_data::pre_render_update() {
-	if (get_application_type() != openvr_data::OpenVRApplicationType::OVERLAY) {
+	if (get_application_type() != openvr_data::OpenVRApplicationType::OVERLAY && get_application_type() != openvr_data::OpenVRApplicationType::BACKGROUND) {
 		vr::TrackedDevicePose_t tracked_device_pose[vr::k_unMaxTrackedDeviceCount];
 		vr::VRCompositor()->WaitGetPoses(tracked_device_pose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 
