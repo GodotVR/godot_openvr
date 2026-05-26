@@ -1552,7 +1552,7 @@ void openvr_data::matrix_from_transform(vr::HmdMatrix34_t *p_matrix, Transform3D
 
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
-			p_matrix->m[i][j] = p_transform->basis[j][i];
+			p_matrix->m[i][j] = p_transform->basis[i][j];
 		}
 	}
 }
