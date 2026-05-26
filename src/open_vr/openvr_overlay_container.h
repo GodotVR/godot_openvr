@@ -18,6 +18,7 @@ private:
 
 	float overlay_width_in_meters;
 	bool overlay_visible;
+	int32_t overlay_sort_order;
 	HashSet<vr::VROverlayFlags> initial_flags;
 
 	String tracked_device_name;
@@ -46,6 +47,9 @@ public:
 
 	bool is_overlay_visible();
 	void set_overlay_visible(bool p_visible);
+
+	int32_t get_overlay_sort_order();
+	void set_overlay_sort_order(int32_t p_sort_order);
 
 	String get_tracked_device_name();
 	void set_tracked_device_name(String p_tracked_device_name);
