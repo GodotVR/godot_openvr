@@ -37,7 +37,8 @@ public:
 	enum OpenVRApplicationType {
 		OTHER,
 		SCENE,
-		OVERLAY
+		OVERLAY,
+		BACKGROUND
 	};
 
 	enum OpenVRTrackingUniverse {

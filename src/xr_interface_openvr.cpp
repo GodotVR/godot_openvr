@@ -14,7 +14,7 @@ using namespace godot;
 void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_application_type"), &XRInterfaceOpenVR::get_application_type);
 	ClassDB::bind_method(D_METHOD("set_application_type", "application_type"), &XRInterfaceOpenVR::set_application_type);
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "application_type", PROPERTY_HINT_ENUM, "Other,Scene,Overlay"), "set_application_type", "get_application_type");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "application_type", PROPERTY_HINT_ENUM, "Other,Scene,Overlay,Background"), "set_application_type", "get_application_type");
 
 	ClassDB::bind_method(D_METHOD("get_tracking_universe"), &XRInterfaceOpenVR::get_tracking_universe);
 	ClassDB::bind_method(D_METHOD("set_tracking_universe", "tracking_universe"), &XRInterfaceOpenVR::set_tracking_universe);
