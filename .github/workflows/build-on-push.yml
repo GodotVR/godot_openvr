@@ -4,7 +4,8 @@ name: Build on push
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events, but only for the master branch we'll create .zip files
-on: [push, pull_request]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -42,10 +43,12 @@ jobs:
     - name: Run the build for godot-cpp
       run: |
         scons -C godot-cpp platform=${{ matrix.platform }} -j2 target=template_release generate_bindings=yes bits=64
+        scons -C godot-cpp platform=${{ matrix.platform }} -j2 target=template_debug generate_bindings=yes bits=64 debug_symbols=yes
 
     - name: Run the build for godot_openvr
       run: |
         scons platform=${{ matrix.platform }} -j2 target=release bits=64
+        scons platform=${{ matrix.platform }} -j2 target=debug bits=64 debug_symbols=yes
 
     # There's no option to preserve the path structure on the upload action, so we just
     # treat each asset as its respective bin/ subfolder and put it in the right place in
@@ -70,7 +73,6 @@ jobs:
     name: Assemble release bundle
     runs-on: ubuntu-22.04
     needs: build
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -97,12 +99,8 @@ jobs:
       - name: Zip asset
         run: |
           zip -qq -r godot-openvr.zip .
-      - name: Create and upload asset
-        uses: ncipollo/release-action@v1
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          allowUpdates: true
-          artifacts: "godot-openvr.zip"
-          omitNameDuringUpdate: true
-          omitBodyDuringUpdate: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-        if: startsWith(github.ref, 'refs/tags')
+          name: "godot-openvr.zip"
+          path: "godot-openvr.zip"

@@ -12,5 +12,5 @@ windows.x86_64.release="res://addons/godot-openvr/bin/win64/libgodot_openvr_rele
 
 [dependencies]
 
-linux.x86_64=[ "res://addons/godot-openvr/bin/x11/libopenvr_api.so" ]
-windows.x86_64=[ "res://addons/godot-openvr/bin/win64/openvr_api.dll" ]
+linux.x86_64={ "res://addons/godot-openvr/bin/x11/libopenvr_api.so" : "" }
+windows.x86_64={ "res://addons/godot-openvr/bin/win64/openvr_api.dll" : "" }
