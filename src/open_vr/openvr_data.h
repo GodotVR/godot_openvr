@@ -176,6 +176,9 @@ private:
 	void attach_device(uint32_t p_device_index);
 	void detach_device(uint32_t p_device_index);
 	void process_device_actions(tracked_device *p_device, uint64_t p_msec);
+
+	void _safe_remove_tracker(Ref<XRPositionalTracker> tracker);
+	void _update_device_roles();
 	XRPose::TrackingConfidence confidence_from_tracking_result(vr::ETrackingResult p_tracking_result);
 
 	////////////////////////////////////////////////////////////////

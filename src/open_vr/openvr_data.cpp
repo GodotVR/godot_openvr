@@ -529,6 +529,9 @@ void openvr_data::process() {
 			case vr::VREvent_ChaperoneDataHasChanged: {
 				play_area_is_dirty = true;
 			}; break;
+			case vr::VREvent_TrackedDeviceRoleChanged: {
+				_update_device_roles();
+			}; break;
 			default: {
 				// ignored for now...
 			}; break;
@@ -1023,7 +1026,10 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 				arr.push_back(String(device_name));
 				UtilityFunctions::print(String("Found controller {0} ({1})").format(arr));
 
-				// If this is a controller than get our controller role
+				// Most controllers have a role hint which we can use to assign godot's
+				// reserved named right now. Some, like Vive wands, are assigned a role
+				// dynamically and so will get generic names until a
+				// TrackedDeviceRoleChanged event arrives some time in the future.
 				int32_t controllerRole = get_controller_role(p_device_index);
 				if (controllerRole == vr::TrackedControllerRole_RightHand) {
 					hand = 2;
@@ -1075,8 +1081,28 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 
 				device->tracker = new_tracker;
 				xr_server->add_tracker(new_tracker);
+				_update_device_roles();
 			}
 		}
+	}
+}
+
+void openvr_data::_safe_remove_tracker(Ref<XRPositionalTracker> tracker) {
+	// XXX: Work around a design issue with XRServer: removing a tracker happens by
+	// name, instead of removing the exact object you pass. This means that if a
+	// tracker has been replaced and then goes inactive, we will remove the wrong one.
+	XRServer *xr_server = XRServer::get_singleton();
+	if (xr_server == nullptr) {
+		return;
+	}
+
+	Ref<XRPositionalTracker> existing_tracker = xr_server->get_tracker(tracker->get_tracker_name());
+	if (existing_tracker == tracker) {
+		xr_server->remove_tracker(tracker);
+	} else {
+		Array arr;
+		arr.push_back(tracker->get_tracker_name());
+		UtilityFunctions::push_warning(String("Not removing tracker {0}, already replaced").format(arr));
 	}
 }
 
@@ -1085,13 +1111,8 @@ void openvr_data::attach_device(uint32_t p_device_index) {
 void openvr_data::detach_device(uint32_t p_device_index) {
 	tracked_device *device = &tracked_devices[p_device_index];
 
-	if (p_device_index == vr::k_unTrackedDeviceIndexInvalid) {
-		// really?!
-	} else if (device->tracker.is_valid()) {
-		XRServer *xr_server = XRServer::get_singleton();
-		if (xr_server != nullptr) {
-			xr_server->remove_tracker(device->tracker);
-		}
+	if (device->tracker.is_valid()) {
+		_safe_remove_tracker(device->tracker);
 		device->tracker.unref();
 
 		// unset left/right hand devices
@@ -1173,6 +1194,95 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 				} break;
 				default: break;
 			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////
+// Called when TrackedDeviceRoleChanged is received
+//
+// This is called any time _any_ device's role changes. This means that it needs to only
+// make changes to any given device in the XRServer if that device actually changed, to
+// avoid unnecessary churn.
+void openvr_data::_update_device_roles() {
+	XRServer *xr_server = XRServer::get_singleton();
+
+	// Grab any hands we already have, as they may need to be removed.
+	Ref<XRPositionalTracker> current_left = xr_server->get_tracker("left_hand");
+	Ref<XRPositionalTracker> new_left;
+
+	vr::TrackedDeviceIndex_t new_left_idx = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+
+	if (new_left_idx != vr::k_unTrackedDeviceIndexInvalid) {
+		new_left = tracked_devices[new_left_idx].tracker;
+	}
+
+	// If the current trackers are no longer hands, remove them, rename them to be generic, and add them to the server again.
+	// TODO: Break this name generation into a function. `get_device_name` actually generates the description.
+	char device_name[256];
+	if (current_left != new_left) {
+		Array arr;
+		arr.push_back((current_left.is_valid()) ? get_tracked_device_index(current_left) : -1);
+		arr.push_back((new_left.is_valid()) ? new_left_idx : vr::k_unTrackedDeviceIndexInvalid);
+		UtilityFunctions::print(String("Updating left hand {0} -> {1}").format(arr));
+
+		if (current_left.is_valid()) {
+			vr::TrackedDeviceIndex_t current_left_idx = get_tracked_device_index(current_left);
+
+			_safe_remove_tracker(current_left); // This bug probably can't happen here, but might as well be paranoid.
+			current_left->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_UNKNOWN);
+			sprintf(device_name, "controller_%i", current_left_idx);
+			current_left->set_tracker_name(device_name);
+			tracked_devices[current_left_idx].source_handle = vr::k_ulInvalidInputValueHandle;
+
+			// It's safe to add this now because the index can't be the same as the new left's index, thus even with the new left
+			// still registered as controller_N the names won't collide.
+			xr_server->add_tracker(current_left);
+		}
+
+		if (new_left.is_valid()) {
+			_safe_remove_tracker(new_left);
+			new_left->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_LEFT);
+			new_left->set_tracker_name("left_hand");
+			xr_server->add_tracker(new_left);
+			vr::VRInput()->GetInputSourceHandle("/user/hand/left", &tracked_devices[new_left_idx].source_handle);
+		}
+	}
+
+	// Make sure to delay getting the current right hand until after we've set the new left, because if the hands swapped directly
+	// and we already had a reference to the right hand above, it would accidentally now reference the left hand and we would remove it.
+	Ref<XRPositionalTracker> current_right = xr_server->get_tracker("right_hand");
+	Ref<XRPositionalTracker> new_right;
+	vr::TrackedDeviceIndex_t new_right_idx = vr::VRSystem()->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+
+	if (new_right_idx != vr::k_unTrackedDeviceIndexInvalid) {
+		new_right = tracked_devices[new_right_idx].tracker;
+	}
+
+	if (current_right != new_right) {
+		Array arr;
+		arr.push_back((current_right.is_valid()) ? get_tracked_device_index(current_right) : -1);
+		arr.push_back((new_right.is_valid()) ? new_right_idx : vr::k_unTrackedDeviceIndexInvalid);
+		UtilityFunctions::print(String("Updating right hand {0} -> {1}").format(arr));
+
+		if (current_right.is_valid()) {
+			vr::TrackedDeviceIndex_t current_right_idx = get_tracked_device_index(current_right);
+
+			_safe_remove_tracker(current_right); // This bug probably can't happen here, but might as well be paranoid.
+			current_right->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_UNKNOWN);
+			sprintf(device_name, "controller_%i", current_right_idx);
+			current_right->set_tracker_name(device_name);
+			tracked_devices[current_right_idx].source_handle = vr::k_ulInvalidInputValueHandle;
+
+			xr_server->add_tracker(current_right);
+		}
+
+		if (new_right.is_valid()) {
+			_safe_remove_tracker(new_right);
+			new_right->set_tracker_hand(XRPositionalTracker::TRACKER_HAND_RIGHT);
+			new_right->set_tracker_name("right_hand");
+			xr_server->add_tracker(new_right);
+			vr::VRInput()->GetInputSourceHandle("/user/hand/right", &tracked_devices[new_right_idx].source_handle);
 		}
 	}
 }
