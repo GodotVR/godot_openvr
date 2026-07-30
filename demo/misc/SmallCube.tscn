@@ -1,37 +1,28 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=3 format=3 uid="uid://dlvguu0vxhdb3"]
 
-[ext_resource path="res://misc/SmallCube.gd" type="Script" id=3]
-[ext_resource path="res://assets/wahooney.itch.io/white_grid.png" type="Texture" id=4]
+[ext_resource type="Script" uid="uid://bx17kcsnhssxy" path="res://misc/SmallCube.gd" id="3"]
 
-[sub_resource type="BoxShape" id=1]
-margin = 0.005
-extents = Vector3( 0.05, 0.05, 0.05 )
-
-[sub_resource type="CubeMesh" id=2]
-size = Vector3( 0.1, 0.1, 0.1 )
-
-[sub_resource type="SpatialMaterial" id=3]
-resource_local_to_scene = true
-albedo_texture = ExtResource( 4 )
-uv1_scale = Vector3( 4, 4, 4 )
-uv1_triplanar = true
+[sub_resource type="BoxMesh" id="2"]
+size = Vector3(0.1, 0.1, 0.1)
 
 [node name="SmallCube" type="RigidBody3D"]
 collision_layer = 4
-script = ExtResource( 3 )
-reset_transform_on_pickup = false
-highlight_mesh_instance = NodePath("MeshInstance")
-picked_up_layer = 1024
+script = ExtResource("3")
 
-[node name="CollisionShape" parent="." index="0"]
-shape = SubResource( 1 )
+[node name="MeshInstance" type="MeshInstance3D" parent="."]
+mesh = SubResource("2")
 
-[node name="MeshInstance" type="MeshInstance" parent="." index="1"]
-mesh = SubResource( 2 )
-material/0 = SubResource( 3 )
-
-[node name="Action" type="OpenVRAction" parent="." index="2"]
+[node name="Action" type="OpenVRAction" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
 pressed_action = "/actions/godot/in/custom_boolean"
 analog_action = "/actions/godot/in/custom_analog"
 on_hand = 1
-[connection signal="pressed" from="Action" to="." method="_on_Action_pressed"]
+script = null

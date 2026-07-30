@@ -2,8 +2,8 @@
 
 [ext_resource type="PackedScene" path="res://addons/godot-openvr/scenes/ovr_shader_cache.tscn" id="1"]
 [ext_resource type="PackedScene" uid="uid://858xxqdsip2m" path="res://addons/godot-openvr/scenes/ovr_controller.tscn" id="2"]
-[ext_resource type="Script" path="res://addons/godot-openvr/scenes/ovr_main.gd" id="3"]
-[ext_resource type="Script" path="res://addons/godot-openvr/scenes/ovr_hud_anchor.gd" id="3_ow4cb"]
+[ext_resource type="Script" uid="uid://c5f155xyq8l7m" path="res://addons/godot-openvr/scenes/ovr_main.gd" id="3"]
+[ext_resource type="Script" uid="uid://c33q6mgtm0qt3" path="res://addons/godot-openvr/scenes/ovr_hud_anchor.gd" id="3_ow4cb"]
 
 [node name="OVRFirstPerson" type="XROrigin3D"]
 script = ExtResource("3")

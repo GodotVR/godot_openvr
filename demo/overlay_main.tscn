@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c2n2wcnoskmmr"]
 
-[ext_resource type="Script" path="res://overlay_main.gd" id="1_jfubd"]
+[ext_resource type="Script" uid="uid://d4gudlo5gsg4g" path="res://overlay_main.gd" id="1_jfubd"]
 
 [node name="OverlayMain" type="HBoxContainer"]
 anchors_preset = 15
@@ -19,10 +19,20 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="OpenVROverlayContainer" type="OpenVROverlayContainer" parent="."]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
 absolute_position = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -1.4)
 layout_mode = 2
 size_flags_horizontal = 3
 stretch = true
+script = null
 
 [node name="SubViewport" type="SubViewport" parent="OpenVROverlayContainer"]
 handle_input_locally = false

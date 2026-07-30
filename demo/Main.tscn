@@ -1,13 +1,13 @@
 [gd_scene load_steps=15 format=3 uid="uid://ylx5afjemhln"]
 
-[ext_resource type="Script" path="res://Main.gd" id="1"]
+[ext_resource type="Script" uid="uid://dmr8l2aqcs5wd" path="res://Main.gd" id="1"]
 [ext_resource type="Material" uid="uid://cok6b068i8j3m" path="res://assets/wahooney.itch.io/green_grid.tres" id="2"]
 [ext_resource type="PackedScene" uid="uid://c1lwn8ckewvro" path="res://addons/godot-openvr/scenes/ovr_first_person.tscn" id="3_0jmmx"]
 [ext_resource type="Environment" uid="uid://ba8m5tewuolm" path="res://environment.tres" id="4"]
-[ext_resource type="Script" path="res://player/HUD_Anchor.gd" id="4_n1047"]
+[ext_resource type="Script" uid="uid://cuko4lhs6sfdc" path="res://player/HUD_Anchor.gd" id="4_n1047"]
 [ext_resource type="PackedScene" path="res://misc/Table.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://misc/Box.tscn" id="8"]
-[ext_resource type="Script" path="res://player/right_controller.gd" id="8_oqay4"]
+[ext_resource type="Script" uid="uid://brq5oxy5rwgx8" path="res://player/right_controller.gd" id="8_oqay4"]
 [ext_resource type="PackedScene" uid="uid://7q2uyb55p6e5" path="res://misc/Cup.tscn" id="11"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_jxy6n"]
