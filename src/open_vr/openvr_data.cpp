@@ -779,6 +779,286 @@ void openvr_data::remove_vrevent_handler(OpenVREventHandler *handler) {
 	}
 }
 
+// Return the value of the given property, converted from whatever underlying type it is into the Variant equivalent.
+Variant openvr_data::get_tracked_device_property(vr::TrackedDeviceIndex_t p_device_index, vr::ETrackedDeviceProperty p_property, vr::TrackedPropertyError *error) {
+	switch (p_property) {
+		case vr::Prop_TrackingSystemName_String:
+		case vr::Prop_ModelNumber_String:
+		case vr::Prop_SerialNumber_String:
+		case vr::Prop_RenderModelName_String:
+		case vr::Prop_ManufacturerName_String:
+		case vr::Prop_TrackingFirmwareVersion_String:
+		case vr::Prop_HardwareRevision_String:
+		case vr::Prop_AllWirelessDongleDescriptions_String:
+		case vr::Prop_ConnectedWirelessDongle_String:
+		case vr::Prop_Firmware_ManualUpdateURL_String:
+		case vr::Prop_Firmware_ProgrammingTarget_String:
+		case vr::Prop_DriverVersion_String:
+		case vr::Prop_ResourceRoot_String:
+		case vr::Prop_RegisteredDeviceType_String:
+		case vr::Prop_InputProfilePath_String:
+		case vr::Prop_AdditionalDeviceSettingsPath_String:
+		case vr::Prop_AdditionalSystemReportData_String:
+		case vr::Prop_CompositeFirmwareVersion_String:
+		case vr::Prop_ManufacturerSerialNumber_String:
+		case vr::Prop_ComputedSerialNumber_String:
+		case vr::Prop_ActualTrackingSystemName_String:
+		case vr::Prop_DisplayMCImageLeft_String:
+		case vr::Prop_DisplayMCImageRight_String:
+		case vr::Prop_DisplayGCImage_String:
+		case vr::Prop_CameraFirmwareDescription_String:
+		case vr::Prop_DriverProvidedChaperonePath_String:
+		case vr::Prop_NamedIconPathControllerLeftDeviceOff_String:
+		case vr::Prop_NamedIconPathControllerRightDeviceOff_String:
+		case vr::Prop_NamedIconPathTrackingReferenceDeviceOff_String:
+		case vr::Prop_ExpectedControllerType_String:
+		case vr::Prop_HmdColumnCorrectionSettingPrefix_String:
+		case vr::Prop_PeerButtonInfo_String:
+		case vr::Prop_DriverProvidedChaperoneJson_String:
+		case vr::Prop_Audio_DefaultPlaybackDeviceId_String:
+		case vr::Prop_Audio_DefaultRecordingDeviceId_String:
+		case vr::Prop_AttachedDeviceId_String:
+		case vr::Prop_ModeLabel_String:
+		case vr::Prop_IconPathName_String:
+		case vr::Prop_NamedIconPathDeviceOff_String:
+		case vr::Prop_NamedIconPathDeviceSearching_String:
+		case vr::Prop_NamedIconPathDeviceSearchingAlert_String:
+		case vr::Prop_NamedIconPathDeviceReady_String:
+		case vr::Prop_NamedIconPathDeviceReadyAlert_String:
+		case vr::Prop_NamedIconPathDeviceNotReady_String:
+		case vr::Prop_NamedIconPathDeviceStandby_String:
+		case vr::Prop_NamedIconPathDeviceAlertLow_String:
+		case vr::Prop_NamedIconPathDeviceStandbyAlert_String:
+		case vr::Prop_UserConfigPath_String:
+		case vr::Prop_InstallPath_String:
+		case vr::Prop_ControllerType_String: {
+			char buffer[vr::k_unMaxPropertyStringSize];
+			uint32_t length = vr::VRSystem()->GetStringTrackedDeviceProperty(p_device_index, p_property, buffer, sizeof(buffer), error);
+			if (*error != vr::ETrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return buffer;
+		}
+		case vr::Prop_WillDriftInYaw_Bool:
+		case vr::Prop_DeviceIsWireless_Bool:
+		case vr::Prop_DeviceIsCharging_Bool:
+		case vr::Prop_Firmware_UpdateAvailable_Bool:
+		case vr::Prop_Firmware_ManualUpdate_Bool:
+		case vr::Prop_BlockServerShutdown_Bool:
+		case vr::Prop_CanUnifyCoordinateSystemWithHmd_Bool:
+		case vr::Prop_ContainsProximitySensor_Bool:
+		case vr::Prop_DeviceProvidesBatteryStatus_Bool:
+		case vr::Prop_DeviceCanPowerOff_Bool:
+		case vr::Prop_HasCamera_Bool:
+		case vr::Prop_Firmware_ForceUpdateRequired_Bool:
+		case vr::Prop_ViveSystemButtonFixRequired_Bool:
+		case vr::Prop_NeverTracked_Bool:
+		case vr::Prop_Identifiable_Bool:
+		case vr::Prop_Firmware_RemindUpdate_Bool:
+		case vr::Prop_IgnoreMotionForStandby_Bool:
+		case vr::Prop_ReportsTimeSinceVSync_Bool:
+		case vr::Prop_IsOnDesktop_Bool:
+		case vr::Prop_DisplaySuppressed_Bool:
+		case vr::Prop_DisplayAllowNightMode_Bool:
+		case vr::Prop_DriverDirectModeSendsVsyncEvents_Bool:
+		case vr::Prop_DisplayDebugMode_Bool:
+		case vr::Prop_DoNotApplyPrediction_Bool:
+		case vr::Prop_DriverIsDrawingControllers_Bool:
+		case vr::Prop_DriverRequestsApplicationPause_Bool:
+		case vr::Prop_DriverRequestsReducedRendering_Bool:
+		case vr::Prop_ConfigurationIncludesLighthouse20Features_Bool:
+		case vr::Prop_DriverProvidedChaperoneVisibility_Bool:
+		case vr::Prop_CameraSupportsCompatibilityModes_Bool:
+		case vr::Prop_SupportsRoomViewDepthProjection_Bool:
+		case vr::Prop_DisplaySupportsMultipleFramerates_Bool:
+		case vr::Prop_DisplaySupportsRuntimeFramerateChange_Bool:
+		case vr::Prop_DisplaySupportsAnalogGain_Bool:
+		case vr::Prop_Hmd_SupportsHDR10_Bool:
+		case vr::Prop_Hmd_EnableParallelRenderCameras_Bool:
+		case vr::Prop_ForceSystemLayerUseAppPoses_Bool:
+		case vr::Prop_Hmd_SupportsHDCP14LegacyCompat_Bool:
+		case vr::Prop_Hmd_SupportsMicMonitoring_Bool:
+		case vr::Prop_Hmd_SupportsDisplayPortTrainingMode_Bool:
+		case vr::Prop_Hmd_SupportsRoomViewDirect_Bool:
+		case vr::Prop_Hmd_SupportsAppThrottling_Bool:
+		case vr::Prop_Hmd_SupportsGpuBusMonitoring_Bool:
+		case vr::Prop_DriverDisplaysIPDChanges_Bool:
+		case vr::Prop_Hmd_AllowSupersampleFiltering_Bool:
+		case vr::Prop_Audio_SupportsDualSpeakerAndJackOutput_Bool:
+		case vr::Prop_Audio_DriverManagesPlaybackVolumeControl_Bool:
+		case vr::Prop_Audio_DriverPlaybackMute_Bool:
+		case vr::Prop_Audio_DriverManagesRecordingVolumeControl_Bool:
+		case vr::Prop_Audio_DriverRecordingMute_Bool:
+		case vr::Prop_CanWirelessIdentify_Bool:
+		case vr::Prop_HasDisplayComponent_Bool:
+		case vr::Prop_HasControllerComponent_Bool:
+		case vr::Prop_HasCameraComponent_Bool:
+		case vr::Prop_HasDriverDirectModeComponent_Bool:
+		case vr::Prop_HasVirtualDisplayComponent_Bool:
+		case vr::Prop_HasSpatialAnchorsSupport_Bool:
+		case vr::Prop_SupportsXrTextureSets_Bool: {
+			bool value = vr::VRSystem()->GetBoolTrackedDeviceProperty(p_device_index, p_property, error);
+			if (*error != vr::TrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return value;
+		}
+		case vr::Prop_DeviceBatteryPercentage_Float:
+		case vr::Prop_DevicePowerUsage_Float:
+		case vr::Prop_SecondsFromVsyncToPhotons_Float:
+		case vr::Prop_DisplayFrequency_Float:
+		case vr::Prop_UserIpdMeters_Float:
+		case vr::Prop_DisplayMCOffset_Float:
+		case vr::Prop_DisplayMCScale_Float:
+		case vr::Prop_DisplayGCBlackClamp_Float:
+		case vr::Prop_DisplayGCOffset_Float:
+		case vr::Prop_DisplayGCScale_Float:
+		case vr::Prop_DisplayGCPrescale_Float:
+		case vr::Prop_LensCenterLeftU_Float:
+		case vr::Prop_LensCenterLeftV_Float:
+		case vr::Prop_LensCenterRightU_Float:
+		case vr::Prop_LensCenterRightV_Float:
+		case vr::Prop_UserHeadToEyeDepthMeters_Float:
+		case vr::Prop_ScreenshotHorizontalFieldOfViewDegrees_Float:
+		case vr::Prop_ScreenshotVerticalFieldOfViewDegrees_Float:
+		case vr::Prop_SecondsFromPhotonsToVblank_Float:
+		case vr::Prop_MinimumIpdStepMeters_Float:
+		case vr::Prop_DisplayMinAnalogGain_Float:
+		case vr::Prop_DisplayMaxAnalogGain_Float:
+		case vr::Prop_CameraExposureTime_Float:
+		case vr::Prop_CameraGlobalGain_Float:
+		case vr::Prop_DashboardScale_Float:
+		case vr::Prop_IpdUIRangeMinMeters_Float:
+		case vr::Prop_IpdUIRangeMaxMeters_Float:
+		case vr::Prop_Audio_DefaultPlaybackDeviceVolume_Float:
+		case vr::Prop_Audio_DriverPlaybackVolume_Float:
+		case vr::Prop_Audio_DriverRecordingVolume_Float:
+		case vr::Prop_FieldOfViewLeftDegrees_Float:
+		case vr::Prop_FieldOfViewRightDegrees_Float:
+		case vr::Prop_FieldOfViewTopDegrees_Float:
+		case vr::Prop_FieldOfViewBottomDegrees_Float:
+		case vr::Prop_TrackingRangeMinimumMeters_Float:
+		case vr::Prop_TrackingRangeMaximumMeters_Float: {
+			float value = vr::VRSystem()->GetFloatTrackedDeviceProperty(p_device_index, p_property, error);
+			if (*error != vr::TrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return value;
+		}
+		case vr::Prop_StatusDisplayTransform_Matrix34:
+		case vr::Prop_CameraToHeadTransform_Matrix34:
+		case vr::Prop_ImuToHeadTransform_Matrix34: {
+			vr::HmdMatrix34_t matrix = vr::VRSystem()->GetMatrix34TrackedDeviceProperty(p_device_index, p_property, error);
+			if (*error != vr::TrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return transform_from_matrix(&matrix, 1.0); // TODO: world scale is always 1.0?
+		}
+		case vr::Prop_HardwareRevision_Uint64:
+		case vr::Prop_FirmwareVersion_Uint64:
+		case vr::Prop_FPGAVersion_Uint64:
+		case vr::Prop_VRCVersion_Uint64:
+		case vr::Prop_RadioVersion_Uint64:
+		case vr::Prop_DongleVersion_Uint64:
+		case vr::Prop_ParentDriver_Uint64:
+		case vr::Prop_BootloaderVersion_Uint64:
+		case vr::Prop_PeripheralApplicationVersion_Uint64:
+		case vr::Prop_CurrentUniverseId_Uint64:
+		case vr::Prop_PreviousUniverseId_Uint64:
+		case vr::Prop_DisplayFirmwareVersion_Uint64:
+		case vr::Prop_CameraFirmwareVersion_Uint64:
+		case vr::Prop_DisplayFPGAVersion_Uint64:
+		case vr::Prop_DisplayBootloaderVersion_Uint64:
+		case vr::Prop_DisplayHardwareVersion_Uint64:
+		case vr::Prop_AudioFirmwareVersion_Uint64:
+		case vr::Prop_GraphicsAdapterLuid_Uint64:
+		case vr::Prop_AudioBridgeFirmwareVersion_Uint64:
+		case vr::Prop_ImageBridgeFirmwareVersion_Uint64:
+		case vr::Prop_AdditionalRadioFeatures_Uint64:
+		case vr::Prop_SupportedButtons_Uint64:
+		case vr::Prop_OverrideContainer_Uint64: {
+			uint64_t value = vr::VRSystem()->GetUint64TrackedDeviceProperty(p_device_index, p_property, error);
+			if (*error != vr::TrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return value;
+		}
+		case vr::Prop_DeviceClass_Int32:
+		case vr::Prop_NumCameras_Int32:
+		case vr::Prop_CameraFrameLayout_Int32:
+		case vr::Prop_CameraStreamFormat_Int32:
+		case vr::Prop_EstimatedDeviceFirstUseTime_Int32:
+		case vr::Prop_DisplayMCType_Int32:
+		case vr::Prop_EdidVendorID_Int32:
+		case vr::Prop_EdidProductID_Int32:
+		case vr::Prop_DisplayGCType_Int32:
+		case vr::Prop_CameraCompatibilityMode_Int32:
+		case vr::Prop_DisplayMCImageWidth_Int32:
+		case vr::Prop_DisplayMCImageHeight_Int32:
+		case vr::Prop_DisplayMCImageNumChannels_Int32:
+		case vr::Prop_ExpectedTrackingReferenceCount_Int32:
+		case vr::Prop_ExpectedControllerCount_Int32:
+		case vr::Prop_DistortionMeshResolution_Int32:
+		case vr::Prop_HmdTrackingStyle_Int32:
+		case vr::Prop_DSCVersion_Int32:
+		case vr::Prop_DSCSliceCount_Int32:
+		case vr::Prop_DSCBPPx16_Int32:
+		case vr::Prop_Hmd_MaxDistortedTextureWidth_Int32:
+		case vr::Prop_Hmd_MaxDistortedTextureHeight_Int32:
+		case vr::Prop_DriverRequestedMuraCorrectionMode_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_InnerLeft_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_InnerRight_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_InnerTop_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_InnerBottom_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_OuterLeft_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_OuterRight_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_OuterTop_Int32:
+		case vr::Prop_DriverRequestedMuraFeather_OuterBottom_Int32:
+		case vr::Prop_Axis0Type_Int32:
+		case vr::Prop_Axis1Type_Int32:
+		case vr::Prop_Axis2Type_Int32:
+		case vr::Prop_Axis3Type_Int32:
+		case vr::Prop_Axis4Type_Int32:
+		case vr::Prop_ControllerRoleHint_Int32:
+		case vr::Prop_Nonce_Int32:
+		case vr::Prop_ControllerHandSelectionPriority_Int32: {
+			int32_t value = vr::VRSystem()->GetInt32TrackedDeviceProperty(p_device_index, p_property, error);
+			if (*error != vr::TrackedPropertyError::TrackedProp_Success) {
+				return nullptr;
+			}
+			return value;
+		}
+		case vr::Prop_DisplayMCImageData_Binary:
+			break; // TODO
+		case vr::Prop_CameraToHeadTransforms_Matrix34_Array:
+		case vr::Prop_CameraWhiteBalance_Vector4_Array:
+		case vr::Prop_CameraDistortionFunction_Int32_Array:
+		case vr::Prop_CameraDistortionCoefficients_Float_Array:
+		case vr::Prop_DisplayAvailableFrameRates_Float_Array:
+			break; // TODO
+		case vr::Prop_ImuFactoryGyroBias_Vector3:
+		case vr::Prop_ImuFactoryGyroScale_Vector3:
+		case vr::Prop_ImuFactoryAccelerometerBias_Vector3:
+		case vr::Prop_ImuFactoryAccelerometerScale_Vector3:
+		case vr::Prop_DisplayColorMultLeft_Vector3:
+		case vr::Prop_DisplayColorMultRight_Vector3:
+			break; // TODO: Are these array of float??? There's no function.
+
+		// Included to satisfy the linter:
+		case vr::Prop_Invalid:
+		case vr::Prop_Driver_Reserved_01:
+		case vr::Prop_DisplayHiddenArea_Binary_Start:
+		case vr::Prop_DisplayHiddenArea_Binary_End:
+		case vr::Prop_ParentContainer:
+		case vr::Prop_VendorSpecific_Reserved_Start:
+		case vr::Prop_VendorSpecific_Reserved_End:
+		case vr::Prop_TrackedDeviceProperty_Max:
+			return nullptr;
+	}
+
+	return nullptr;
+}
+
 ////////////////////////////////////////////////////////////////
 // Interact with tracking info
 vr::TrackedDeviceIndex_t openvr_data::get_tracked_device_index(Ref<XRPositionalTracker> p_tracker) {

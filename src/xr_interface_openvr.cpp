@@ -28,8 +28,7 @@ void XRInterfaceOpenVR::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("play_area_available"), &XRInterfaceOpenVR::play_area_available);
 	ClassDB::bind_method(D_METHOD("get_play_area"), &XRInterfaceOpenVR::get_play_area);
 
-	ClassDB::bind_method(D_METHOD("get_device_battery_percentage"), &XRInterfaceOpenVR::get_device_battery_percentage);
-	ClassDB::bind_method(D_METHOD("is_device_charging"), &XRInterfaceOpenVR::is_device_charging);
+	ClassDB::bind_method(D_METHOD("get_tracked_device_property", "device_index", "property_id"), &XRInterfaceOpenVR::get_tracked_device_property);
 
 	ClassDB::bind_method(D_METHOD("get_render_model_names"), &XRInterfaceOpenVR::get_render_model_names);
 	ClassDB::bind_method(D_METHOD("load_render_model", "model_name"), &XRInterfaceOpenVR::load_render_model);
@@ -118,40 +117,23 @@ PackedVector3Array XRInterfaceOpenVR::get_play_area() const {
 	return arr;
 }
 
-float XRInterfaceOpenVR::get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index) {
+Variant XRInterfaceOpenVR::get_tracked_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property) {
 	if (ovr == nullptr) {
-		return 0.0;
+		return nullptr;
 	}
 
-	vr::ETrackedPropertyError pError;
-	float battery_percentage = ovr->hmd->GetFloatTrackedDeviceProperty(p_tracked_device_index, vr::Prop_DeviceBatteryPercentage_Float, &pError);
+	vr::ETrackedPropertyError error;
+	Variant out = ovr->get_tracked_device_property(ovr->get_tracked_device_index(p_tracker), p_property, &error);
 
-	if (pError != vr::TrackedProp_Success) {
+	if (error != vr::TrackedProp_Success) {
 		Array arr;
-		arr.push_back(Variant(pError));
-		arr.push_back(String(ovr->hmd->GetPropErrorNameFromEnum(pError)));
-		UtilityFunctions::print(String("Could not get battery percentage, OpenVR error: {0}, {1} ").format(arr));
+		arr.push_back(error);
+		arr.push_back(ovr->hmd->GetPropErrorNameFromEnum(error));
+		UtilityFunctions::print(String("Could not get property, OpenVR error: {0}, {1}").format(arr));
+		return nullptr;
 	}
 
-	return battery_percentage;
-}
-
-bool XRInterfaceOpenVR::is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index) {
-	if (ovr == nullptr) {
-		return false;
-	}
-
-	vr::ETrackedPropertyError pError;
-	bool is_charging = ovr->hmd->GetBoolTrackedDeviceProperty(p_tracked_device_index, vr::Prop_DeviceIsCharging_Bool, &pError);
-
-	if (pError != vr::TrackedProp_Success) {
-		Array arr;
-		arr.push_back(Variant(pError));
-		arr.push_back(String(ovr->hmd->GetPropErrorNameFromEnum(pError)));
-		UtilityFunctions::print(String("Could not get charging state, OpenVR error: {0}, {1} ").format(arr));
-	}
-
-	return is_charging;
+	return out;
 }
 
 Array XRInterfaceOpenVR::get_render_model_names() {

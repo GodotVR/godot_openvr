@@ -44,8 +44,7 @@ public:
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
 
-	float get_device_battery_percentage(vr::TrackedDeviceIndex_t p_tracked_device_index);
-	bool is_device_charging(vr::TrackedDeviceIndex_t p_tracked_device_index);
+	Variant get_tracked_device_property(Ref<XRPositionalTracker> p_tracker, vr::ETrackedDeviceProperty p_property);
 
 	// Functions
 	virtual StringName _get_name() const override;
@@ -76,5 +75,7 @@ public:
 	~XRInterfaceOpenVR();
 };
 } // namespace godot
+
+VARIANT_ENUM_CAST(vr::ETrackedDeviceProperty);
 
 #endif /* !XR_INTERFACE_OPENVR_H */
