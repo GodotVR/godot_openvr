@@ -1148,8 +1148,9 @@ void openvr_data::process_device_actions(tracked_device *p_device, uint64_t p_ms
 					vr::InputDigitalActionData_t action_data;
 					vr::EVRInputError err = vr::VRInput()->GetDigitalActionData(input.handle, &action_data, sizeof(action_data), p_device->source_handle);
 					if (err == vr::VRInputError_None) {
-						bool pressed = action_data.bActive && action_data.bState;
-						p_device->tracker->set_input(input.name, pressed);
+						if (action_data.bActive) {
+							p_device->tracker->set_input(input.name, action_data.bState);
+						}
 					}
 				} break;
 				case IT_FLOAT: {
