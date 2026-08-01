@@ -41,6 +41,9 @@ public:
 	void set_action_set_active(const String p_action_set, const bool p_is_active);
 	bool is_action_set_active(const String p_action_set) const;
 
+	bool is_dashboard_visible();
+	String get_application_key();
+
 	bool play_area_available() const;
 	PackedVector3Array get_play_area() const;
 
@@ -71,6 +74,8 @@ public:
 	Array get_render_model_names();
 	Ref<ArrayMesh> load_render_model(String p_model_name);
 	Array load_render_model_components(String p_model_name);
+
+	PackedFloat32Array get_raw_projection_matrix(uint32_t p_view);
 
 	XRInterfaceOpenVR();
 	~XRInterfaceOpenVR();
